@@ -40,9 +40,22 @@ const legacyAssetMap = new Map([
   ['/assets/veloria-profile.png', '/assets/veloria-profile.webp']
 ]);
 
+const canonicalProjectRoutes = new Map([
+  ['tfc orders tracker', '/work/tfc-orders-tracker/'],
+  ['class tracker tdg', '/work/class-tracker/'],
+  ['tuition class tracker', '/work/class-tracker/'],
+  ['second brain', '/work/second-brain/'],
+  ['banu 2.0', '/work/banu-2/']
+]);
+
 function canonicalAssetUrl(value) {
   const safe = safeUrl(value);
   return legacyAssetMap.get(safe) || safe;
+}
+
+function canonicalProjectUrl(project) {
+  const key = text(project?.title, 160).toLowerCase();
+  return canonicalProjectRoutes.get(key) || project?.url || '';
 }
 
 function email(value) {
@@ -156,7 +169,10 @@ export function publicProjection(master) {
     profile: c.profile,
     career: c.settings.showCareer ? c.career : [],
     metrics: c.metrics,
-    projects: c.projects.filter(x => x.visible).map(({ visible, ...x }) => x),
+    projects: c.projects.filter(x => x.visible).map(({ visible, ...x }) => ({
+      ...x,
+      url: canonicalProjectUrl(x)
+    })),
     dailyGaze: c.dailyGaze.filter(x => x.visible).map(({ visible, downloadable, ...x }) => ({
       ...x,
       downloadable,
