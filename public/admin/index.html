@@ -34,7 +34,9 @@
         <aside class="side-nav" aria-label="Admin sections">
           <button class="nav-item active" data-panel="profilePanel" type="button">Profile</button>
           <button class="nav-item" data-panel="projectsPanel" type="button">Projects</button>
+          <button class="nav-item" data-panel="mediaPanel" type="button">Media</button>
           <button class="nav-item" data-panel="settingsPanel" type="button">Settings</button>
+          <button class="nav-item" data-panel="recoveryPanel" type="button">Recovery</button>
           <button class="nav-item" data-panel="securityPanel" type="button">Security</button>
           <div class="side-note"><span>Publishing model</span><strong>Netlify Blobs + revision history</strong></div>
         </aside>
@@ -69,6 +71,27 @@
             <div class="repeat-list" id="projectEditor"></div>
           </section>
 
+          <section class="panel" id="mediaPanel" hidden>
+            <div class="panel-intro"><p>Upload JPG, PNG or WebP images. The server validates the file, strips metadata and normalizes it to an optimized WebP before storage.</p></div>
+            <div class="media-uploader">
+              <div class="drop-zone" id="dropZone">
+                <input id="mediaFile" type="file" accept="image/jpeg,image/png,image/webp" />
+                <strong>Choose an image</strong>
+                <span>Maximum 4.5 MB · output capped at 4096 × 4096</span>
+              </div>
+              <button class="primary compact" id="uploadMedia" type="button">Upload & optimize</button>
+              <p class="status" id="mediaStatus" role="status"></p>
+            </div>
+            <div class="media-result" id="mediaResult" hidden>
+              <img id="mediaPreview" alt="Uploaded media preview" />
+              <div>
+                <p class="eyebrow">SECURE MEDIA URL</p>
+                <label>Copy into a portrait or gallery URL field<input id="mediaUrl" readonly /></label>
+                <button class="ghost" id="copyMediaUrl" type="button">Copy URL</button>
+              </div>
+            </div>
+          </section>
+
           <section class="panel" id="settingsPanel" hidden>
             <label>Site title<input data-path="settings.siteTitle" maxlength="160" /></label>
             <label>Meta description<textarea data-path="settings.metaDescription" maxlength="500" rows="4"></textarea></label>
@@ -82,12 +105,18 @@
             </div>
           </section>
 
+          <section class="panel" id="recoveryPanel" hidden>
+            <div class="panel-intro"><p>Every publish stores the previous content state. Restoring creates another revision first, so recovery remains reversible.</p><button class="ghost" id="refreshRevisions" type="button">Refresh</button></div>
+            <p class="status" id="revisionStatus" role="status"></p>
+            <div class="revision-list" id="revisionList"></div>
+          </section>
+
           <section class="panel" id="securityPanel" hidden>
             <div class="security-card">
               <div><p class="eyebrow">PASSWORD</p><h3>Rotate administrator password</h3><p>Changing the password revokes every active session. You will need to sign in again.</p></div>
               <form id="passwordForm">
                 <label>Current password<input id="currentPassword" type="password" autocomplete="current-password" required /></label>
-                <label>New password<input id="newPassword" type="password" autocomplete="new-password" required /></label>
+                <label>New password<input id="newPassword" type="password" autocomplete="new-password" required minlength="12" /></label>
                 <button class="primary compact" type="submit">Change password</button>
                 <p class="status" id="passwordStatus" role="status"></p>
               </form>
