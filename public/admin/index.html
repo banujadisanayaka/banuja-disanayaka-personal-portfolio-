@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#090b0f" />
+  <title>Portfolio Admin — Banuja Disanayaka</title>
+  <link rel="stylesheet" href="/admin/admin.css" />
+</head>
+<body>
+  <main class="admin-shell">
+    <section class="auth-card" id="loginView" aria-labelledby="loginTitle">
+      <div class="brand-row"><span class="mark">BD</span><div><strong>Portfolio Control</strong><small>Secure publishing console</small></div></div>
+      <p class="eyebrow">ADMIN / AUTHENTICATION</p>
+      <h1 id="loginTitle">Welcome back.</h1>
+      <p class="lede">Sign in to manage public portfolio content. Credentials never enter the public site bundle.</p>
+      <form id="loginForm" autocomplete="on">
+        <label>Username<input id="username" name="username" type="email" autocomplete="username" required /></label>
+        <label>Password<input id="password" name="password" type="password" autocomplete="current-password" required /></label>
+        <button class="primary" type="submit">Sign in <span>→</span></button>
+        <p class="status" id="loginStatus" role="status"></p>
+      </form>
+    </section>
+
+    <section class="dashboard" id="dashboardView" hidden>
+      <header class="dashboard-head">
+        <div class="brand-row"><span class="mark">BD</span><div><strong>Portfolio Control</strong><small id="sessionUser">Authenticated</small></div></div>
+        <div class="head-actions"><a href="/" target="_blank" rel="noreferrer">Open site ↗</a><button class="ghost" id="logoutButton" type="button">Log out</button></div>
+      </header>
+
+      <div class="dashboard-grid">
+        <aside class="side-nav" aria-label="Admin sections">
+          <button class="nav-item active" data-panel="profilePanel" type="button">Profile</button>
+          <button class="nav-item" data-panel="projectsPanel" type="button">Projects</button>
+          <button class="nav-item" data-panel="settingsPanel" type="button">Settings</button>
+          <button class="nav-item" data-panel="securityPanel" type="button">Security</button>
+          <div class="side-note"><span>Publishing model</span><strong>Netlify Blobs + revision history</strong></div>
+        </aside>
+
+        <div class="workspace">
+          <div class="workspace-top">
+            <div><p class="eyebrow">CONTENT MANAGEMENT</p><h2 id="panelTitle">Profile</h2></div>
+            <div class="publish-actions"><span class="save-state" id="saveState">No unpublished changes</span><button class="primary compact" id="publishButton" type="button" disabled>Publish changes</button></div>
+          </div>
+
+          <section class="panel active" id="profilePanel">
+            <div class="form-grid two">
+              <label>Hero eyebrow<input data-path="profile.heroEyebrow" maxlength="120" /></label>
+              <label>Location<input data-path="profile.location" maxlength="120" /></label>
+              <label>First name<input data-path="profile.firstName" maxlength="60" /></label>
+              <label>Last name<input data-path="profile.lastName" maxlength="60" /></label>
+            </div>
+            <label>Hero statement<textarea data-path="profile.heroLede" maxlength="1000" rows="4"></textarea></label>
+            <label>Roles <small>One per line</small><textarea id="rolesInput" rows="5"></textarea></label>
+            <div class="form-grid two">
+              <label>Hero portrait URL<input data-path="profile.suitImage" inputmode="url" /></label>
+              <label>About portrait URL<input data-path="profile.aboutImage" inputmode="url" /></label>
+              <label>CV URL<input data-path="profile.cvUrl" inputmode="url" /></label>
+              <label>Focus<input data-path="profile.focus" maxlength="240" /></label>
+            </div>
+            <label>About heading<input data-path="profile.aboutHeading" maxlength="500" /></label>
+            <label>About introduction<textarea data-path="profile.aboutIntro" maxlength="3000" rows="6"></textarea></label>
+          </section>
+
+          <section class="panel" id="projectsPanel" hidden>
+            <div class="panel-intro"><p>Projects are ordered exactly as they appear on the public portfolio. Use verified project information only.</p><button class="ghost" id="addProject" type="button">+ Add project</button></div>
+            <div class="repeat-list" id="projectEditor"></div>
+          </section>
+
+          <section class="panel" id="settingsPanel" hidden>
+            <label>Site title<input data-path="settings.siteTitle" maxlength="160" /></label>
+            <label>Meta description<textarea data-path="settings.metaDescription" maxlength="500" rows="4"></textarea></label>
+            <label>Loader text<input data-path="settings.bootText" maxlength="120" /></label>
+            <div class="toggle-grid" id="sectionToggles"></div>
+            <div class="form-grid two">
+              <label>Public email<input data-path="contact.email" type="email" /></label>
+              <label>GitHub URL<input data-path="contact.github" inputmode="url" /></label>
+              <label>WhatsApp Sri Lanka<input data-path="contact.whatsappSriLankaDisplay" /></label>
+              <label>WhatsApp Malaysia<input data-path="contact.whatsappMalaysiaDisplay" /></label>
+            </div>
+          </section>
+
+          <section class="panel" id="securityPanel" hidden>
+            <div class="security-card">
+              <div><p class="eyebrow">PASSWORD</p><h3>Rotate administrator password</h3><p>Changing the password revokes every active session. You will need to sign in again.</p></div>
+              <form id="passwordForm">
+                <label>Current password<input id="currentPassword" type="password" autocomplete="current-password" required /></label>
+                <label>New password<input id="newPassword" type="password" autocomplete="new-password" required /></label>
+                <button class="primary compact" type="submit">Change password</button>
+                <p class="status" id="passwordStatus" role="status"></p>
+              </form>
+            </div>
+            <div class="security-card muted-card"><p class="eyebrow">SESSION POLICY</p><h3>Server-side revocable sessions</h3><p>Admin access uses Secure, HttpOnly, SameSite=Strict cookies with idle and absolute expiry. Authentication state is not stored in localStorage.</p></div>
+          </section>
+
+          <div class="fatal" id="fatalMessage" hidden role="alert"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="/admin/admin.js" defer></script>
+</body>
+</html>
