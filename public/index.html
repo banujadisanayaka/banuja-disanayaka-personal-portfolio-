@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07090d" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Banuja Disanayaka — creative systems builder, graphic designer, photographer and product & operations generalist." />
+  <meta property="og:title" content="Banuja Disanayaka — Creative Systems Builder" />
+  <meta property="og:description" content="Designing visuals. Building products. Making systems work." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <title>Banuja Disanayaka — Creative Systems Builder</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="boot" id="boot" aria-live="polite">
+    <div class="boot-inner">
+      <div class="boot-mark">BD</div>
+      <p class="boot-label" id="bootLabel">INITIALIZING CREATIVE SYSTEMS</p>
+      <div class="boot-track"><span id="bootProgress"></span></div>
+      <div class="boot-meta"><span>VISUAL</span><span>PRODUCT</span><span>SYSTEMS</span><span>PHOTOGRAPHY</span></div>
+    </div>
+  </div>
+
+  <div class="scroll-meter" aria-hidden="true"><span id="scrollMeter"></span></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="pointer-glow" aria-hidden="true"></div>
+  <canvas class="ambient-canvas" id="ambientCanvas" aria-hidden="true"></canvas>
+
+  <header class="topbar" id="topbar">
+    <a class="identity" href="#home" aria-label="Banuja Disanayaka home">
+      <span class="identity-mark">BD</span>
+      <span class="identity-copy">
+        <strong>Banuja Disanayaka</strong>
+        <small>Creative Systems Builder</small>
+      </span>
+    </a>
+
+    <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="navPanel">
+      <span>Menu</span><i></i>
+    </button>
+
+    <nav class="nav-panel" id="navPanel" aria-label="Primary">
+      <a href="#work">Work</a>
+      <a href="#photography">Photography</a>
+      <a href="#ecosystem">VELORIA</a>
+      <a href="#about">About</a>
+      <a href="#experience">Experience</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="home">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-orbit hero-orbit-a" aria-hidden="true"></div>
+      <div class="hero-orbit hero-orbit-b" aria-hidden="true"></div>
+
+      <div class="hero-copy-wrap">
+        <p class="eyebrow" data-bind="profile.heroEyebrow">SRI LANKA · SELECTED WORK 2022—2026</p>
+
+        <h1 class="hero-name" aria-label="Banuja Disanayaka">
+          <span class="solid" data-bind="profile.firstName">BANUJA</span>
+          <span class="outline" data-bind="profile.lastName">DISANAYAKA</span>
+        </h1>
+
+        <div class="hero-axis">
+          <div class="role-stage">
+            <span class="role-prefix">FIELD /</span>
+            <span class="role-word" id="roleWord">DESIGN</span>
+          </div>
+          <p class="hero-lede" data-bind="profile.heroLede">
+            I design visuals, build products and turn operational problems into systems that people can actually use.
+          </p>
+        </div>
+
+        <div class="hero-actions">
+          <a class="pill primary magnetic" href="#work">Explore selected work <span>↘</span></a>
+          <a class="text-link magnetic" href="#about">Meet Banu <span>→</span></a>
+        </div>
+      </div>
+
+      <div class="portrait-stage" id="portraitStage" aria-label="Portrait of Banuja Disanayaka">
+        <div class="portrait-scan" aria-hidden="true"></div>
+        <div class="portrait-placeholder" id="portraitPlaceholder" aria-hidden="true">
+          <span>PORTRAIT<br/>ASSET<br/>SLOT</span>
+        </div>
+        <img id="heroPortrait" alt="Banuja Disanayaka" hidden />
+        <div class="portrait-meta">
+          <span>CREATIVE / SYSTEMS / PRODUCT</span>
+          <span>001</span>
+        </div>
+      </div>
+
+      <div class="hero-footline">
+        <span>Graphic Design</span>
+        <span>Photography</span>
+        <span>Product</span>
+        <span>Operations</span>
+      </div>
+    </section>
+
+    <section class="positioning section-pad">
+      <p class="section-index reveal">00 / POSITIONING</p>
+      <div class="statement reveal">
+        <span>One profile.</span>
+        <strong>Three ways of thinking.</strong>
+        <p>Design taught me to communicate. Operations taught me to execute. Technology taught me to build. The interesting work happens where those worlds meet.</p>
+      </div>
+    </section>
+
+    <section class="work section-pad" id="work">
+      <div class="section-head reveal">
+        <div>
+          <p class="section-index">01 / SELECTED WORK</p>
+          <h2>Systems with a point of view.</h2>
+        </div>
+        <p>Real projects. Real constraints. Built around real-world problems.</p>
+      </div>
+
+      <div class="project-list" id="projectList">
+        <article class="project-card reveal tone-amber" data-project>
+          <div class="project-index">01</div>
+          <div class="project-visual">
+            <div class="wireframe"></div>
+            <div class="visual-number">01</div>
+            <span class="scanline"></span>
+          </div>
+          <div class="project-copy">
+            <p class="project-kicker">OPERATIONS / PRODUCT</p>
+            <h3>TFC Orders Tracker</h3>
+            <p class="project-desc">Turning frontline order complexity into a visible, structured workflow.</p>
+            <p class="project-tags">WORKFLOW DESIGN · ORDER TRACKING · PRODUCT THINKING</p>
+          </div>
+          <a class="project-open" href="https://github.com/banujadisanayaka/TFCORDERSTRACKER" target="_blank" rel="noreferrer">Explore <span>↗</span></a>
+        </article>
+
+        <article class="project-card reveal tone-ice" data-project>
+          <div class="project-index">02</div>
+          <div class="project-visual">
+            <div class="wireframe"></div>
+            <div class="visual-number">02</div>
+            <span class="scanline"></span>
+          </div>
+          <div class="project-copy">
+            <p class="project-kicker">BUSINESS SYSTEMS</p>
+            <h3>Class Tracker TDG</h3>
+            <p class="project-desc">A production-oriented tuition management portal built around real admin workflows.</p>
+            <p class="project-tags">REACT · TYPESCRIPT · NETLIFY · GOOGLE SHEETS</p>
+          </div>
+          <a class="project-open" href="https://github.com/banujadisanayaka/class-tracker-tdg" target="_blank" rel="noreferrer">Explore <span>↗</span></a>
+        </article>
+
+        <article class="project-card reveal tone-violet" data-project>
+          <div class="project-index">03</div>
+          <div class="project-visual">
+            <div class="wireframe"></div>
+            <div class="visual-number">03</div>
+            <span class="scanline"></span>
+          </div>
+          <div class="project-copy">
+            <p class="project-kicker">KNOWLEDGE SYSTEMS</p>
+            <h3>Second Brain</h3>
+            <p class="project-desc">An Android-first knowledge environment designed around capture, relationships and long-horizon thinking.</p>
+            <p class="project-tags">ANDROID · OFFLINE-FIRST · KNOWLEDGE GRAPH · PRODUCT</p>
+          </div>
+          <a class="project-open" href="#contact">Private build <span>↗</span></a>
+        </article>
+
+        <article class="project-card reveal tone-signal" data-project>
+          <div class="project-index">04</div>
+          <div class="project-visual">
+            <div class="wireframe"></div>
+            <div class="visual-number">04</div>
+            <span class="scanline"></span>
+          </div>
+          <div class="project-copy">
+            <p class="project-kicker">EXPERIMENTAL TECHNOLOGY</p>
+            <h3>Banu 2.0</h3>
+            <p class="project-desc">A single-user voice assistant system connecting mobile client, backend tools, memory and context.</p>
+            <p class="project-tags">FASTAPI · FLUTTER · WEBSOCKETS · SYSTEMS</p>
+          </div>
+          <a class="project-open" href="#contact">Private build <span>↗</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="photography section-pad" id="photography">
+      <div class="section-head reveal">
+        <div>
+          <p class="section-index">02 / THE DAILY GAZE</p>
+          <h2>Photography that notices.</h2>
+        </div>
+        <p>Documentary realism. Cinematic colour. Everyday stories.</p>
+      </div>
+
+      <div class="gaze-track reveal" id="gazeTrack">
+        <article class="gaze-card placeholder-photo one"><span>CITY / ARCHITECTURE</span></article>
+        <article class="gaze-card placeholder-photo two"><span>HUMAN STORIES</span></article>
+        <article class="gaze-card placeholder-photo three"><span>NATURE / SCALE</span></article>
+      </div>
+      <div class="gaze-caption reveal">
+        <span>SHOT ON GALAXY S24 ULTRA</span>
+        <a href="#contact">Request full archive <span>↗</span></a>
+      </div>
+    </section>
+
+    <section class="ecosystem section-pad" id="ecosystem">
+      <div class="section-head reveal">
+        <div>
+          <p class="section-index">03 / VELORIA</p>
+          <h2>One ecosystem. Multiple worlds.</h2>
+        </div>
+        <p>Brand architecture built around one master direction: Evolve Beyond.</p>
+      </div>
+
+      <div class="ecosystem-stage reveal">
+        <div class="eco-center">
+          <div class="eco-core">
+            <small>MASTER BRAND</small>
+            <strong>VELORIA</strong>
+            <span>EVOLVE BEYOND</span>
+          </div>
+        </div>
+        <div class="eco-nodes" id="ecoNodes">
+          <article><strong>The Daily Gaze</strong><span>Studio</span></article>
+          <article><strong>Clouds</strong><span>Publishing</span></article>
+          <article><strong>Aura</strong><span>Mind</span></article>
+          <article><strong>The Grid</strong><span>Tech</span></article>
+          <article><strong>Roots</strong><span>Learn</span></article>
+          <article><strong>The Collection</strong><span>Store</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="about section-pad" id="about">
+      <div class="about-layout">
+        <div class="about-title reveal">
+          <p class="section-index">04 / ABOUT</p>
+          <h2 data-bind="profile.aboutHeading">Not built for one box.</h2>
+        </div>
+
+        <div class="about-copy reveal">
+          <p class="about-lead" data-bind="profile.aboutIntro">
+            My work sits between creative precision, systems thinking and operational ownership.
+          </p>
+          <p>I have led day-to-day operations, built brand systems, designed digital products and documented the world through photography. That range is not a side effect — it is how I approach problems.</p>
+        </div>
+      </div>
+
+      <div class="capability-loop" aria-label="Capabilities">
+        <div class="capability-track">
+          <span>Graphic Design <i>✦</i></span>
+          <span>Brand Identity <i>✦</i></span>
+          <span>Photography <i>✦</i></span>
+          <span>Product Thinking <i>✦</i></span>
+          <span>Operational Systems <i>✦</i></span>
+          <span>UX / UI <i>✦</i></span>
+          <span>Creative Direction <i>✦</i></span>
+          <span>Workflow Design <i>✦</i></span>
+          <span>Graphic Design <i>✦</i></span>
+          <span>Brand Identity <i>✦</i></span>
+          <span>Photography <i>✦</i></span>
+          <span>Product Thinking <i>✦</i></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="experience section-pad" id="experience">
+      <div class="section-head reveal">
+        <div>
+          <p class="section-index">05 / EXPERIENCE</p>
+          <h2>Built through doing.</h2>
+        </div>
+        <p>Creative craft backed by operational ownership.</p>
+      </div>
+
+      <div class="metrics reveal" id="metrics">
+        <div><strong>4+</strong><span>YEARS COMBINED EXPERIENCE</span></div>
+        <div><strong>8</strong><span>TEAM MEMBERS COORDINATED</span></div>
+        <div><strong>25%</strong><span>REPORTED ENGAGEMENT GROWTH</span></div>
+        <div><strong>40%</strong><span>REPORTED WEB TRAFFIC GROWTH</span></div>
+      </div>
+
+      <div class="timeline reveal" id="careerTimeline">
+        <article><span>2024—2026</span><div><h3>Outlet PIC / Operations Executive</h3><p>The Food Company · Ocean Flair Group · Kuala Lumpur</p></div></article>
+        <article><span>2023—2024</span><div><h3>Senior Graphic Designer</h3><p>Hua Seng Advertising · Subang Jaya</p></div></article>
+        <article><span>2023</span><div><h3>Project Assistant</h3><p>Sunny Aircon · Kuala Lumpur</p></div></article>
+        <article><span>2022—2023</span><div><h3>Graphic & Logo Designer</h3><p>WFI Education · Multitasker Logo Designing · Sri Lanka</p></div></article>
+      </div>
+    </section>
+
+    <section class="contact section-pad" id="contact">
+      <p class="section-index reveal">06 / CONTACT</p>
+      <div class="contact-title reveal">
+        <span>LET'S BUILD</span>
+        <strong>SOMETHING WORTH</strong>
+        <strong class="outline">REMEMBERING.</strong>
+      </div>
+
+      <div class="contact-grid reveal">
+        <a id="emailLink" href="mailto:banuja2005@gmail.com"><small>Email</small><strong>banuja2005@gmail.com</strong><span>↗</span></a>
+        <a id="waSriLink" href="https://wa.me/94760313533" target="_blank" rel="noreferrer"><small>WhatsApp · Sri Lanka</small><strong>+94 76 031 3533</strong><span>↗</span></a>
+        <a id="waMyLink" href="https://wa.me/60172240328" target="_blank" rel="noreferrer"><small>WhatsApp · Malaysia</small><strong>+60 17 224 0328</strong><span>↗</span></a>
+        <a id="githubLink" href="https://github.com/banujadisanayaka" target="_blank" rel="noreferrer"><small>GitHub</small><strong>Selected builds & code</strong><span>↗</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© 2026 Banuja Disanayaka</span>
+    <span>Design · Systems · Photography · Product</span>
+    <a href="#home">Back to top ↑</a>
+  </footer>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
