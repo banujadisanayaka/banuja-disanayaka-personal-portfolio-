@@ -20,7 +20,20 @@ export default async (request) => {
   if (!session) return json({ ok: false, message: 'Unauthorized.' }, 401);
 
   try {
-    const { currentPassword, newPassword } = await request.json();
+    const payload = await request.json();
+    const currentPassword = payload?.currentPassword;
+    const newPassword = payload?.newPassword;
+    if (
+      typeof currentPassword !== 'string' ||
+      typeof newPassword !== 'string' ||
+      currentPassword.length < 1 ||
+      currentPassword.length > 128 ||
+      newPassword.length < 1 ||
+      newPassword.length > 128
+    ) {
+      return json({ ok: false, message: 'Invalid request.' }, 400);
+    }
+
     const current = await verifyPassword(expectedUser(), currentPassword);
     if (!current.ok) {
       await audit(request, 'password.change.failure', { details: { reason: 'current-password' } });
