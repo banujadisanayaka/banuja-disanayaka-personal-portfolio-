@@ -1,5 +1,5 @@
 import { json, requireJson, requireSameOrigin, requestBodyTooLarge } from '../../server/http.mjs';
-import { contentVersion, listRevisions, restoreRevision } from '../../server/cms.mjs';
+import { listRevisions, restoreRevision } from '../../server/cms.mjs';
 import { audit, verifySession } from '../../server/security.mjs';
 
 export default async (request) => {
@@ -19,12 +19,31 @@ export default async (request) => {
     if (!requireSameOrigin(request)) return json({ ok: false, message: 'Request rejected.' }, 403);
     if (!requireJson(request)) return json({ ok: false, message: 'Invalid request.' }, 415);
     if (requestBodyTooLarge(request, 8 * 1024)) return json({ ok: false, message: 'Invalid request.' }, 413);
+
     try {
-      const { key } = await request.json();
-      const content = await restoreRevision(key);
+      const payload = await request.json();
+      const key = payload?.key;
+      const baseVersion = String(payload?.baseVersion || '');
+      if (!baseVersion) {
+        return json({
+          ok: false,
+          code: 'VERSION_REQUIRED',
+          message: 'Reload the editor before restoring. A content version is required.'
+        }, 428);
+      }
+
+      const restored = await restoreRevision(key, { baseVersion });
       await audit(request, 'content.restore', { details: { revision: String(key || '').slice(0, 180) } });
-      return json({ ok: true, content, version: contentVersion(content) });
-    } catch {
+      return json({ ok: true, content: restored.content, version: restored.version });
+    } catch (error) {
+      if (error?.code === 'VERSION_CONFLICT') {
+        return json({
+          ok: false,
+          code: 'VERSION_CONFLICT',
+          message: 'Portfolio content changed before this restore could be applied. Reload and try again.',
+          version: error.version || 'unknown'
+        }, 409);
+      }
       return json({ ok: false, message: 'Unable to restore that revision.' }, 400);
     }
   }
