@@ -17,7 +17,7 @@
 
   function setText(selector, value) {
     const el = qs(selector);
-    if (el && typeof value === "string" && value.trim()) el.textContent = value.trim();
+    if (el && typeof value === "string") el.textContent = value.trim();
   }
 
   function safeExternalAnchor(anchor, url) {
@@ -116,7 +116,7 @@
     };
 
     Object.entries(bindings).forEach(([key, value]) => {
-      if (!value) return;
+      if (typeof value !== "string") return;
       qsa(`[data-bind="${key}"]`).forEach(el => { el.textContent = value; });
     });
 
@@ -136,17 +136,29 @@
 
     const aboutPortrait = qs("#aboutPortrait");
     const aboutPortraitFrame = qs("#aboutPortraitFrame");
-    if (aboutPortrait && aboutPortraitFrame && profile.aboutImage) {
-      aboutPortrait.onload = () => { aboutPortraitFrame.hidden = false; };
-      aboutPortrait.onerror = () => { aboutPortraitFrame.hidden = true; };
-      aboutPortrait.src = profile.aboutImage;
+    if (aboutPortrait && aboutPortraitFrame) {
+      aboutPortraitFrame.hidden = true;
+      if (profile.aboutImage) {
+        aboutPortrait.onload = () => { aboutPortraitFrame.hidden = false; };
+        aboutPortrait.onerror = () => { aboutPortraitFrame.hidden = true; };
+        aboutPortrait.src = profile.aboutImage;
+      } else {
+        aboutPortrait.removeAttribute("src");
+      }
     }
 
+    const aboutSupport = qs("#aboutSupport");
+    setText("#aboutCardTitle", profile.aboutCardTitle || "");
+    setText("#aboutCardBody", profile.aboutCardBody || "");
+    if (aboutSupport) aboutSupport.hidden = !(profile.aboutCardTitle || profile.aboutCardBody);
+
     const portraitUrl = profile.suitImage || profile.aboutImage;
-    if (portraitUrl) {
-      const img = qs("#heroPortrait");
-      const placeholder = qs("#portraitPlaceholder");
-      if (img) {
+    const img = qs("#heroPortrait");
+    const placeholder = qs("#portraitPlaceholder");
+    if (img) {
+      img.hidden = true;
+      if (placeholder) placeholder.hidden = false;
+      if (portraitUrl) {
         img.onload = () => {
           img.hidden = false;
           if (placeholder) placeholder.hidden = true;
@@ -156,18 +168,17 @@
           if (placeholder) placeholder.hidden = false;
         };
         img.src = portraitUrl;
+      } else {
+        img.removeAttribute("src");
       }
     }
 
     if (content.settings) {
-      if (content.settings.siteTitle) document.title = content.settings.siteTitle;
-      if (content.settings.metaDescription) {
-        const meta = qs('meta[name="description"]');
-        if (meta) meta.setAttribute("content", content.settings.metaDescription);
-      }
-      if (content.settings.bootText) setText("#bootLabel", content.settings.bootText);
-      if (content.settings.footerLeft) setText("#footerLeft", content.settings.footerLeft);
-      if (content.settings.footerRight) setText("#footerRight", content.settings.footerRight);
+      setText("#bootLabel", content.settings.bootText || "");
+      setText("#footerLeft", content.settings.footerLeft || "");
+      setText("#footerRight", content.settings.footerRight || "");
+      const archive = qs("#gazeArchiveLink");
+      if (archive) safeExternalAnchor(archive, content.settings.dailyGazeArchive || "#contact");
     }
   }
 
@@ -223,7 +234,7 @@
   }
 
   function applyProjects(content) {
-    if (!content || !Array.isArray(content.projects) || !content.projects.length) return;
+    if (!content || !Array.isArray(content.projects)) return;
     const list = qs("#projectList");
     if (!list) return;
     list.replaceChildren(...content.projects.slice(0, 8).map(buildProject));
@@ -237,10 +248,23 @@
 
     if (item.preview) {
       const img = document.createElement("img");
-      img.loading = index < 2 ? "eager" : "lazy";
+      img.loading = index === 0 ? "eager" : "lazy";
       img.decoding = "async";
       img.alt = item.alt || item.title || "The Daily Gaze photograph";
+      img.width = 1000;
+      img.height = 1250;
+      img.sizes = "(max-width: 650px) 86vw, 34vw";
       img.src = item.preview;
+      try {
+        const previewUrl = new URL(item.preview, location.origin);
+        if (previewUrl.hostname === "drive.google.com" && previewUrl.pathname === "/thumbnail") {
+          const id = previewUrl.searchParams.get("id");
+          if (id) {
+            img.src = `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1000`;
+            img.srcset = `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w600 600w, https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1000 1000w`;
+          }
+        }
+      } catch {}
       article.append(img);
     } else {
       article.classList.add("placeholder-photo", ["one", "two", "three"][index % 3]);
@@ -264,14 +288,14 @@
   }
 
   function applyDailyGaze(content) {
-    if (!content || !Array.isArray(content.dailyGaze) || !content.dailyGaze.length) return;
+    if (!content || !Array.isArray(content.dailyGaze)) return;
     const track = qs("#gazeTrack");
     if (!track) return;
     track.replaceChildren(...content.dailyGaze.slice(0, 6).map(buildGazeCard));
   }
 
   function applyEcosystem(content) {
-    if (!content || !Array.isArray(content.ecosystem) || !content.ecosystem.length) return;
+    if (!content || !Array.isArray(content.ecosystem)) return;
     const nodes = qs("#ecoNodes");
     if (!nodes) return;
 
@@ -300,7 +324,7 @@
   }
 
   function applyCareer(content) {
-    if (content && Array.isArray(content.metrics) && content.metrics.length) {
+    if (content && Array.isArray(content.metrics)) {
       const metrics = qs("#metrics");
       if (metrics) {
         const cells = content.metrics.slice(0, 4).map(item => {
@@ -316,7 +340,7 @@
       }
     }
 
-    if (content && Array.isArray(content.career) && content.career.length) {
+    if (content && Array.isArray(content.career)) {
       const timeline = qs("#careerTimeline");
       if (timeline) {
         const rows = content.career.slice(0, 8).map(item => {
@@ -394,11 +418,10 @@
     };
 
     Object.entries(mapping).forEach(([key, selector]) => {
-      if (settings[key] === false) {
-        const section = qs(selector);
-        if (section) section.hidden = true;
-        qsa(`a[href="${selector}"]`).forEach(a => a.hidden = true);
-      }
+      const hidden = settings[key] === false;
+      const section = qs(selector);
+      if (section) section.hidden = hidden;
+      qsa(`a[href="${selector}"]`).forEach(a => { a.hidden = hidden; });
     });
   }
 
