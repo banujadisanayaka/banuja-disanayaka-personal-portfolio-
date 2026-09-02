@@ -5,6 +5,9 @@ export function json(body, status = 200, extraHeaders = {}) {
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store, max-age=0',
       'x-content-type-options': 'nosniff',
+      'x-robots-tag': 'noindex, nofollow, noarchive',
+      'referrer-policy': 'no-referrer',
+      'cross-origin-resource-policy': 'same-origin',
       ...extraHeaders
     }
   });
