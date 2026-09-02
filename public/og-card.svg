@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Banuja Disanayaka — Creative Systems Builder</title>
+  <desc id="desc">Portfolio social preview artwork for Banuja Disanayaka.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07090d"/>
+      <stop offset="0.55" stop-color="#0d1219"/>
+      <stop offset="1" stop-color="#111a24"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="75%" cy="25%" r="65%">
+      <stop offset="0" stop-color="#c9ff6b" stop-opacity="0.24"/>
+      <stop offset="0.45" stop-color="#70d6ff" stop-opacity="0.09"/>
+      <stop offset="1" stop-color="#07090d" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="28"/></filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <circle cx="980" cy="118" r="145" fill="#baff66" opacity="0.08" filter="url(#soft)"/>
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.09">
+    <path d="M0 126h1200M0 252h1200M0 378h1200M0 504h1200"/>
+    <path d="M200 0v630M400 0v630M600 0v630M800 0v630M1000 0v630"/>
+  </g>
+  <g transform="translate(80 76)">
+    <rect width="88" height="88" rx="22" fill="#f2f6ef"/>
+    <text x="44" y="58" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="700" fill="#07090d">BD</text>
+  </g>
+  <text x="80" y="265" font-family="Arial,Helvetica,sans-serif" font-size="68" font-weight="700" fill="#f5f7f2">Banuja Disanayaka</text>
+  <text x="80" y="332" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="600" fill="#c9ff6b">Creative Systems Builder</text>
+  <text x="80" y="410" font-family="Arial,Helvetica,sans-serif" font-size="28" fill="#c6ccd4">Designing visuals. Building products.</text>
+  <text x="80" y="450" font-family="Arial,Helvetica,sans-serif" font-size="28" fill="#c6ccd4">Making systems work.</text>
+  <g transform="translate(80 526)" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" letter-spacing="2" fill="#9ba5af">
+    <text x="0" y="0">DESIGN</text><text x="145" y="0">PRODUCT</text><text x="315" y="0">SYSTEMS</text><text x="490" y="0">PHOTOGRAPHY</text>
+  </g>
+  <path d="M80 487h760" stroke="#ffffff" stroke-opacity="0.16"/>
+</svg>
