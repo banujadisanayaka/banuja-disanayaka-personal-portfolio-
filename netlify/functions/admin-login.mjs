@@ -17,7 +17,20 @@ export default async (request) => {
   if (requestBodyTooLarge(request, 8 * 1024)) return json({ authorized: false, message: 'Invalid request.' }, 413);
 
   try {
-    const { username, password } = await request.json();
+    const payload = await request.json();
+    const username = payload?.username;
+    const password = payload?.password;
+    if (
+      typeof username !== 'string' ||
+      typeof password !== 'string' ||
+      !username.trim() ||
+      username.length > 254 ||
+      password.length < 1 ||
+      password.length > 128
+    ) {
+      return json({ authorized: false, message: 'Invalid request.' }, 400);
+    }
+
     const state = await checkLoginRateLimit(request, username);
     if (!state.allowed) {
       await audit(request, 'auth.lockout', { actor: 'anonymous', details: { retryAfter: state.retryAfter } });
