@@ -252,7 +252,7 @@
       const anchor = document.createElement("a");
       anchor.href = item.download;
       anchor.target = "_blank";
-      anchor.rel = "noreferrer";
+      anchor.rel = "noopener noreferrer";
       anchor.setAttribute("aria-label", `Open ${item.title || "photograph"}`);
       anchor.style.position = "absolute";
       anchor.style.inset = "0";
@@ -473,37 +473,93 @@
   function initMenu() {
     const button = qs("#menuToggle");
     const panel = qs("#navPanel");
+    const main = qs("#main");
+    const footer = qs(".footer");
     if (!button || !panel) return;
 
-    const close = () => {
+    const focusable = () => qsa('a[href]:not([hidden]),button:not([disabled]),[tabindex]:not([tabindex="-1"])', panel)
+      .filter(el => !el.hidden && el.getClientRects().length);
+
+    const setBackgroundInert = value => {
+      [main, footer].filter(Boolean).forEach(el => {
+        if (value) el.setAttribute("inert", "");
+        else el.removeAttribute("inert");
+      });
+    };
+
+    const close = ({ restoreFocus = true } = {}) => {
+      if (button.getAttribute("aria-expanded") !== "true") return;
       button.setAttribute("aria-expanded", "false");
       panel.classList.remove("is-open");
+      panel.removeAttribute("aria-modal");
       document.body.classList.remove("menu-open");
+      setBackgroundInert(false);
       const label = qs("span", button);
       if (label) label.textContent = "Menu";
+      if (restoreFocus) button.focus({ preventScroll: true });
+    };
+
+    const open = () => {
+      button.setAttribute("aria-expanded", "true");
+      panel.classList.add("is-open");
+      panel.setAttribute("aria-modal", "true");
+      document.body.classList.add("menu-open");
+      setBackgroundInert(true);
+      const label = qs("span", button);
+      if (label) label.textContent = "Close";
+      requestAnimationFrame(() => focusable()[0]?.focus({ preventScroll: true }));
     };
 
     button.addEventListener("click", () => {
-      const open = button.getAttribute("aria-expanded") === "true";
-      if (open) return close();
-      button.setAttribute("aria-expanded", "true");
-      panel.classList.add("is-open");
-      document.body.classList.add("menu-open");
-      const label = qs("span", button);
-      if (label) label.textContent = "Close";
+      const isOpen = button.getAttribute("aria-expanded") === "true";
+      if (isOpen) close();
+      else open();
     });
 
-    qsa("a", panel).forEach(a => a.addEventListener("click", close));
+    qsa("a", panel).forEach(a => a.addEventListener("click", () => close({ restoreFocus: false })));
     window.addEventListener("keydown", event => {
-      if (event.key === "Escape") close();
+      if (button.getAttribute("aria-expanded") !== "true") return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) {
+        event.preventDefault();
+        button.focus({ preventScroll: true });
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     });
+
+    const desktopQuery = window.matchMedia("(min-width: 981px)");
+    const resetForDesktop = event => {
+      if (event.matches) close({ restoreFocus: false });
+    };
+    desktopQuery.addEventListener?.("change", resetForDesktop);
   }
 
   function initPointer() {
-    if (coarsePointer) return;
+    if (coarsePointer || reducedMotion) return;
 
     const portrait = qs("#portraitStage");
-    window.addEventListener("pointermove", event => {
+    let pointerFrame = 0;
+    let lastEvent = null;
+
+    const renderPointer = () => {
+      pointerFrame = 0;
+      const event = lastEvent;
+      if (!event) return;
       document.documentElement.style.setProperty("--mx", event.clientX + "px");
       document.documentElement.style.setProperty("--my", event.clientY + "px");
 
@@ -514,6 +570,11 @@
         portrait.style.setProperty("--px", px.toFixed(3));
         portrait.style.setProperty("--py", py.toFixed(3));
       }
+    };
+
+    window.addEventListener("pointermove", event => {
+      lastEvent = event;
+      if (!pointerFrame) pointerFrame = requestAnimationFrame(renderPointer);
     }, { passive: true });
 
     qsa(".magnetic").forEach(el => {
