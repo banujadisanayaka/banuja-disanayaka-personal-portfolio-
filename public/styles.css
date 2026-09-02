@@ -18,7 +18,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;background:var(--bg)}
+html{scroll-behavior:smooth;scroll-padding-top:96px;background:var(--bg)}
 body{
   margin:0;
   min-width:320px;
@@ -35,7 +35,7 @@ button{font:inherit;color:inherit}
 img{display:block;max-width:100%}
 ::selection{background:var(--ink);color:var(--bg)}
 .skip-link{
-  position:fixed;z-index:9999;left:14px;top:14px;transform:translateY(-170%);
+  position:fixed;z-index:9999;left:max(14px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));transform:translateY(-170%);
   background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:99px
 }
 .skip-link:focus{transform:none}
@@ -67,7 +67,7 @@ img{display:block;max-width:100%}
 
 .topbar{
   position:fixed;z-index:120;left:0;top:0;width:100%;display:flex;align-items:center;justify-content:space-between;
-  padding:21px clamp(18px,3.3vw,48px);backdrop-filter:blur(18px);
+  padding-top:max(21px,env(safe-area-inset-top));padding-right:max(clamp(18px,3.3vw,48px),env(safe-area-inset-right));padding-bottom:21px;padding-left:max(clamp(18px,3.3vw,48px),env(safe-area-inset-left));backdrop-filter:blur(18px);
   background:linear-gradient(180deg,rgba(7,9,13,.85),rgba(7,9,13,0));transition:transform .4s var(--ease)
 }
 .identity{display:flex;align-items:center;gap:12px;position:relative;z-index:5}
@@ -260,14 +260,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offs
   .hero-actions{flex-direction:column;align-items:stretch;gap:18px}
   .pill{width:100%}
   .section-head{align-items:flex-start;flex-direction:column;margin-bottom:34px}
-  .section-head h2,.about-title h2{font-size:50px}
+  .section-head h2,.about-title h2{font-size:clamp(42px,13vw,50px)}
   .project-card{padding:20px;min-height:auto;border-radius:20px}
   .project-index{left:20px}
   .project-visual{min-height:300px}
-  .project-copy h3{font-size:48px}
+  .project-copy h3{font-size:clamp(42px,13vw,48px)}
   .project-open{right:20px}
-  .gaze-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}
-  .gaze-card{min-width:82vw;min-height:480px;scroll-snap-align:center}
+  .gaze-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;overscroll-behavior-inline:contain}
+  .gaze-card{min-width:82vw;min-height:min(480px,68svh);scroll-snap-align:center}
   .ecosystem-stage{min-height:820px}
   .eco-core{width:220px}
   .eco-nodes article{min-width:150px;max-width:45%;padding:12px}
@@ -281,12 +281,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offs
   .metrics>div{min-height:155px;border-right:0;border-bottom:1px solid var(--line)}
   .metrics>div:last-child{border-bottom:0}
   .timeline article{grid-template-columns:1fr;gap:9px}
+  .contact{min-height:auto}
+  .contact-title{font-size:clamp(48px,16vw,84px);margin-bottom:52px}
   .contact-grid{grid-template-columns:1fr}
   .contact-grid a:nth-child(odd),.contact-grid a:nth-child(even){padding-inline:0;border-right:0}
-  .footer{flex-direction:column}
+  .footer{flex-direction:column;padding-bottom:max(40px,calc(24px + env(safe-area-inset-bottom)))}
   .pointer-glow{display:none}
 }
-@media (hover:none){.pointer-glow{display:none}}
+@media (hover:none){.pointer-glow{display:none}.gaze-card:hover img{transform:none}}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
@@ -320,7 +322,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offs
   .contact-grid strong{overflow-wrap:anywhere}
 }
 
-
 .hero-profile-meta{
   margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;
   color:#858b94;font-size:12px;line-height:1.5
@@ -332,3 +333,43 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offs
   border-radius:22px;overflow:hidden;background:#0d1015
 }
 .about-portrait-frame img{width:100%;height:100%;object-fit:cover}
+
+/* Rendering and viewport resilience */
+.work,.photography,.ecosystem,.about,.experience,.contact{content-visibility:auto;contain-intrinsic-size:auto 900px}
+@media (orientation:landscape) and (max-height:600px) and (min-width:651px){
+  .hero{
+    min-height:auto;grid-template-columns:minmax(0,1.2fr) minmax(210px,.5fr);align-items:center;
+    gap:24px;padding:96px max(24px,env(safe-area-inset-left)) 28px max(24px,env(safe-area-inset-left));overflow:hidden
+  }
+  .hero-name{font-size:clamp(48px,8vw,90px)}
+  .hero-axis{grid-template-columns:minmax(150px,.65fr) 1fr;margin-top:24px;gap:18px}
+  .hero-lede{font-size:15px;line-height:1.45}
+  .hero-actions{margin-top:22px}
+  .portrait-stage{width:min(250px,30vw);max-height:68vh;justify-self:end;margin-top:0;aspect-ratio:.82}
+  .hero-footline{grid-column:1/-1;position:relative;left:auto;right:auto;bottom:auto;margin-top:8px}
+  .hero-profile-meta{margin-top:14px}
+}
+@media (max-width:480px){
+  .section-pad{width:min(100% - 32px,1480px);padding:78px 0}
+  .hero{padding-inline:16px}
+  .hero-name{font-size:clamp(54px,19vw,88px)}
+  .ecosystem-stage{min-height:0;padding:250px 12px 12px;overflow:visible}
+  .eco-center{inset:0 0 auto;height:238px}
+  .eco-core{width:190px}
+  .eco-nodes{position:relative;inset:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .eco-nodes article,.eco-nodes article:nth-child(n){position:relative;inset:auto;min-width:0;max-width:none;width:auto;padding:12px}
+  .contact-grid strong{font-size:clamp(15px,4.6vw,20px)}
+  .gaze-card{min-width:86vw;min-height:min(440px,64svh)}
+}
+@media (max-width:370px){
+  .boot-meta{display:grid;grid-template-columns:1fr 1fr}
+  .eco-nodes{grid-template-columns:1fr}
+  .ecosystem-stage{padding-top:230px}
+  .hero-actions{gap:12px}
+}
+@media (forced-colors:active){
+  .outline{color:CanvasText;-webkit-text-stroke:0}
+  .project-card,.ecosystem-stage,.metrics,.about-portrait-frame{border:1px solid CanvasText}
+  a:focus-visible,button:focus-visible{outline:3px solid Highlight}
+  .grain,.pointer-glow,.ambient-canvas,.portrait-scan{display:none}
+}
