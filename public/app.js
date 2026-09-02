@@ -473,38 +473,52 @@
   function initMenu() {
     const button = qs("#menuToggle");
     const panel = qs("#navPanel");
+    const identity = qs(".identity");
     const main = qs("#main");
     const footer = qs(".footer");
     if (!button || !panel) return;
 
+    const desktopQuery = window.matchMedia("(min-width: 981px)");
     const focusable = () => qsa('a[href]:not([hidden]),button:not([disabled]),[tabindex]:not([tabindex="-1"])', panel)
       .filter(el => !el.hidden && el.getClientRects().length);
 
-    const setBackgroundInert = value => {
-      [main, footer].filter(Boolean).forEach(el => {
+    const setInert = (elements, value) => {
+      elements.filter(Boolean).forEach(el => {
         if (value) el.setAttribute("inert", "");
         else el.removeAttribute("inert");
       });
     };
 
+    const setPanelClosedState = () => {
+      if (desktopQuery.matches) {
+        panel.removeAttribute("inert");
+        panel.removeAttribute("aria-hidden");
+      } else {
+        panel.setAttribute("inert", "");
+        panel.setAttribute("aria-hidden", "true");
+      }
+    };
+
     const close = ({ restoreFocus = true } = {}) => {
-      if (button.getAttribute("aria-expanded") !== "true") return;
+      const wasOpen = button.getAttribute("aria-expanded") === "true";
       button.setAttribute("aria-expanded", "false");
       panel.classList.remove("is-open");
-      panel.removeAttribute("aria-modal");
       document.body.classList.remove("menu-open");
-      setBackgroundInert(false);
+      setInert([identity, main, footer], false);
+      setPanelClosedState();
       const label = qs("span", button);
       if (label) label.textContent = "Menu";
-      if (restoreFocus) button.focus({ preventScroll: true });
+      if (wasOpen && restoreFocus) button.focus({ preventScroll: true });
     };
 
     const open = () => {
+      if (desktopQuery.matches) return;
       button.setAttribute("aria-expanded", "true");
+      panel.removeAttribute("inert");
+      panel.removeAttribute("aria-hidden");
       panel.classList.add("is-open");
-      panel.setAttribute("aria-modal", "true");
       document.body.classList.add("menu-open");
-      setBackgroundInert(true);
+      setInert([identity, main, footer], true);
       const label = qs("span", button);
       if (label) label.textContent = "Close";
       requestAnimationFrame(() => focusable()[0]?.focus({ preventScroll: true }));
@@ -542,11 +556,12 @@
       }
     });
 
-    const desktopQuery = window.matchMedia("(min-width: 981px)");
-    const resetForDesktop = event => {
-      if (event.matches) close({ restoreFocus: false });
+    const syncMode = () => {
+      if (desktopQuery.matches) close({ restoreFocus: false });
+      else setPanelClosedState();
     };
-    desktopQuery.addEventListener?.("change", resetForDesktop);
+    desktopQuery.addEventListener?.("change", syncMode);
+    syncMode();
   }
 
   function initPointer() {
@@ -639,7 +654,8 @@
     let height = 0;
     let dpr = 1;
     let frame = 0;
-    let running = true;
+    let pageVisible = !document.hidden;
+    let heroActive = true;
 
     const particles = Array.from({ length: coarsePointer ? 18 : 34 }, (_, i) => ({
       x: Math.random(),
@@ -661,12 +677,14 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
+    const schedule = () => {
+      if (frame || !pageVisible || !heroActive) return;
+      frame = requestAnimationFrame(draw);
+    };
+
     function draw(time) {
-      if (!running) return;
-      if (!state.heroVisible) {
-        frame = requestAnimationFrame(draw);
-        return;
-      }
+      frame = 0;
+      if (!pageVisible || !heroActive) return;
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "rgba(235,226,210,.36)";
 
@@ -681,18 +699,35 @@
         ctx.fill();
       });
 
-      frame = requestAnimationFrame(draw);
+      schedule();
     }
 
+    const stop = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+    };
+
     document.addEventListener("visibilitychange", () => {
-      running = !document.hidden;
-      if (running) frame = requestAnimationFrame(draw);
-      else cancelAnimationFrame(frame);
+      pageVisible = !document.hidden;
+      if (pageVisible) schedule();
+      else stop();
     });
+
+    if ("IntersectionObserver" in window) {
+      const hero = qs("#home");
+      if (hero) {
+        const observer = new IntersectionObserver(([entry]) => {
+          heroActive = Boolean(entry?.isIntersecting);
+          if (heroActive) schedule();
+          else stop();
+        }, { threshold: 0.01 });
+        observer.observe(hero);
+      }
+    }
 
     window.addEventListener("resize", resize, { passive: true });
     resize();
-    frame = requestAnimationFrame(draw);
+    schedule();
   }
 
   async function boot() {
