@@ -11,11 +11,11 @@ function isProduction() {
 
 export function blobStore(name, { strong = false } = {}) {
   if (isProduction()) {
-    return strong ? getStore(name, { consistency: 'strong' }) : getStore(name);
+    return strong ? getStore({ name, consistency: 'strong' }) : getStore(name);
   }
   return getDeployStore(name);
 }
 
 export const cmsStore = () => blobStore('banuja-cms', { strong: true });
-export const mediaStore = () => blobStore('banuja-media');
+export const mediaStore = () => blobStore('banuja-media', { strong: true });
 export const securityStore = () => blobStore('banuja-security', { strong: true });
