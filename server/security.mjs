@@ -14,13 +14,14 @@ const AUDIT_PREFIX = 'audit/';
 
 function envRequired(name) {
   const value = String(globalThis.Netlify?.env?.get?.(name) || '').trim();
-  if (!value) throw new Error(\`Missing required security configuration: \${name}\`);
+  if (!value) throw new Error(`Missing required security configuration: ${name}`);
   return value;
 }
 
 function encodeB64Url(value) {
   return Buffer.from(value).toString('base64url');
 }
+
 function decodeB64Url(value = '') {
   try { return Buffer.from(value, 'base64url'); } catch { return Buffer.alloc(0); }
 }
@@ -34,7 +35,7 @@ function sessionPepper() { return envRequired('ADMIN_SESSION_PEPPER'); }
 function rateSecret() { return envRequired('RATE_LIMIT_SECRET'); }
 
 async function derive(password, salt) {
-  const material = \`\${String(password || '')}\\u0000\${pepper()}\`;
+  const material = `${String(password || '')}\u0000${pepper()}`;
   return Buffer.from(await scrypt(material, salt, 64, { N: 32768, r: 8, p: 1, maxmem: 128 * 1024 * 1024 }));
 }
 
@@ -46,7 +47,7 @@ export function passwordPolicy(password) {
   if (value.length > 128) reasons.push('Password is too long.');
   if (!/[a-z]/.test(value)) reasons.push('Add a lowercase letter.');
   if (!/[A-Z]/.test(value)) reasons.push('Add an uppercase letter.');
-  if (!/\\d/.test(value)) reasons.push('Add a number.');
+  if (!/\d/.test(value)) reasons.push('Add a number.');
   if (!/[^A-Za-z0-9]/.test(value)) reasons.push('Add a symbol.');
   if (local && value.toLowerCase().includes(local.toLowerCase())) reasons.push('Do not include the username.');
   if (/(password|qwerty|123456|letmein|admin)/i.test(value)) reasons.push('Choose a less predictable password.');
@@ -119,7 +120,7 @@ function parseCookies(header = '') {
 
 function sessionKey(token) {
   const digest = crypto.createHmac('sha256', sessionPepper()).update(token).digest('base64url');
-  return \`\${SESSION_PREFIX}\${digest}\`;
+  return `${SESSION_PREFIX}${digest}`;
 }
 
 function uaHash(request) {
@@ -143,11 +144,11 @@ export async function createSession(request, { mustChangePassword = false } = {}
 }
 
 export function sessionCookie(token) {
-  return \`\${COOKIE_NAME}=\${token}; Path=/; Max-Age=\${ABSOLUTE_SECONDS}; HttpOnly; Secure; SameSite=Strict\`;
+  return `${COOKIE_NAME}=${token}; Path=/; Max-Age=${ABSOLUTE_SECONDS}; HttpOnly; Secure; SameSite=Strict`;
 }
 
 export function clearSessionCookie() {
-  return \`\${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict\`;
+  return `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict`;
 }
 
 export async function verifySession(request, { allowPasswordChange = false } = {}) {
@@ -207,7 +208,7 @@ export async function audit(request, action, details = {}) {
     const store = securityStore();
     const at = new Date().toISOString();
     const id = crypto.randomBytes(6).toString('hex');
-    await store.setJSON(\`\${AUDIT_PREFIX}\${at}-\${id}\`, {
+    await store.setJSON(`${AUDIT_PREFIX}${at}-${id}`, {
       at,
       action,
       actor: details.actor || 'admin',
@@ -230,7 +231,7 @@ const IP_LOCK = 15 * 60 * 1000;
 const ACCOUNT_LOCK = 30 * 60 * 1000;
 
 function rateKey(kind, raw) {
-  return \`rate/\${kind}/\${anonymized(raw)}\`;
+  return `rate/${kind}/${anonymized(raw)}`;
 }
 
 async function getRateRecord(key, windowMs) {
