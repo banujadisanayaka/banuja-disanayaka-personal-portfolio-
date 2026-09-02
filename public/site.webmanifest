@@ -1,18 +1,45 @@
 {
+  "id": "/",
   "name": "Banuja Disanayaka — Creative Systems Builder",
   "short_name": "Banuja",
   "description": "Portfolio of Banuja Disanayaka: design, product, photography and operational systems.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#07090d",
   "theme_color": "#07090d",
+  "categories": ["portfolio", "design", "photography", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Selected Work",
+      "short_name": "Work",
+      "description": "Open Banuja Disanayaka's verified portfolio case studies.",
+      "url": "/#work"
+    },
+    {
+      "name": "The Daily Gaze",
+      "short_name": "Photography",
+      "description": "Open the photography section of the portfolio.",
+      "url": "/#photography"
+    },
+    {
+      "name": "Contact",
+      "short_name": "Contact",
+      "description": "Open portfolio contact options.",
+      "url": "/#contact"
     }
   ]
 }
