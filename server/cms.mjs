@@ -23,20 +23,23 @@ export function contentVersion(content) {
   return crypto.createHash('sha256').update(JSON.stringify(clean)).digest('base64url').slice(0, 24);
 }
 
-export async function getMasterEntry() {
-  const entry = await cmsStore().getWithMetadata(CURRENT_KEY, { type: 'json', consistency: 'strong' });
+export async function getMasterEntryFromStore(store) {
+  const entry = await store.getWithMetadata(CURRENT_KEY, { type: 'json', consistency: 'strong' });
   if (!entry) return { content: null, etag: null, version: 'empty' };
   const content = entry.data ? sanitizeContent(entry.data) : null;
   return { content, etag: entry.etag || null, version: contentVersion(content) };
+}
+
+export async function getMasterEntry() {
+  return getMasterEntryFromStore(cmsStore());
 }
 
 export async function getMasterContent() {
   return (await getMasterEntry()).content;
 }
 
-export async function saveMasterContent(content, metadata = {}) {
+export async function saveMasterContentToStore(store, content, metadata = {}) {
   const clean = sanitizeContent(content);
-  const store = cmsStore();
   const currentEntry = await store.getWithMetadata(CURRENT_KEY, { type: 'json', consistency: 'strong' });
   const current = currentEntry?.data ? sanitizeContent(currentEntry.data) : null;
   const currentVersion = contentVersion(current);
@@ -62,12 +65,16 @@ export async function saveMasterContent(content, metadata = {}) {
     throw versionConflict(contentVersion(latestContent));
   }
 
-  await trimRevisions(100);
+  await trimRevisions(store, 100);
   return {
     content: clean,
     version: contentVersion(clean),
     etag: write.etag || null
   };
+}
+
+export async function saveMasterContent(content, metadata = {}) {
+  return saveMasterContentToStore(cmsStore(), content, metadata);
 }
 
 export async function listRevisions(limit = 25) {
@@ -87,11 +94,10 @@ export async function restoreRevision(key, { baseVersion } = {}) {
   const store = cmsStore();
   const item = await store.get(key, { type: 'json', consistency: 'strong' });
   if (!item?.content) throw new Error('Revision not found.');
-  return saveMasterContent(item.content, { reason: `restore:${key}`, baseVersion });
+  return saveMasterContentToStore(store, item.content, { reason: `restore:${key}`, baseVersion });
 }
 
-async function trimRevisions(maxCount) {
-  const store = cmsStore();
+async function trimRevisions(store, maxCount) {
   const { blobs } = await store.list({ prefix: REV_PREFIX });
   const keys = blobs.map(x => x.key).sort().reverse();
   const stale = keys.slice(maxCount);
