@@ -29,5 +29,8 @@ jobs:
       - name: Static production QA
         run: node scripts/portfolio-qa.mjs
 
+      - name: Responsive and motion resilience QA
+        run: node scripts/responsive-qa.mjs
+
       - name: Backend security regression QA
         run: node scripts/security-qa.mjs
