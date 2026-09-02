@@ -64,6 +64,10 @@
             </div>
             <label>About heading<input data-path="profile.aboutHeading" maxlength="500" /></label>
             <label>About introduction<textarea data-path="profile.aboutIntro" maxlength="3000" rows="6"></textarea></label>
+            <div class="form-grid two">
+              <label>About supporting title<input data-path="profile.aboutCardTitle" maxlength="300" /></label>
+              <label>About supporting body<textarea data-path="profile.aboutCardBody" maxlength="3000" rows="4"></textarea></label>
+            </div>
           </section>
 
           <section class="panel" id="projectsPanel" hidden>
@@ -93,15 +97,23 @@
           </section>
 
           <section class="panel" id="settingsPanel" hidden>
-            <label>Site title<input data-path="settings.siteTitle" maxlength="160" /></label>
-            <label>Meta description<textarea data-path="settings.metaDescription" maxlength="500" rows="4"></textarea></label>
+            <p class="lede">Search and social metadata are deployment-managed so crawlers always receive deterministic HTML. This panel controls runtime presentation only.</p>
             <label>Loader text<input data-path="settings.bootText" maxlength="120" /></label>
+            <div class="form-grid two">
+              <label>Footer left<input data-path="settings.footerLeft" maxlength="200" /></label>
+              <label>Footer right<input data-path="settings.footerRight" maxlength="240" /></label>
+              <label>Daily Gaze archive URL<input data-path="settings.dailyGazeArchive" inputmode="url" /></label>
+              <label>GitHub display text<input data-path="contact.githubDisplay" maxlength="100" /></label>
+            </div>
             <div class="toggle-grid" id="sectionToggles"></div>
             <div class="form-grid two">
               <label>Public email<input data-path="contact.email" type="email" /></label>
               <label>GitHub URL<input data-path="contact.github" inputmode="url" /></label>
-              <label>WhatsApp Sri Lanka<input data-path="contact.whatsappSriLankaDisplay" /></label>
-              <label>WhatsApp Malaysia<input data-path="contact.whatsappMalaysiaDisplay" /></label>
+              <label>WhatsApp Sri Lanka number<input data-path="contact.whatsappSriLanka" inputmode="tel" /></label>
+              <label>WhatsApp Sri Lanka display<input data-path="contact.whatsappSriLankaDisplay" /></label>
+              <label>WhatsApp Malaysia number<input data-path="contact.whatsappMalaysia" inputmode="tel" /></label>
+              <label>WhatsApp Malaysia display<input data-path="contact.whatsappMalaysiaDisplay" /></label>
+              <label>WhatsApp prefilled message<textarea data-path="contact.whatsappMessage" maxlength="300" rows="3"></textarea></label>
             </div>
           </section>
 
@@ -116,7 +128,7 @@
               <div><p class="eyebrow">PASSWORD</p><h3>Rotate administrator password</h3><p>Changing the password revokes every active session. You will need to sign in again.</p></div>
               <form id="passwordForm">
                 <label>Current password<input id="currentPassword" type="password" autocomplete="current-password" required /></label>
-                <label>New password<input id="newPassword" type="password" autocomplete="new-password" required minlength="12" /></label>
+                <label>New password<input id="newPassword" type="password" autocomplete="new-password" required minlength="16" maxlength="128" /></label>
                 <button class="primary compact" type="submit">Change password</button>
                 <p class="status" id="passwordStatus" role="status"></p>
               </form>
