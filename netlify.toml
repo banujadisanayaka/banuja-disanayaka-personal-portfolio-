@@ -1,4 +1,5 @@
 [build]
+  command = "node scripts/build-info.mjs"
   publish = "public"
   functions = "netlify/functions"
 
@@ -94,3 +95,10 @@
   for = "/*.css"
   [headers.values]
     Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/build-info.json"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    Content-Type = "application/json; charset=utf-8"
