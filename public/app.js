@@ -8,7 +8,8 @@
     content: null,
     roles: ["DESIGN", "SYSTEMS", "PHOTOGRAPHY", "PRODUCT"],
     roleIndex: 0,
-    bootDone: false
+    bootDone: false,
+    heroVisible: true
   };
 
   const qs = (selector, root = document) => root.querySelector(selector);
@@ -396,7 +397,7 @@
     if (!word || reducedMotion) return;
 
     window.setInterval(() => {
-      if (!state.roles.length) return;
+      if (!state.roles.length || document.hidden || !state.heroVisible) return;
       state.roleIndex = (state.roleIndex + 1) % state.roles.length;
       word.classList.remove("swap");
       void word.offsetWidth;
@@ -412,6 +413,8 @@
       return;
     }
 
+    elements.forEach(el => el.classList.add("reveal-pending"));
+
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
@@ -421,6 +424,28 @@
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
 
     elements.forEach(el => observer.observe(el));
+  }
+
+  function initVisibilityBudget() {
+    if (!("IntersectionObserver" in window)) return;
+
+    const hero = qs("#home");
+    const about = qs("#about");
+
+    if (hero) {
+      const heroObserver = new IntersectionObserver(([entry]) => {
+        state.heroVisible = Boolean(entry?.isIntersecting);
+        hero.classList.toggle("is-in-view", state.heroVisible);
+      }, { threshold: 0.02 });
+      heroObserver.observe(hero);
+    }
+
+    if (about) {
+      const aboutObserver = new IntersectionObserver(([entry]) => {
+        about.classList.toggle("is-in-view", Boolean(entry?.isIntersecting));
+      }, { threshold: 0.05 });
+      aboutObserver.observe(about);
+    }
   }
 
   function initMenu() {
@@ -555,6 +580,10 @@
 
     function draw(time) {
       if (!running) return;
+      if (!state.heroVisible) {
+        frame = requestAnimationFrame(draw);
+        return;
+      }
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "rgba(235,226,210,.36)";
 
@@ -588,6 +617,7 @@
     initMenu();
     initPointer();
     initScrollMeter();
+    initVisibilityBudget();
     initAmbientCanvas();
 
     const content = await loadContent();
