@@ -27,7 +27,7 @@ jobs:
           node-version: '24'
 
       - name: Install runtime dependencies
-        run: npm install --no-audit --no-fund --ignore-scripts
+        run: npm ci --no-audit --no-fund --ignore-scripts
 
       - name: Static production QA
         run: node scripts/portfolio-qa.mjs
