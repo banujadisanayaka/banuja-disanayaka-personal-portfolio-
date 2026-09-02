@@ -303,11 +303,12 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offs
 .eco-core small,.eco-core span,.eco-nodes span,.contact-grid small,.footer{
   font-size:11px;
 }
-.nav-panel a,.menu-toggle,.pill,.text-link,.project-open,.gaze-caption a,.footer a{
+.nav-panel a,.pill,.text-link,.project-open,.gaze-caption a,.footer a{
   min-height:44px;
   display:inline-flex;
   align-items:center;
 }
+.menu-toggle{min-height:44px}
 .nav-panel a{padding-block:10px}
 .project-open{padding:8px 0}
 .contact-grid a{min-height:64px}
@@ -339,7 +340,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offs
 @media (orientation:landscape) and (max-height:600px) and (min-width:651px){
   .hero{
     min-height:auto;grid-template-columns:minmax(0,1.2fr) minmax(210px,.5fr);align-items:center;
-    gap:24px;padding:96px max(24px,env(safe-area-inset-left)) 28px max(24px,env(safe-area-inset-left));overflow:hidden
+    gap:24px;padding-top:96px;padding-right:max(24px,env(safe-area-inset-right));padding-bottom:28px;padding-left:max(24px,env(safe-area-inset-left));overflow:hidden
   }
   .hero-name{font-size:clamp(48px,8vw,90px)}
   .hero-axis{grid-template-columns:minmax(150px,.65fr) 1fr;margin-top:24px;gap:18px}
@@ -372,4 +373,29 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offs
   .project-card,.ecosystem-stage,.metrics,.about-portrait-frame{border:1px solid CanvasText}
   a:focus-visible,button:focus-visible{outline:3px solid Highlight}
   .grain,.pointer-glow,.ambient-canvas,.portrait-scan{display:none}
+}
+
+
+/* Release safety: hidden always wins over component display rules */
+[hidden]{display:none!important}
+
+/* Improve small-label contrast without flattening the visual system */
+.eyebrow,.section-index,.section-head>p,.gaze-caption,.project-kicker,.project-tags,
+.hero-footline,.identity-copy small,.nav-panel a,.project-index,.metrics span,.timeline article>span,
+.eco-core small,.eco-core span,.eco-nodes span,.contact-grid small,.footer{
+  color:#a4aab3;
+}
+.project-open,.gaze-caption a,.footer a{color:#b2b7bf}
+.about-support{
+  margin-top:34px;padding:22px;border:1px solid var(--line);border-radius:18px;background:#0b0e13
+}
+.about-support strong{display:block;font-size:18px;font-weight:560}
+.about-support p{margin:10px 0 0;color:#a6abb3;line-height:1.6;font-size:15px}
+@media (max-width:980px){
+  .menu-toggle{display:inline-flex;align-items:center}
+}
+@media print{
+  .boot,.grain,.pointer-glow,.ambient-canvas,.scroll-meter,.topbar{display:none!important}
+  .reveal,.reveal.reveal-pending,.reveal.reveal-pending.is-visible{opacity:1!important;transform:none!important}
+  .section-pad{content-visibility:visible!important}
 }
