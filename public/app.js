@@ -25,7 +25,7 @@
     anchor.href = url;
     if (/^https:\/\//i.test(url)) {
       anchor.target = "_blank";
-      anchor.rel = "noreferrer";
+      anchor.rel = "noopener noreferrer";
     }
   }
 
@@ -109,6 +109,8 @@
       "profile.firstName": profile.firstName,
       "profile.lastName": profile.lastName,
       "profile.heroLede": profile.heroLede,
+      "profile.location": profile.location,
+      "profile.focus": profile.focus,
       "profile.aboutHeading": profile.aboutHeading,
       "profile.aboutIntro": profile.aboutIntro
     };
@@ -120,6 +122,24 @@
 
     if (Array.isArray(profile.roles) && profile.roles.length) {
       state.roles = profile.roles.filter(Boolean).slice(0, 8);
+    }
+
+    const cvLink = qs("#cvLink");
+    if (cvLink) {
+      if (profile.cvUrl) {
+        safeExternalAnchor(cvLink, profile.cvUrl);
+        cvLink.hidden = false;
+      } else {
+        cvLink.hidden = true;
+      }
+    }
+
+    const aboutPortrait = qs("#aboutPortrait");
+    const aboutPortraitFrame = qs("#aboutPortraitFrame");
+    if (aboutPortrait && aboutPortraitFrame && profile.aboutImage) {
+      aboutPortrait.onload = () => { aboutPortraitFrame.hidden = false; };
+      aboutPortrait.onerror = () => { aboutPortraitFrame.hidden = true; };
+      aboutPortrait.src = profile.aboutImage;
     }
 
     const portraitUrl = profile.suitImage || profile.aboutImage;
@@ -146,6 +166,8 @@
         if (meta) meta.setAttribute("content", content.settings.metaDescription);
       }
       if (content.settings.bootText) setText("#bootLabel", content.settings.bootText);
+      if (content.settings.footerLeft) setText("#footerLeft", content.settings.footerLeft);
+      if (content.settings.footerRight) setText("#footerRight", content.settings.footerRight);
     }
   }
 
