@@ -17,6 +17,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      NETLIFY_SITE_ID: caf01a3b-bf76-42af-8fd9-d8a67dbf0c7f
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,10 +26,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
+          cache: 'npm'
 
       - name: Install production dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Run Netlify build locally
-        run: npx --yes netlify-cli@latest build
+        run: npx --yes netlify-cli@27.4.2 build
