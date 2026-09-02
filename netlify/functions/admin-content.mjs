@@ -20,41 +20,45 @@ export default async (request) => {
     if (!requireSameOrigin(request)) return json({ ok: false, message: 'Request rejected.' }, 403);
     if (!requireJson(request)) return json({ ok: false, message: 'Invalid request.' }, 415);
     if (requestBodyTooLarge(request, 600 * 1024)) return json({ ok: false, message: 'Content payload is too large.' }, 413);
+
     try {
       const payload = await request.json();
       const raw = JSON.stringify(payload?.content ?? null);
-      if (!payload || typeof payload !== 'object' || raw.length > 550 * 1024) return json({ ok: false, message: 'Invalid content.' }, 400);
+      if (!payload || typeof payload !== 'object' || raw.length > 550 * 1024) {
+        return json({ ok: false, message: 'Invalid content.' }, 400);
+      }
 
-      const current = await getMasterContent();
-      const currentVersion = contentVersion(current);
       const baseVersion = String(payload?.baseVersion || '');
       if (!baseVersion) {
+        const current = await getMasterContent();
         return json({
           ok: false,
           code: 'VERSION_REQUIRED',
           message: 'Reload the editor before publishing. A content version is required to protect newer edits.',
-          version: currentVersion
+          version: contentVersion(current)
         }, 428);
       }
-      if (baseVersion !== currentVersion) {
+
+      const saved = await saveMasterContent(payload.content, { reason: 'publish', baseVersion });
+
+      await audit(request, 'content.publish', {
+        details: {
+          projects: saved.content.projects.length,
+          dailyGaze: saved.content.dailyGaze.length,
+          ecosystem: saved.content.ecosystem.length
+        }
+      });
+
+      return json({ ok: true, content: saved.content, version: saved.version });
+    } catch (error) {
+      if (error?.code === 'VERSION_CONFLICT') {
         return json({
           ok: false,
           code: 'VERSION_CONFLICT',
           message: 'This portfolio content changed after you opened it. Reload before publishing to avoid overwriting newer edits.',
-          version: currentVersion
+          version: error.version || 'unknown'
         }, 409);
       }
-
-      const content = await saveMasterContent(payload.content, { reason: 'publish' });
-      await audit(request, 'content.publish', {
-        details: {
-          projects: content.projects.length,
-          dailyGaze: content.dailyGaze.length,
-          ecosystem: content.ecosystem.length
-        }
-      });
-      return json({ ok: true, content, version: contentVersion(content) });
-    } catch {
       return json({ ok: false, message: 'Content validation failed. Review URLs and field lengths.' }, 400);
     }
   }
