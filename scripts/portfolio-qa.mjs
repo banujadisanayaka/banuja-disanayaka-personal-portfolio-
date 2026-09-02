@@ -34,7 +34,15 @@ const requiredPages = [
   'public/work/banu-2/index.html'
 ];
 
+const requiredDeliveryFiles = [
+  'public/robots.txt',
+  'public/sitemap.xml',
+  'public/favicon.svg',
+  'public/.well-known/security.txt'
+];
+
 for (const page of requiredPages) assert(exists(page), `Missing required page: ${page}`);
+for (const file of requiredDeliveryFiles) assert(exists(file), `Missing required delivery file: ${file}`);
 
 const publicPages = requiredPages.filter((p) => !p.includes('/admin/'));
 for (const page of publicPages) {
@@ -76,6 +84,19 @@ if (exists('public/sitemap.xml')) {
   for (const value of expected) assert(sitemap.includes(value), `sitemap.xml missing ${value}`);
 }
 
+if (exists('public/favicon.svg')) {
+  const favicon = read('public/favicon.svg');
+  assert(/<svg\b/i.test(favicon), 'favicon.svg must contain valid SVG markup');
+  assert(/viewBox=/i.test(favicon), 'favicon.svg must define a viewBox');
+}
+
+if (exists('public/.well-known/security.txt')) {
+  const security = read('public/.well-known/security.txt');
+  assert(/^Contact:\s*mailto:/mi.test(security), 'security.txt must provide a mailto Contact');
+  assert(/^Canonical:\s*https:\/\//mi.test(security), 'security.txt must provide an HTTPS Canonical URL');
+  assert(/^Expires:\s*\d{4}-\d{2}-\d{2}T/mi.test(security), 'security.txt must provide an expiry timestamp');
+}
+
 if (exists('netlify.toml')) {
   const netlify = read('netlify.toml');
   const controls = [
@@ -88,6 +109,9 @@ if (exists('netlify.toml')) {
   ];
   for (const [name, pattern] of controls) assert(pattern.test(netlify), `netlify.toml missing ${name}`);
   assert(/for\s*=\s*"\/admin\/\*"[\s\S]*X-Robots-Tag/i.test(netlify), 'Admin headers must include X-Robots-Tag');
+  assert(/from\s*=\s*"\/favicon\.ico"[\s\S]*to\s*=\s*"\/favicon\.svg"/i.test(netlify), 'Netlify must route favicon.ico to the branded favicon');
+  assert(/for\s*=\s*"\/\*\.html"[\s\S]*max-age=0[\s\S]*must-revalidate/i.test(netlify), 'HTML must revalidate so releases do not serve stale documents');
+  assert(/for\s*=\s*"\/assets\/\*"[\s\S]*max-age=31536000[\s\S]*immutable/i.test(netlify), 'Versioned assets should retain immutable long-term caching');
 }
 
 const sourceFiles = [
@@ -131,7 +155,7 @@ if (exists('public/app.js')) {
   warn(/AbortController/.test(app), 'CMS fetch should have an abort/timeout path');
 }
 
-console.log(`Portfolio QA: ${requiredPages.length} required routes and ${syntaxFiles.length} JavaScript modules checked.`);
+console.log(`Portfolio QA: ${requiredPages.length} required routes, ${requiredDeliveryFiles.length} delivery files and ${syntaxFiles.length} JavaScript modules checked.`);
 for (const message of warnings) console.warn(`WARN: ${message}`);
 if (failures.length) {
   console.error(`\nQA failed with ${failures.length} issue(s):`);
