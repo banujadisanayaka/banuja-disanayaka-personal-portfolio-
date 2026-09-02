@@ -92,6 +92,8 @@ if (exists('public/index.html')) {
   assert(/"@type":\s*"ProfilePage"/.test(home), 'Homepage should include ProfilePage structured data');
   assert(/"alternateName":\s*\[[^\]]*"Banu"/.test(home), 'Person structured data should include the public short name');
   assert(/instagram\.com\/banuja_disanayaka\//i.test(home), 'Person structured data should connect the verified Instagram handle');
+  assert(/<meta\s+property="og:image"\s+content="https:\/\/banuja-personal-log\.netlify\.app\/og-card\.svg"/i.test(home), 'Homepage should expose the branded Open Graph preview image');
+  assert(/<meta\s+name="twitter:image"\s+content="https:\/\/banuja-personal-log\.netlify\.app\/og-card\.svg"/i.test(home), 'Homepage should expose the branded Twitter preview image');
 }
 
 if (exists('public/favicon.svg')) {
