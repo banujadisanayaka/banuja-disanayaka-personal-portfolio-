@@ -51,9 +51,10 @@ img{display:block;max-width:100%}
 .scroll-meter{position:fixed;left:0;top:0;width:100%;height:2px;z-index:150;background:transparent}
 .scroll-meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),#f2ddae)}
 .boot{
-  position:fixed;inset:0;z-index:1000;background:#07090d;display:grid;place-items:center;
+  position:fixed;inset:0;z-index:1000;background:#07090d;display:none;place-items:center;
   transition:opacity .65s var(--ease),visibility .65s var(--ease)
 }
+.boot.is-active{display:grid}
 .boot.is-done{opacity:0;visibility:hidden;pointer-events:none}
 .boot-inner{width:min(560px,calc(100% - 42px))}
 .boot-mark{
