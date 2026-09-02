@@ -68,10 +68,16 @@ try {
       await toggle.click();
       assert(await toggle.getAttribute('aria-expanded') === 'true', 'Mobile menu should expose aria-expanded=true when open.');
       await mobile.waitForFunction(() => document.activeElement?.closest?.('#navPanel') !== null, null, { timeout: 1200 });
+      await mobile.waitForFunction(() => {
+        const panel = document.querySelector('#navPanel');
+        if (!panel) return false;
+        const style = getComputedStyle(panel);
+        return style.visibility === 'visible' && style.pointerEvents !== 'none' && Number(style.opacity) > 0.99;
+      }, null, { timeout: 1200 });
       const focusedHref = await mobile.evaluate(() => document.activeElement?.getAttribute?.('href') || '');
       assert(focusedHref.startsWith('#'), 'Opening mobile menu should move focus into navigation.');
       const workLink = mobile.locator('#navPanel a[href="#work"]');
-      await workLink.click();
+      await workLink.click({ timeout: 3000 });
       await waitForFocusedId(mobile, 'work');
       assert(await toggle.getAttribute('aria-expanded') === 'false', 'Selecting a mobile navigation link should close the menu.');
     }
