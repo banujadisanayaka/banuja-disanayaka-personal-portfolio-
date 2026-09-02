@@ -32,4 +32,4 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Run Netlify build locally
-        run: npx --yes netlify-cli@27.4.2 build
+        run: npx --yes netlify-cli@27.4.2 build --offline --context deploy-preview
