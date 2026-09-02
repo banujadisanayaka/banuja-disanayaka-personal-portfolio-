@@ -36,7 +36,10 @@
     const progress = qs("#bootProgress");
     if (progress) progress.style.width = "100%";
     window.setTimeout(() => {
-      if (boot) boot.classList.add("is-done");
+      if (boot) {
+        boot.classList.add("is-done");
+        window.setTimeout(() => boot.classList.remove("is-active"), reducedMotion ? 0 : 700);
+      }
       try { sessionStorage.setItem("bd-visited", "1"); } catch {}
     }, reducedMotion ? 0 : 220);
   }
@@ -55,6 +58,8 @@
       finishBoot();
       return;
     }
+
+    boot.classList.add("is-active");
 
     const sequence = [
       [18, "READING PROFILE"],
