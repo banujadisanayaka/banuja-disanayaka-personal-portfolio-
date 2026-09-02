@@ -28,6 +28,7 @@
   updateMeter();
 
   const items = [...document.querySelectorAll('.reveal')];
+  if (!reduced && 'IntersectionObserver' in window) items.forEach(el => el.classList.add('reveal-pending'));
   if (reduced || !('IntersectionObserver' in window)) {
     items.forEach(el => el.classList.add('visible'));
   } else {
