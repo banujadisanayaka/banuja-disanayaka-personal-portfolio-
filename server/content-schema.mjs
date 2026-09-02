@@ -36,8 +36,21 @@ const canonicalProjectRoutes = new Map([
   ['banu 2.0', '/work/banu-2/']
 ]);
 
+const retiredLocalAssets = new Set([
+  '/assets/aura-profile.png',
+  '/assets/banuja-about.jpg',
+  '/assets/clouds-profile.png',
+  '/assets/collection-profile.png',
+  '/assets/daily-gaze-profile.png',
+  '/assets/daily-gaze-wordmark.png',
+  '/assets/roots-profile.png',
+  '/assets/the-grid-profile.png',
+  '/assets/veloria-profile.png'
+]);
+
 function canonicalAssetUrl(value) {
-  return safeUrl(value);
+  const safe = safeUrl(value);
+  return retiredLocalAssets.has(safe) ? '' : safe;
 }
 
 function canonicalProjectUrl(project) {
