@@ -34,3 +34,6 @@ jobs:
 
       - name: Backend security regression QA
         run: node scripts/security-qa.mjs
+
+      - name: CMS atomic concurrency QA
+        run: node scripts/cms-concurrency-qa.mjs
