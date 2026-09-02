@@ -12,6 +12,7 @@ const content = read('netlify/functions/admin-content.mjs');
 const media = read('netlify/functions/admin-media.mjs');
 const http = read('server/http.mjs');
 const security = read('server/security.mjs');
+const netlify = read('netlify.toml');
 
 for (const [name, source] of [
   ['admin-login', login],
@@ -39,6 +40,11 @@ assert(/requestBodyTooLarge\(request,\s*600\s*\*\s*1024\)/.test(content), 'admin
 assert(/requestBodyTooLarge\(request,\s*5\s*\*\s*1024\s*\*\s*1024\)/.test(media) || /requestBodyTooLarge/.test(media), 'admin-media should cap upload request size');
 
 assert(/origin\s*!==\s*expected/.test(http), 'same-origin helper must compare request origin exactly');
+assert(/'x-robots-tag':\s*'noindex, nofollow, noarchive'/.test(http), 'JSON API responses must opt out of search indexing');
+assert(/'referrer-policy':\s*'no-referrer'/.test(http), 'JSON API responses must avoid referrer disclosure');
+assert(/'cross-origin-resource-policy':\s*'same-origin'/.test(http), 'JSON API responses must remain same-origin resources');
+assert(/for\s*=\s*"\/api\/\*"[\s\S]*X-Robots-Tag\s*=\s*"noindex, nofollow, noarchive"/.test(netlify), 'Netlify must apply noindex to the API surface');
+
 assert(/HttpOnly/.test(security), 'session cookie must remain HttpOnly');
 assert(/Secure/.test(security), 'session cookie must remain Secure');
 assert(/SameSite=Strict/.test(security), 'session cookie must remain SameSite=Strict');
@@ -49,4 +55,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Security QA passed: auth bounds, origin controls, concurrency protection and session-cookie safeguards verified.');
+console.log('Security QA passed: auth bounds, origin controls, API indexing policy, concurrency protection and session-cookie safeguards verified.');
