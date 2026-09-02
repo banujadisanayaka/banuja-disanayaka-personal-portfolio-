@@ -165,6 +165,26 @@ if (exists('public/app.js')) {
   const app = read('public/app.js');
   warn(/prefers-reduced-motion/i.test(app), 'app.js should honor prefers-reduced-motion');
   warn(/AbortController/.test(app), 'CMS fetch should have an abort/timeout path');
+  assert(/reveal-pending/.test(app), 'Reveal system should be progressively enhanced instead of hiding content by default');
+  assert(/heroVisible/.test(app), 'Animation budget should pause hero-only work while the hero is off-screen');
+  assert(/profile\.cvUrl/.test(app), 'Public renderer should bind the CMS CV URL');
+  assert(/profile\.aboutImage/.test(app), 'Public renderer should bind the CMS About image');
+}
+
+if (exists('public/styles.css')) {
+  const css = read('public/styles.css');
+  assert(!/\.reveal\s*\{\s*opacity\s*:\s*0/i.test(css), 'Reveal content must remain visible when JavaScript fails');
+}
+
+if (exists('netlify/functions/admin-content.mjs')) {
+  const adminContent = read('netlify/functions/admin-content.mjs');
+  assert(/VERSION_CONFLICT/.test(adminContent), 'Admin publishing must protect against concurrent overwrite');
+  assert(/baseVersion/.test(adminContent), 'Admin publishing must compare a client content version');
+}
+
+if (exists('public/admin/admin.js')) {
+  const admin = read('public/admin/admin.js');
+  assert(/baseVersion:state\.version/.test(admin), 'Admin client must submit the loaded content version when publishing');
 }
 
 console.log(`Portfolio QA: ${requiredPages.length} required routes, ${requiredDeliveryFiles.length} delivery files and ${syntaxFiles.length} JavaScript modules checked.`);
