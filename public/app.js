@@ -311,6 +311,10 @@
         img.src = item.logo;
         img.alt = "";
         img.loading = "lazy";
+        img.decoding = "async";
+        img.width = 34;
+        img.height = 34;
+        img.onerror = () => img.remove();
         img.style.width = "34px";
         img.style.height = "34px";
         img.style.objectFit = "contain";
