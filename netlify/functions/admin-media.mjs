@@ -46,10 +46,10 @@ export default async (request) => {
       .webp({ quality: 88, effort: 4 })
       .toBuffer();
 
-    const id = \`\${Date.now()}-\${crypto.randomBytes(12).toString('hex')}.webp\`;
+    const id = `${Date.now()}-${crypto.randomBytes(12).toString('hex')}.webp`;
     await mediaStore().set(id, output);
     await audit(request, 'media.upload', { details: { format, inputBytes: input.length, outputBytes: output.length } });
-    return json({ ok: true, url: \`/api/media?id=\${encodeURIComponent(id)}\` });
+    return json({ ok: true, url: `/api/media?id=${encodeURIComponent(id)}` });
   } catch {
     return json({ ok: false, message: 'Upload failed. Check the image and try again.' }, 400);
   }
