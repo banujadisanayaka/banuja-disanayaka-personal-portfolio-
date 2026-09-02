@@ -15,6 +15,12 @@ export async function getMasterContent() {
   return content ? sanitizeContent(content) : null;
 }
 
+export function contentVersion(content) {
+  if (!content) return 'empty';
+  const clean = sanitizeContent(content);
+  return crypto.createHash('sha256').update(JSON.stringify(clean)).digest('base64url').slice(0, 24);
+}
+
 export async function saveMasterContent(content, metadata = {}) {
   const clean = sanitizeContent(content);
   const store = cmsStore();
