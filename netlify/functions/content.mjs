@@ -1,15 +1,28 @@
 import { contentVersion, getMasterContent } from '../../server/cms.mjs';
 import { publicProjection } from '../../server/content-schema.mjs';
 
-const jsonHeaders = (etag) => ({
+const jsonHeaders = (etag, { error = false } = {}) => ({
   'content-type': 'application/json; charset=utf-8',
-  'cache-control': 'public, max-age=30, s-maxage=60, stale-while-revalidate=300, stale-if-error=86400',
+  'cache-control': error ? 'no-store' : 'public, max-age=0, s-maxage=0, must-revalidate',
   'x-content-type-options': 'nosniff',
+  'x-robots-tag': 'noindex, nofollow, noarchive',
+  'referrer-policy': 'no-referrer',
+  'cross-origin-resource-policy': 'same-origin',
   ...(etag ? { etag } : {})
 });
 
 export default async (request) => {
-  if (request.method !== 'GET') return new Response(null, { status: 405, headers: { Allow: 'GET' } });
+  if (request.method !== 'GET') {
+    return new Response(null, {
+      status: 405,
+      headers: {
+        Allow: 'GET',
+        'x-robots-tag': 'noindex, nofollow, noarchive',
+        'referrer-policy': 'no-referrer',
+        'cross-origin-resource-policy': 'same-origin'
+      }
+    });
+  }
 
   try {
     const content = await getMasterContent();
@@ -27,10 +40,8 @@ export default async (request) => {
     return new Response(JSON.stringify({ content: null, version: 'unavailable' }), {
       status: 503,
       headers: {
-        'content-type': 'application/json; charset=utf-8',
-        'cache-control': 'no-store',
-        'retry-after': '30',
-        'x-content-type-options': 'nosniff'
+        ...jsonHeaders(null, { error: true }),
+        'retry-after': '30'
       }
     });
   }
