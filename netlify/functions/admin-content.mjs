@@ -1,5 +1,5 @@
 import { json, requireJson, requireSameOrigin, requestBodyTooLarge } from '../../server/http.mjs';
-import { getMasterContent, saveMasterContent } from '../../server/cms.mjs';
+import { contentVersion, getMasterContent, saveMasterContent } from '../../server/cms.mjs';
 import { audit, verifySession } from '../../server/security.mjs';
 
 export default async (request) => {
@@ -10,7 +10,7 @@ export default async (request) => {
   if (request.method === 'GET') {
     try {
       const content = await getMasterContent();
-      return json({ ok: true, content });
+      return json({ ok: true, content, version: contentVersion(content) });
     } catch {
       return json({ ok: false, message: 'Unable to load content.' }, 500);
     }
@@ -24,6 +24,19 @@ export default async (request) => {
       const payload = await request.json();
       const raw = JSON.stringify(payload?.content ?? null);
       if (!payload || typeof payload !== 'object' || raw.length > 550 * 1024) return json({ ok: false, message: 'Invalid content.' }, 400);
+
+      const current = await getMasterContent();
+      const currentVersion = contentVersion(current);
+      const baseVersion = String(payload?.baseVersion || '');
+      if (baseVersion && baseVersion !== currentVersion) {
+        return json({
+          ok: false,
+          code: 'VERSION_CONFLICT',
+          message: 'This portfolio content changed after you opened it. Reload before publishing to avoid overwriting newer edits.',
+          version: currentVersion
+        }, 409);
+      }
+
       const content = await saveMasterContent(payload.content, { reason: 'publish' });
       await audit(request, 'content.publish', {
         details: {
@@ -32,7 +45,7 @@ export default async (request) => {
           ecosystem: content.ecosystem.length
         }
       });
-      return json({ ok: true, content });
+      return json({ ok: true, content, version: contentVersion(content) });
     } catch {
       return json({ ok: false, message: 'Content validation failed. Review URLs and field lengths.' }, 400);
     }
