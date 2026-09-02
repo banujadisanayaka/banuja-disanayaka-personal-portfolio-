@@ -319,3 +319,16 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offs
   .eco-nodes span{font-size:11px;line-height:1.35}
   .contact-grid strong{overflow-wrap:anywhere}
 }
+
+
+.hero-profile-meta{
+  margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;
+  color:#858b94;font-size:12px;line-height:1.5
+}
+.hero-profile-meta span,.hero-profile-meta a{min-height:32px;display:inline-flex;align-items:center}
+.hero-profile-meta a{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.about-portrait-frame{
+  margin:34px 0 0;width:min(360px,100%);aspect-ratio:.82;border:1px solid var(--line);
+  border-radius:22px;overflow:hidden;background:#0d1015
+}
+.about-portrait-frame img{width:100%;height:100%;object-fit:cover}
