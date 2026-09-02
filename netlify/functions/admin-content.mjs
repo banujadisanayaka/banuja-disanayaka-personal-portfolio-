@@ -28,7 +28,15 @@ export default async (request) => {
       const current = await getMasterContent();
       const currentVersion = contentVersion(current);
       const baseVersion = String(payload?.baseVersion || '');
-      if (baseVersion && baseVersion !== currentVersion) {
+      if (!baseVersion) {
+        return json({
+          ok: false,
+          code: 'VERSION_REQUIRED',
+          message: 'Reload the editor before publishing. A content version is required to protect newer edits.',
+          version: currentVersion
+        }, 428);
+      }
+      if (baseVersion !== currentVersion) {
         return json({
           ok: false,
           code: 'VERSION_CONFLICT',
