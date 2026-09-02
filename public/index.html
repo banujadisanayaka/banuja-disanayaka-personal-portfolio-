@@ -132,6 +132,11 @@
           <a class="pill primary magnetic" href="#work">Explore selected work <span>↘</span></a>
           <a class="text-link magnetic" href="#about">Meet Banu <span>→</span></a>
         </div>
+        <div class="hero-profile-meta" aria-label="Profile details">
+          <span id="profileLocation" data-bind="profile.location">Sri Lanka</span>
+          <span id="profileFocus" data-bind="profile.focus">Design · Product · Systems · Photography</span>
+          <a id="cvLink" href="#contact" hidden>View CV ↗</a>
+        </div>
       </div>
 
       <div class="portrait-stage" id="portraitStage" aria-label="Portrait of Banuja Disanayaka">
@@ -301,6 +306,9 @@
         <div class="about-title reveal">
           <p class="section-index">04 / ABOUT</p>
           <h2 data-bind="profile.aboutHeading">Not built for one box.</h2>
+          <figure class="about-portrait-frame" id="aboutPortraitFrame" hidden>
+            <img id="aboutPortrait" alt="Banuja Disanayaka" loading="lazy" decoding="async" />
+          </figure>
         </div>
 
         <div class="about-copy reveal">
@@ -371,8 +379,8 @@
   </main>
 
   <footer class="footer">
-    <span>© 2026 Banuja Disanayaka</span>
-    <span>Design · Systems · Photography · Product</span>
+    <span id="footerLeft">© 2026 Banuja Disanayaka</span>
+    <span id="footerRight">Design · Systems · Photography · Product</span>
     <a href="https://www.instagram.com/banuja_disanayaka/" target="_blank" rel="me noopener noreferrer">Instagram ↗</a>
     <a href="#home">Back to top ↑</a>
   </footer>
