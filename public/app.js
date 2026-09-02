@@ -558,7 +558,18 @@
       else open();
     });
 
-    qsa("a", panel).forEach(a => a.addEventListener("click", () => close({ restoreFocus: false })));
+    qsa("a", panel).forEach(a => a.addEventListener("click", () => {
+      const targetSelector = a.getAttribute("href") || "";
+      close({ restoreFocus: false });
+      if (targetSelector.startsWith("#")) {
+        requestAnimationFrame(() => {
+          const target = qs(targetSelector);
+          if (!target) return;
+          if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+          target.focus({ preventScroll: true });
+        });
+      }
+    }));
     window.addEventListener("keydown", event => {
       if (button.getAttribute("aria-expanded") !== "true") return;
       if (event.key === "Escape") {
@@ -621,13 +632,24 @@
     }, { passive: true });
 
     qsa(".magnetic").forEach(el => {
-      el.addEventListener("pointermove", event => {
+      let frame = 0;
+      let latest = null;
+      const render = () => {
+        frame = 0;
+        if (!latest) return;
         const rect = el.getBoundingClientRect();
-        const x = (event.clientX - rect.left - rect.width / 2) * 0.08;
-        const y = (event.clientY - rect.top - rect.height / 2) * 0.12;
+        const x = (latest.clientX - rect.left - rect.width / 2) * 0.08;
+        const y = (latest.clientY - rect.top - rect.height / 2) * 0.12;
         el.style.transform = `translate(${x}px,${y}px)`;
+      };
+      el.addEventListener("pointermove", event => {
+        latest = event;
+        if (!frame) frame = requestAnimationFrame(render);
       });
       el.addEventListener("pointerleave", () => {
+        latest = null;
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
         el.style.transform = "";
       });
     });
@@ -637,13 +659,24 @@
     if (coarsePointer || reducedMotion) return;
 
     qsa("[data-project]").forEach(card => {
-      card.addEventListener("pointermove", event => {
+      let frame = 0;
+      let latest = null;
+      const render = () => {
+        frame = 0;
+        if (!latest) return;
         const rect = card.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width - 0.5;
-        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        const x = (latest.clientX - rect.left) / rect.width - 0.5;
+        const y = (latest.clientY - rect.top) / rect.height - 0.5;
         card.style.transform = `perspective(1200px) rotateX(${(-y * 1.8).toFixed(2)}deg) rotateY(${(x * 1.8).toFixed(2)}deg)`;
+      };
+      card.addEventListener("pointermove", event => {
+        latest = event;
+        if (!frame) frame = requestAnimationFrame(render);
       });
       card.addEventListener("pointerleave", () => {
+        latest = null;
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
         card.style.transform = "";
       });
     });
