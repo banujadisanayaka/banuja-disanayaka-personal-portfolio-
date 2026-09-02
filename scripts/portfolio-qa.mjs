@@ -161,6 +161,30 @@ for (const file of syntaxFiles) {
   assert(result.status === 0, `${file}: JavaScript syntax check failed${result.stderr ? ` — ${result.stderr.trim().split('\n').slice(-1)[0]}` : ''}`);
 }
 
+if (exists('netlify/functions/content.mjs')) {
+  const publicContent = read('netlify/functions/content.mjs');
+  assert(/x-robots-tag':\s*'noindex, nofollow, noarchive'/.test(publicContent), 'Public content API must emit full noindex policy');
+  assert(/referrer-policy':\s*'no-referrer'/.test(publicContent), 'Public content API must suppress referrers');
+  assert(/cross-origin-resource-policy':\s*'same-origin'/.test(publicContent), 'Public content API must stay same-origin');
+  assert(/max-age=0[\s\S]*must-revalidate/.test(publicContent), 'Published CMS content should revalidate immediately');
+}
+
+if (exists('public/case-study.css')) {
+  const caseCss = read('public/case-study.css');
+  assert(!/\.reveal\s*\{\s*opacity\s*:\s*0/i.test(caseCss), 'Case-study reveals must fail open when JavaScript is unavailable');
+  assert(/@media\s*print/.test(caseCss), 'Case studies should expose print-safe content');
+}
+
+if (exists('public/index.html')) {
+  const home = read('public/index.html');
+  const gazeImages = [...home.matchAll(/<img[^>]+The Daily Gaze[^>]+>/gi)].map(match => match[0]);
+  assert(gazeImages.length >= 3, 'Homepage should include the three verified Daily Gaze images');
+  for (const img of gazeImages) {
+    assert(/\bwidth="\d+"/i.test(img) && /\bheight="\d+"/i.test(img), 'Daily Gaze images need intrinsic dimensions');
+    assert(/\bsrcset=/i.test(img) && /\bsizes=/i.test(img), 'Daily Gaze images need responsive source hints');
+  }
+}
+
 if (exists('public/app.js')) {
   const app = read('public/app.js');
   warn(/prefers-reduced-motion/i.test(app), 'app.js should honor prefers-reduced-motion');
