@@ -1,7 +1,7 @@
 (() => {
   "use strict";
   const qs=(s,r=document)=>r.querySelector(s),qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
-  const state={content:null,dirty:false,authorized:false,mustChangePassword:false,revisionsLoaded:false,uploading:false};
+  const state={content:null,version:"empty",dirty:false,authorized:false,mustChangePassword:false,revisionsLoaded:false,uploading:false};
   const loginView=qs("#loginView"),dashboardView=qs("#dashboardView"),publishButton=qs("#publishButton"),saveState=qs("#saveState"),fatal=qs("#fatalMessage");
 
   async function api(url,options={}){
@@ -49,7 +49,7 @@
     const base=blankContent();state.content=state.content||base;state.content.profile=state.content.profile||base.profile;state.content.settings=state.content.settings||base.settings;state.content.contact=state.content.contact||base.contact;state.content.projects=Array.isArray(state.content.projects)?state.content.projects:[];
     bindFields();renderToggles();renderProjects();setDirty(false)
   }
-  async function loadContent(){clearFatal();const data=await api("/api/admin-content");state.content=data.content||blankContent();hydrate()}
+  async function loadContent(){clearFatal();const data=await api("/api/admin-content");state.content=data.content||blankContent();state.version=data.version||"empty";hydrate()}
   function showDashboard(session){state.authorized=true;state.mustChangePassword=Boolean(session.mustChangePassword);loginView.hidden=true;dashboardView.hidden=false;const user=qs("#sessionUser");if(user)user.textContent=session.user?.username||"Authenticated";if(state.mustChangePassword){activatePanel("securityPanel");showFatal("Password rotation is required before publishing content.");if(publishButton)publishButton.disabled=true}}
   function showLogin(){state.authorized=false;dashboardView.hidden=true;loginView.hidden=false}
   async function checkSession(){try{const session=await api("/api/admin-session");showDashboard(session);if(!session.mustChangePassword)await loadContent()}catch{showLogin()}}
@@ -69,7 +69,7 @@
         if(state.dirty&&!window.confirm("You have unpublished edits. Restore anyway and replace them?"))return;
         if(!window.confirm(`Restore the portfolio to ${formatRevisionDate(revision.at)}? A new recovery point will be created first.`))return;
         restore.disabled=true;setStatus("#revisionStatus","Restoring revision…");
-        try{const data=await api("/api/admin-revisions",{method:"POST",json:{key:revision.key}});state.content=data.content||state.content;hydrate();state.revisionsLoaded=false;await loadRevisions();setStatus("#revisionStatus","Revision restored and published.")}catch(error){restore.disabled=false;setStatus("#revisionStatus",error.message,true)}
+        try{const data=await api("/api/admin-revisions",{method:"POST",json:{key:revision.key}});state.content=data.content||state.content;state.version=data.version||state.version;hydrate();state.revisionsLoaded=false;await loadRevisions();setStatus("#revisionStatus","Revision restored and published.")}catch(error){restore.disabled=false;setStatus("#revisionStatus",error.message,true)}
       };
       row.append(meta,restore);return row
     }))
@@ -101,7 +101,7 @@
   qs("#mediaFile")?.addEventListener("change",()=>setStatus("#mediaStatus",""));
   qs("#copyMediaUrl")?.addEventListener("click",async()=>{const value=qs("#mediaUrl")?.value;if(!value)return;try{await navigator.clipboard.writeText(value);setStatus("#mediaStatus","Media URL copied.")}catch{qs("#mediaUrl")?.select();document.execCommand?.("copy");setStatus("#mediaStatus","Media URL selected for copying.")}});
   qs("#refreshRevisions")?.addEventListener("click",()=>{state.revisionsLoaded=false;loadRevisions()});
-  publishButton?.addEventListener("click",async()=>{if(!state.dirty||state.mustChangePassword)return;publishButton.disabled=true;saveState.textContent="Publishing…";clearFatal();try{const data=await api("/api/admin-content",{method:"PUT",json:{content:state.content}});state.content=data.content||state.content;hydrate();state.revisionsLoaded=false;saveState.textContent="Published";setTimeout(()=>{if(!state.dirty)saveState.textContent="No unpublished changes"},1400)}catch(error){publishButton.disabled=false;saveState.textContent="Publish failed";showFatal(error.message)}});
+  publishButton?.addEventListener("click",async()=>{if(!state.dirty||state.mustChangePassword)return;publishButton.disabled=true;saveState.textContent="Publishing…";clearFatal();try{const data=await api("/api/admin-content",{method:"PUT",json:{content:state.content,baseVersion:state.version}});state.content=data.content||state.content;state.version=data.version||state.version;hydrate();state.revisionsLoaded=false;saveState.textContent="Published";setTimeout(()=>{if(!state.dirty)saveState.textContent="No unpublished changes"},1400)}catch(error){publishButton.disabled=false;saveState.textContent=error.status===409?"Reload required":"Publish failed";showFatal(error.message)}});
   qs("#passwordForm")?.addEventListener("submit",async event=>{event.preventDefault();setStatus("#passwordStatus","Updating password…");try{await api("/api/admin-password",{method:"POST",json:{currentPassword:qs("#currentPassword").value,newPassword:qs("#newPassword").value}});setStatus("#passwordStatus","Password changed. Re-authentication required.");setTimeout(()=>location.replace("/admin/"),700)}catch(error){setStatus("#passwordStatus",error.message,true)}});
   window.addEventListener("beforeunload",event=>{if(!state.dirty)return;event.preventDefault();event.returnValue=""});
   checkSession();
