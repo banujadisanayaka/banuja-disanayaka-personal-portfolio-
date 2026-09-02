@@ -60,8 +60,24 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Start static preview
+      - name: Select browser QA target
+        id: target
+        shell: bash
         run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "url=https://deploy-preview-${{ github.event.pull_request.number }}--banuja-personal-log.netlify.app" >> "$GITHUB_OUTPUT"
+            echo "commit=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+            echo "remote=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=http://127.0.0.1:4173" >> "$GITHUB_OUTPUT"
+            echo "commit=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            echo "remote=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Start static preview for branch pushes
+        if: steps.target.outputs.remote == 'false'
+        run: |
+          node scripts/build-info.mjs
           python3 -m http.server 4173 -d public >/tmp/portfolio-http.log 2>&1 &
           for i in {1..20}; do
             curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0
@@ -70,5 +86,33 @@ jobs:
           cat /tmp/portfolio-http.log
           exit 1
 
+      - name: Wait for exact Netlify deploy preview
+        if: steps.target.outputs.remote == 'true'
+        env:
+          QA_URL: ${{ steps.target.outputs.url }}
+          EXPECTED_COMMIT: ${{ steps.target.outputs.commit }}
+        run: |
+          for i in {1..60}; do
+            BODY="$(curl -fsS "$QA_URL/build-info.json" 2>/dev/null || true)"
+            echo "$BODY" | grep -q "$EXPECTED_COMMIT" && exit 0
+            sleep 5
+          done
+          echo "Timed out waiting for deploy preview commit $EXPECTED_COMMIT"
+          exit 1
+
+      - name: Verify deployed API privacy and auth boundaries
+        if: steps.target.outputs.remote == 'true'
+        env:
+          QA_URL: ${{ steps.target.outputs.url }}
+        run: |
+          curl -fsS -D /tmp/content-headers "$QA_URL/api/content" -o /tmp/content-body
+          grep -qi '^x-robots-tag: noindex, nofollow, noarchive' /tmp/content-headers
+          grep -qi '^referrer-policy: no-referrer' /tmp/content-headers
+          grep -qi '^cross-origin-resource-policy: same-origin' /tmp/content-headers
+          test "$(curl -sS -o /tmp/session-body -w '%{http_code}' "$QA_URL/api/admin-session")" = "401"
+          test "$(curl -sS -o /tmp/admin-body -w '%{http_code}' "$QA_URL/api/admin-content")" = "401"
+
       - name: Browser accessibility and responsive QA
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
         run: node scripts/browser-qa.mjs
