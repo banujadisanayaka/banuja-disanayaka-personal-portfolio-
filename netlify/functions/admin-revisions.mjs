@@ -1,5 +1,5 @@
 import { json, requireJson, requireSameOrigin, requestBodyTooLarge } from '../../server/http.mjs';
-import { listRevisions, restoreRevision } from '../../server/cms.mjs';
+import { contentVersion, listRevisions, restoreRevision } from '../../server/cms.mjs';
 import { audit, verifySession } from '../../server/security.mjs';
 
 export default async (request) => {
@@ -23,7 +23,7 @@ export default async (request) => {
       const { key } = await request.json();
       const content = await restoreRevision(key);
       await audit(request, 'content.restore', { details: { revision: String(key || '').slice(0, 180) } });
-      return json({ ok: true, content });
+      return json({ ok: true, content, version: contentVersion(content) });
     } catch {
       return json({ ok: false, message: 'Unable to restore that revision.' }, 400);
     }
