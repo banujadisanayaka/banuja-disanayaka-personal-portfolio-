@@ -1,22 +1,30 @@
 (() => {
+  'use strict';
+
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const meter = document.querySelector('#caseMeter');
 
   const updateMeter = () => {
     if (!meter) return;
     const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-    meter.style.width = `${Math.min(100, Math.max(0, scrollY / max * 100))}%`;
+    const progress = Math.min(100, Math.max(0, scrollY / max * 100));
+    meter.style.width = `${progress}%`;
   };
 
   let ticking = false;
-  addEventListener('scroll', () => {
+  const scheduleMeter = () => {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => {
       updateMeter();
       ticking = false;
     });
-  }, { passive: true });
+  };
+
+  addEventListener('scroll', scheduleMeter, { passive: true });
+  addEventListener('resize', scheduleMeter, { passive: true });
+  addEventListener('orientationchange', scheduleMeter, { passive: true });
+  addEventListener('pageshow', scheduleMeter, { passive: true });
   updateMeter();
 
   const items = [...document.querySelectorAll('.reveal')];
