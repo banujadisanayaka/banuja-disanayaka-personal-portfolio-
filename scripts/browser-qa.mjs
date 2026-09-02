@@ -77,6 +77,8 @@ try {
       const focusedHref = await mobile.evaluate(() => document.activeElement?.getAttribute?.('href') || '');
       assert(focusedHref.startsWith('#'), 'Opening mobile menu should move focus into navigation.');
       const workLink = mobile.locator('#navPanel a[href="#work"]');
+      const box = await workLink.boundingBox();
+      assert(box && box.x >= -1 && box.y >= -1 && box.x + box.width <= viewport.width + 1 && box.y + box.height <= viewport.height + 1, 'Open mobile navigation link must remain inside the viewport.');
       await workLink.click({ timeout: 3000 });
       await waitForFocusedId(mobile, 'work');
       assert(await toggle.getAttribute('aria-expanded') === 'false', 'Selecting a mobile navigation link should close the menu.');
