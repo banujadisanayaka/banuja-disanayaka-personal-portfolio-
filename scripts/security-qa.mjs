@@ -9,6 +9,8 @@ const assert = (condition, message) => { if (!condition) failures.push(message);
 const login = read('netlify/functions/admin-login.mjs');
 const password = read('netlify/functions/admin-password.mjs');
 const content = read('netlify/functions/admin-content.mjs');
+const revisions = read('netlify/functions/admin-revisions.mjs');
+const cms = read('server/cms.mjs');
 const media = read('netlify/functions/admin-media.mjs');
 const http = read('server/http.mjs');
 const security = read('server/security.mjs');
@@ -36,6 +38,9 @@ assert(/revokeAllSessions\(\)/.test(password), 'password change must revoke acti
 
 assert(/VERSION_REQUIRED/.test(content), 'admin-content must reject versionless publishes');
 assert(/VERSION_CONFLICT/.test(content), 'admin-content must reject stale publishes');
+assert(/onlyIfMatch/.test(cms), 'CMS writer must use Blob ETag compare-and-swap for existing content');
+assert(/onlyIfNew/.test(cms), 'CMS writer must atomically protect first-write creation');
+assert(/baseVersion/.test(revisions) && /VERSION_CONFLICT/.test(revisions), 'revision restore must be version-guarded');
 assert(/requestBodyTooLarge\(request,\s*600\s*\*\s*1024\)/.test(content), 'admin-content must cap content payload size');
 assert(/requestBodyTooLarge\(request,\s*5\s*\*\s*1024\s*\*\s*1024\)/.test(media) || /requestBodyTooLarge/.test(media), 'admin-media should cap upload request size');
 
@@ -55,4 +60,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Security QA passed: auth bounds, origin controls, API indexing policy, concurrency protection and session-cookie safeguards verified.');
+console.log('Security QA passed: static security invariants present. Executable CMS race behavior is tested separately.');
