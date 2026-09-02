@@ -82,6 +82,16 @@ if (exists('public/sitemap.xml')) {
     '/work/banu-2/'
   ];
   for (const value of expected) assert(sitemap.includes(value), `sitemap.xml missing ${value}`);
+  assert(/<lastmod>2026-09-02<\/lastmod>/.test(sitemap), 'sitemap.xml should expose the latest significant update date');
+}
+
+if (exists('public/index.html')) {
+  const home = read('public/index.html');
+  assert(/<title>Banuja Disanayaka\s*\|/i.test(home), 'Homepage title should lead with the exact branded name');
+  assert(/Official portfolio of Banuja Disanayaka/i.test(home), 'Homepage description should clearly identify this as the official portfolio');
+  assert(/"@type":\s*"ProfilePage"/.test(home), 'Homepage should include ProfilePage structured data');
+  assert(/"alternateName":\s*\[[^\]]*"Banu"/.test(home), 'Person structured data should include the public short name');
+  assert(/instagram\.com\/banuja_disanayaka\//i.test(home), 'Person structured data should connect the verified Instagram handle');
 }
 
 if (exists('public/favicon.svg')) {
