@@ -28,18 +28,6 @@ function safeUrl(value, { allowRelative = true, allowFragment = false } = {}) {
   return parsed.toString();
 }
 
-const legacyAssetMap = new Map([
-  ['/assets/aura-profile.png', '/assets/aura-profile.webp'],
-  ['/assets/banuja-about.jpg', '/assets/banuja-about.webp'],
-  ['/assets/clouds-profile.png', '/assets/clouds-profile.webp'],
-  ['/assets/collection-profile.png', '/assets/collection-profile.webp'],
-  ['/assets/daily-gaze-profile.png', '/assets/daily-gaze-profile.webp'],
-  ['/assets/daily-gaze-wordmark.png', '/assets/daily-gaze-wordmark.webp'],
-  ['/assets/roots-profile.png', '/assets/roots-profile.webp'],
-  ['/assets/the-grid-profile.png', '/assets/the-grid-profile.webp'],
-  ['/assets/veloria-profile.png', '/assets/veloria-profile.webp']
-]);
-
 const canonicalProjectRoutes = new Map([
   ['tfc orders tracker', '/work/tfc-orders-tracker/'],
   ['class tracker tdg', '/work/class-tracker/'],
@@ -49,8 +37,7 @@ const canonicalProjectRoutes = new Map([
 ]);
 
 function canonicalAssetUrl(value) {
-  const safe = safeUrl(value);
-  return legacyAssetMap.get(safe) || safe;
+  return safeUrl(value);
 }
 
 function canonicalProjectUrl(project) {
