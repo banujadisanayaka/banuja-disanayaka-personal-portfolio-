@@ -1,0 +1,18 @@
+{
+  "name": "Banuja Disanayaka — Creative Systems Builder",
+  "short_name": "Banuja",
+  "description": "Portfolio of Banuja Disanayaka: design, product, photography and operational systems.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07090d",
+  "theme_color": "#07090d",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
