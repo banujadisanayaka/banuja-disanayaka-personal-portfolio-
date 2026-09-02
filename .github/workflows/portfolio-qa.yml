@@ -28,3 +28,6 @@ jobs:
 
       - name: Static production QA
         run: node scripts/portfolio-qa.mjs
+
+      - name: Backend security regression QA
+        run: node scripts/security-qa.mjs
