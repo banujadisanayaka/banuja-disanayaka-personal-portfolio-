@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
@@ -12,6 +13,15 @@ function assert(condition, message) {
 }
 function warn(condition, message) {
   if (!condition) warnings.push(message);
+}
+
+function walk(dir) {
+  const absolute = path.join(root, dir);
+  if (!fs.existsSync(absolute)) return [];
+  return fs.readdirSync(absolute, { withFileTypes: true }).flatMap((entry) => {
+    const relative = path.join(dir, entry.name);
+    return entry.isDirectory() ? walk(relative) : [relative];
+  });
 }
 
 const requiredPages = [
@@ -81,7 +91,12 @@ if (exists('netlify.toml')) {
 }
 
 const sourceFiles = [
-  'public/index.html', 'public/app.js', 'public/admin/admin.js', 'server/content-schema.mjs'
+  'public/index.html',
+  'public/app.js',
+  'public/admin/admin.js',
+  'server/content-schema.mjs',
+  'server/security.mjs',
+  'netlify/functions/admin-media.mjs'
 ].filter(exists);
 const sensitivePatterns = [
   /passport\s*(number|no\.?)/i,
@@ -98,13 +113,25 @@ for (const file of sourceFiles) {
   }
 }
 
+const syntaxFiles = [
+  ...walk('public').filter((file) => file.endsWith('.js')),
+  ...walk('server').filter((file) => file.endsWith('.mjs') || file.endsWith('.js')),
+  ...walk('netlify/functions').filter((file) => file.endsWith('.mjs') || file.endsWith('.js')),
+  ...walk('scripts').filter((file) => file.endsWith('.mjs') || file.endsWith('.js'))
+];
+
+for (const file of syntaxFiles) {
+  const result = spawnSync(process.execPath, ['--check', path.join(root, file)], { encoding: 'utf8' });
+  assert(result.status === 0, `${file}: JavaScript syntax check failed${result.stderr ? ` — ${result.stderr.trim().split('\n').slice(-1)[0]}` : ''}`);
+}
+
 if (exists('public/app.js')) {
   const app = read('public/app.js');
   warn(/prefers-reduced-motion/i.test(app), 'app.js should honor prefers-reduced-motion');
   warn(/AbortController/.test(app), 'CMS fetch should have an abort/timeout path');
 }
 
-console.log(`Portfolio QA: ${requiredPages.length} required routes checked.`);
+console.log(`Portfolio QA: ${requiredPages.length} required routes and ${syntaxFiles.length} JavaScript modules checked.`);
 for (const message of warnings) console.warn(`WARN: ${message}`);
 if (failures.length) {
   console.error(`\nQA failed with ${failures.length} issue(s):`);
