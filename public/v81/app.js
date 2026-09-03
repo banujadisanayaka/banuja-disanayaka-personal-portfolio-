@@ -4,10 +4,11 @@
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
   function safeExternal(anchor, url) {
-    if (!anchor || typeof url !== "string" || !url) return;
-    anchor.href = url;
+    if (!anchor || typeof url !== "string" || !url.trim()) return;
+    anchor.href = url.trim();
     if (/^https:\/\//i.test(url)) {
       anchor.target = "_blank";
       anchor.rel = "noopener noreferrer";
@@ -37,6 +38,7 @@
   function bindProfile(content) {
     const profile = content && content.profile;
     if (!profile) return;
+
     const values = {
       "profile.heroEyebrow": profile.heroEyebrow,
       "profile.firstName": profile.firstName,
@@ -47,6 +49,7 @@
       "profile.aboutHeading": profile.aboutHeading,
       "profile.aboutIntro": profile.aboutIntro
     };
+
     Object.entries(values).forEach(([key, value]) => {
       if (typeof value !== "string" || !value.trim()) return;
       qsa(`[data-bind="${key}"]`).forEach((node) => { node.textContent = value.trim(); });
@@ -76,6 +79,8 @@
     const nav = qs("#siteNav");
     if (!button || !nav) return;
 
+    const focusables = () => qsa("a[href]", nav).filter((node) => !node.hasAttribute("hidden"));
+
     const close = (focusButton = false) => {
       nav.classList.remove("open");
       button.setAttribute("aria-expanded", "false");
@@ -88,24 +93,49 @@
       nav.classList.toggle("open", opening);
       button.setAttribute("aria-expanded", String(opening));
       document.body.classList.toggle("menu-open", opening);
-      if (opening) {
-        const first = qs("a", nav);
-        if (first) first.focus({ preventScroll: true });
-      }
+      if (opening) focusables()[0]?.focus({ preventScroll: true });
     });
 
     qsa("a", nav).forEach((link) => link.addEventListener("click", () => close(false)));
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && nav.classList.contains("open")) close(true);
+
+    document.addEventListener("pointerdown", (event) => {
+      if (!nav.classList.contains("open")) return;
+      if (nav.contains(event.target) || button.contains(event.target)) return;
+      close(false);
     });
+
+    document.addEventListener("keydown", (event) => {
+      if (!nav.classList.contains("open")) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close(true);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusables();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
     window.addEventListener("resize", () => {
       if (window.innerWidth > 820 && nav.classList.contains("open")) close(false);
     }, { passive: true });
   }
 
   function setupReveal() {
-    if (reducedMotion || !("IntersectionObserver" in window)) return;
-    const targets = qsa(".project-card,.photo-card,.timeline article,.capabilities span,.veloria-card,.contact-grid a");
+    const targets = qsa(".project-card,.photo-card,.timeline article,.capabilities span,.edu-card,.veloria-card,.contact-grid a");
+    if (reducedMotion || !("IntersectionObserver" in window)) {
+      targets.forEach((node) => node.classList.add("reveal-in"));
+      return;
+    }
     targets.forEach((node) => node.classList.add("reveal-ready"));
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -115,6 +145,41 @@
       });
     }, { threshold: 0.08, rootMargin: "0px 0px -5% 0px" });
     targets.forEach((node) => observer.observe(node));
+  }
+
+  function setupActiveNavigation() {
+    const nav = qs("#siteNav");
+    const sections = qsa("[data-nav-section]");
+    if (!nav || !sections.length || !("IntersectionObserver" in window)) return;
+
+    const links = qsa("a[href^='#']", nav);
+    const setActive = (id) => {
+      links.forEach((link) => {
+        const active = link.getAttribute("href") === `#${id}`;
+        if (active) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      });
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+      if (visible[0]?.target?.id) setActive(visible[0].target.id);
+    }, { threshold: [0.2, 0.45, 0.7], rootMargin: "-22% 0px -55% 0px" });
+
+    sections.forEach((section) => observer.observe(section));
+    setActive("home");
+  }
+
+  function setupMobileDock() {
+    const dock = qs("#mobileDock");
+    const contact = qs("#contact");
+    if (!dock || !contact) return;
+    if (!("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => dock.classList.toggle("is-hidden", entry.isIntersecting));
+    }, { threshold: 0.18 });
+    observer.observe(contact);
   }
 
   function ensureFocusVisibility() {
@@ -128,8 +193,25 @@
     });
   }
 
+  function setupPointerDepth() {
+    if (reducedMotion || coarsePointer) return;
+    const shell = qs("#portraitShell");
+    if (!shell) return;
+
+    shell.addEventListener("pointermove", (event) => {
+      const rect = shell.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      shell.style.transform = `perspective(1000px) rotateY(${x * 2.8}deg) rotateX(${y * -2.2}deg)`;
+    });
+    shell.addEventListener("pointerleave", () => { shell.style.transform = ""; });
+  }
+
   setupMenu();
   setupReveal();
+  setupActiveNavigation();
+  setupMobileDock();
   ensureFocusVisibility();
+  setupPointerDepth();
   loadContent().then(bindProfile);
 })();
