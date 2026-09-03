@@ -41,6 +41,9 @@ jobs:
       - name: CMS atomic concurrency QA
         run: node scripts/cms-concurrency-qa.mjs
 
+      - name: V9 production-preview QA
+        run: node scripts/v9-qa.mjs
+
 
   browser-qa:
     runs-on: ubuntu-latest
@@ -116,3 +119,8 @@ jobs:
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
         run: node scripts/browser-qa.mjs
+
+      - name: V9 browser and gallery QA
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
+        run: node scripts/v9-browser-qa.mjs
