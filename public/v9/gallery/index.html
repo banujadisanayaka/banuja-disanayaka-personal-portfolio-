@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050a10">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex,nofollow">
+  <title>The Daily Gaze — V9 Gallery Preview</title>
+  <meta name="description" content="The Daily Gaze — a photography gallery by Banuja Disanayaka.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/v9/gallery/gallery.css">
+</head>
+<body>
+  <a class="skip-link" href="#galleryMain">Skip to gallery</a>
+
+  <header class="gallery-header">
+    <a class="back" href="/v9/"><span aria-hidden="true">←</span> Portfolio</a>
+    <div class="gallery-brand">
+      <strong>THE DAILY GAZE</strong>
+      <span>Photography by Banuja Disanayaka</span>
+    </div>
+    <button class="view-toggle" id="viewToggle" type="button" aria-pressed="false">Compact view</button>
+  </header>
+
+  <main id="galleryMain">
+    <section class="gallery-hero">
+      <p class="eyebrow">VISUAL JOURNAL · OBSERVATION · PLACE</p>
+      <h1>Moments that<br><em>made me look twice.</em></h1>
+      <div class="gallery-intro">
+        <p>The Daily Gaze is my ongoing photography archive — a collection of places, light, movement and small details worth remembering.</p>
+        <span id="galleryCount">03 photographs</span>
+      </div>
+    </section>
+
+    <section class="gallery-shell" aria-labelledby="archiveTitle">
+      <div class="gallery-toolbar">
+        <div>
+          <span class="index">ARCHIVE / 2026</span>
+          <h2 id="archiveTitle">Selected frames</h2>
+        </div>
+        <p>More photographs will be added to this internal archive as the collection is curated.</p>
+      </div>
+
+      <div class="masonry" id="galleryGrid">
+        <button class="photo-card tall" type="button"
+          data-full="https://drive.google.com/thumbnail?id=1wqmJ1wkcy18ytFHjn_DBL79vSHT2x0Vr&sz=w1600"
+          data-title="Kuala Lumpur"
+          data-note="The Daily Gaze"
+          aria-label="Open Kuala Lumpur photograph">
+          <img src="https://drive.google.com/thumbnail?id=1wqmJ1wkcy18ytFHjn_DBL79vSHT2x0Vr&sz=w900"
+            srcset="https://drive.google.com/thumbnail?id=1wqmJ1wkcy18ytFHjn_DBL79vSHT2x0Vr&sz=w600 600w, https://drive.google.com/thumbnail?id=1wqmJ1wkcy18ytFHjn_DBL79vSHT2x0Vr&sz=w900 900w"
+            sizes="(max-width:700px) 100vw, 48vw" width="900" height="1125" loading="eager" decoding="async" alt="The Daily Gaze photograph — Kuala Lumpur">
+          <span><small>01</small><strong>Kuala Lumpur</strong></span>
+        </button>
+
+        <button class="photo-card" type="button"
+          data-full="https://drive.google.com/thumbnail?id=1JbpzNtVhTf-iJHGbQ4DdaLXX-LG9Uucl&sz=w1600"
+          data-title="Colombo"
+          data-note="Galle Face · The Daily Gaze"
+          aria-label="Open Colombo Galle Face photograph">
+          <img src="https://drive.google.com/thumbnail?id=1JbpzNtVhTf-iJHGbQ4DdaLXX-LG9Uucl&sz=w900"
+            srcset="https://drive.google.com/thumbnail?id=1JbpzNtVhTf-iJHGbQ4DdaLXX-LG9Uucl&sz=w600 600w, https://drive.google.com/thumbnail?id=1JbpzNtVhTf-iJHGbQ4DdaLXX-LG9Uucl&sz=w900 900w"
+            sizes="(max-width:700px) 100vw, 34vw" width="900" height="1125" loading="lazy" decoding="async" alt="The Daily Gaze photograph — Colombo Galle Face">
+          <span><small>02</small><strong>Colombo</strong></span>
+        </button>
+
+        <button class="photo-card wide" type="button"
+          data-full="https://drive.google.com/thumbnail?id=1Zk9EJ6w5RpIlZS7zmZieh2GxM84qXqC9&sz=w1600"
+          data-title="Sri Lanka"
+          data-note="Hill country · The Daily Gaze"
+          aria-label="Open Sri Lanka hill country photograph">
+          <img src="https://drive.google.com/thumbnail?id=1Zk9EJ6w5RpIlZS7zmZieh2GxM84qXqC9&sz=w900"
+            srcset="https://drive.google.com/thumbnail?id=1Zk9EJ6w5RpIlZS7zmZieh2GxM84qXqC9&sz=w600 600w, https://drive.google.com/thumbnail?id=1Zk9EJ6w5RpIlZS7zmZieh2GxM84qXqC9&sz=w900 900w"
+            sizes="(max-width:700px) 100vw, 48vw" width="900" height="1125" loading="lazy" decoding="async" alt="The Daily Gaze photograph — Sri Lanka hill country">
+          <span><small>03</small><strong>Sri Lanka</strong></span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="lightbox" id="lightbox" aria-labelledby="lightboxTitle">
+    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Close photograph">Close ×</button>
+    <div class="lightbox-stage">
+      <img id="lightboxImage" alt="">
+      <div class="lightbox-caption"><span id="lightboxNote"></span><h2 id="lightboxTitle"></h2></div>
+    </div>
+    <div class="lightbox-controls">
+      <button id="prevPhoto" type="button">← Previous</button>
+      <span id="lightboxIndex">1 / 3</span>
+      <button id="nextPhoto" type="button">Next →</button>
+    </div>
+  </dialog>
+
+  <footer>
+    <span>THE DAILY GAZE · © 2026 Banuja Disanayaka</span>
+    <a href="/v9/">Return to portfolio ↗</a>
+  </footer>
+
+  <script src="/v9/gallery/gallery.js" defer></script>
+</body>
+</html>
