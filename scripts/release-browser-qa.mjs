@@ -3,7 +3,7 @@ import {chromium} from 'playwright';
 const base=process.env.BROWSER_QA_BASE_URL||'http://127.0.0.1:4173';
 const browser=await chromium.launch();
 const sizes=[[320,700],[390,844],[768,1024],[812,375],[1024,768],[1366,900]];
-const paths=['/','/daily-gaze/','/work/class-tracker/','/work/veloria/','/resume/'];
+const paths=['/','/about/','/daily-gaze/','/work/tfc-orders-tracker/','/work/class-tracker/','/work/second-brain/','/work/banu-2/','/work/veloria/','/resume/'];
 try{
  for(const [width,height]of sizes){const context=await browser.newContext({viewport:{width,height}});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   for(const path of paths){await page.goto(base+path,{waitUntil:'networkidle'});assert.equal(await page.locator('h1').count(),1);assert.ok(await page.locator('h1').isVisible());const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(overflow,false,`${path} overflows at ${width}×${height}`);const broken=await page.locator('img').evaluateAll(imgs=>imgs.filter(i=>i.complete&&i.currentSrc&&!i.naturalWidth).map(i=>i.src));assert.deepEqual(broken,[],`Broken images at ${path}`);}

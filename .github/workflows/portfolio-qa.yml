@@ -117,5 +117,5 @@ jobs:
       - name: Browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/release-browser-qa.mjs
+        run: node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
 
