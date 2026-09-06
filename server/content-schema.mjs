@@ -19,6 +19,7 @@ function bool(value, fallback = true) {
 function safeUrl(value, { allowRelative = true, allowFragment = false } = {}) {
   const raw = text(value, max.url);
   if (!raw) return '';
+  if (/[\\\u0000-\u001F]/.test(raw)) return '';
   if (allowFragment && raw.startsWith('#')) return raw.slice(0, 128);
   if (allowRelative && raw.startsWith('/') && !raw.startsWith('//')) return raw;
   let parsed;
@@ -84,6 +85,7 @@ export function sanitizeContent(input) {
   const c = input.contact || {};
 
   const content = {
+    schemaVersion: Number(input.schemaVersion) === 9 ? 9 : 0,
     profile: {
       heroEyebrow: text(p.heroEyebrow, 120),
       firstName: text(p.firstName, 60),
@@ -118,6 +120,15 @@ export function sanitizeContent(input) {
       visible: bool(item?.visible, true)
     })),
     dailyGaze: array(input.dailyGaze, 500).map(item => ({
+      id: text(item?.id, 100),
+      slug: text(item?.slug, 200),
+      location: text(item?.location, 160),
+      caption: text(item?.caption, 1500),
+      captureDate: /^\d{4}-\d{2}-\d{2}$/.test(item?.captureDate || '') ? item.captureDate : '',
+      width: Math.min(12000, Math.max(1, Math.floor(Number(item?.width) || 960))),
+      height: Math.min(12000, Math.max(1, Math.floor(Number(item?.height) || 1200))),
+      featured: bool(item?.featured, false),
+      derivatives: array(item?.derivatives, 5).map(d => ({url: canonicalAssetUrl(d?.url), width: Math.min(12000,Math.max(1,Math.floor(Number(d?.width)||1))),height:Math.min(12000,Math.max(1,Math.floor(Number(d?.height)||1)))})).filter(d=>d.url),
       category: text(item?.category, 100),
       title: text(item?.title, 180),
       preview: canonicalAssetUrl(item?.preview),
@@ -166,6 +177,7 @@ export function sanitizeContent(input) {
 export function publicProjection(master) {
   const c = sanitizeContent(master);
   return {
+    schemaVersion: c.schemaVersion,
     profile: c.profile,
     career: c.settings.showCareer ? c.career : [],
     metrics: c.metrics,

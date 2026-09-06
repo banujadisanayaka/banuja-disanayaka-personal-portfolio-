@@ -1,5 +1,5 @@
 [build]
-  command = "node scripts/build-info.mjs"
+  command = "node scripts/build-derivatives.mjs && node scripts/build-site.mjs && node scripts/build-info.mjs"
   publish = "public"
   functions = "netlify/functions"
 
@@ -9,6 +9,24 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["sharp"]
+
+[[redirects]]
+  from = "/v9/gallery/*"
+  to = "/daily-gaze/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/v9/*"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/v81/*"
+  to = "/"
+  status = 301
+  force = true
 
 [[redirects]]
   from = "/favicon.ico"

@@ -47,9 +47,19 @@ export default async (request) => {
       .toBuffer();
 
     const id = `${Date.now()}-${crypto.randomBytes(12).toString('hex')}.webp`;
-    await mediaStore().set(id, output);
+    const store = mediaStore();
+    await store.set(id, output);
+    const normalized = await sharp(output).metadata();
+    const derivatives = [];
+    for (const width of [480, 960, 1600, 2560].filter(w => w < normalized.width)) {
+      const variant = await sharp(output).resize({ width, withoutEnlargement: true }).webp({ quality: 85 }).toBuffer({ resolveWithObject: true });
+      const variantId = id.replace('.webp', `-${width}.webp`);
+      await store.set(variantId, variant.data);
+      derivatives.push({ url: `/api/media?id=${encodeURIComponent(variantId)}`, width: variant.info.width, height: variant.info.height });
+    }
+    derivatives.push({ url: `/api/media?id=${encodeURIComponent(id)}`, width: normalized.width, height: normalized.height });
     await audit(request, 'media.upload', { details: { format, inputBytes: input.length, outputBytes: output.length } });
-    return json({ ok: true, url: `/api/media?id=${encodeURIComponent(id)}` });
+    return json({ ok: true, url: `/api/media?id=${encodeURIComponent(id)}`, width: normalized.width, height: normalized.height, derivatives });
   } catch {
     return json({ ok: false, message: 'Upload failed. Check the image and try again.' }, 400);
   }

@@ -29,20 +29,17 @@ jobs:
       - name: Install runtime dependencies
         run: npm ci --no-audit --no-fund --ignore-scripts
 
-      - name: Static production QA
-        run: node scripts/portfolio-qa.mjs
+      - name: Build release and responsive media
+        run: node scripts/build-derivatives.mjs && node scripts/build-site.mjs
 
-      - name: Responsive and motion resilience QA
-        run: node scripts/responsive-qa.mjs
+      - name: Release content, migration and media QA
+        run: node scripts/release-qa.mjs
 
       - name: Backend security regression QA
         run: node scripts/security-qa.mjs
 
       - name: CMS atomic concurrency QA
         run: node scripts/cms-concurrency-qa.mjs
-
-      - name: V9 production-preview QA
-        run: node scripts/v9-qa.mjs
 
 
   browser-qa:
@@ -80,6 +77,8 @@ jobs:
       - name: Start static preview for branch pushes
         if: steps.target.outputs.remote == 'false'
         run: |
+          node scripts/build-derivatives.mjs
+          node scripts/build-site.mjs
           node scripts/build-info.mjs
           python3 -m http.server 4173 -d public >/tmp/portfolio-http.log 2>&1 &
           for i in {1..20}; do
@@ -118,9 +117,5 @@ jobs:
       - name: Browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/browser-qa.mjs
+        run: node scripts/release-browser-qa.mjs
 
-      - name: V9 browser and gallery QA
-        env:
-          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/v9-browser-qa.mjs

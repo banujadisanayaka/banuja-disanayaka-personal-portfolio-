@@ -1,6 +1,7 @@
 import { json, requireJson, requireSameOrigin, requestBodyTooLarge } from '../../server/http.mjs';
 import { contentVersion, getMasterContent, saveMasterContent } from '../../server/cms.mjs';
 import { audit, verifySession } from '../../server/security.mjs';
+import { withV9Defaults } from '../../server/v9-content.mjs';
 
 export default async (request) => {
   const session = await verifySession(request);
@@ -10,7 +11,7 @@ export default async (request) => {
   if (request.method === 'GET') {
     try {
       const content = await getMasterContent();
-      return json({ ok: true, content, version: contentVersion(content) });
+      return json({ ok: true, content: withV9Defaults(content), version: contentVersion(content) });
     } catch {
       return json({ ok: false, message: 'Unable to load content.' }, 500);
     }
