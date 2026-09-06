@@ -30,6 +30,9 @@ try {
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.waitForFunction(() => document.documentElement.dataset.motion==='off');
   assert.equal(await page.getByRole('button',{name:'Animation effects',exact:true}).getAttribute('aria-disabled'),'true');
+  await page.goto(base+'/work/tfc-orders-tracker/',{waitUntil:'networkidle'});
+  await page.getByRole('link',{name:'The workflow',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('.chapter-nav a[href="#workflow"]').getAttribute('aria-current')==='location');
   await context.close();
   console.log('Pointer depth, persistent motion choice, About perspectives and OS preference passed');
 

@@ -91,7 +91,7 @@ html{scroll-padding-bottom:85px}.site-footer{padding-bottom:90px}
 .case-margin p{font:24px/1.2 var(--serif);margin:18px 0}.case-margin>span:last-of-type{font-size:12px;line-height:1.8;display:block;color:var(--muted)}
 .case-margin>a{display:inline-block;font-size:12px;min-height:44px;margin-top:22px;color:var(--gold);border-bottom:1px solid var(--line)}
 .case-body{width:100%;max-width:none;margin:0;min-width:0}
-.case-body section{scroll-margin-top:105px;margin-bottom:85px}
+.case-body section{scroll-margin-top:0;margin-bottom:85px}
 .case-body h2{font:clamp(31px,3.5vw,47px)/1.13 var(--serif);letter-spacing:-.03em;margin:18px 0 30px}
 .case-body p:not(.eyebrow){line-height:1.85;font-size:17px}
 .case-body .eyebrow{font-size:12px;color:var(--gold)}
@@ -128,12 +128,14 @@ html{scroll-padding-bottom:85px}.site-footer{padding-bottom:90px}
 .next-project strong{transition:transform .4s var(--ease-out)}.next-project:hover strong{transform:translateX(-7px)}
 
 /* Pointer feedback never intercepts scrolling, selection or a link. */
-[data-depth]{position:relative;--depth-rest:0deg}
+[data-depth]{position:relative;overflow:clip;--depth-rest:0deg}
 .portrait-frame[data-depth]{--depth-rest:2deg}.about-cover[data-depth]{--depth-rest:-2deg}
 [data-depth]::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;background:radial-gradient(240px circle at var(--touch-x) var(--touch-y),#fff5,transparent 68%);transition:opacity .45s;mix-blend-mode:soft-light}
+[data-depth]::before{content:"";position:absolute;left:var(--touch-x);top:var(--touch-y);width:70px;height:70px;border:1px solid #e8d6a8b3;outline:1px solid #17201555;outline-offset:4px;border-radius:50%;transform:translate(-50%,-50%) scale(.7);opacity:0;pointer-events:none;z-index:4;transition:opacity .25s,transform .4s var(--ease-out)}
 html[data-motion=on] [data-depth]{touch-action:pan-y pinch-zoom;transform:perspective(1100px) rotateX(var(--depth-x)) rotateY(var(--depth-y)) rotateZ(var(--depth-rest));transition:transform .65s var(--ease-out);transform-origin:center;backface-visibility:hidden}
 html[data-motion=on] [data-depth].depth-active{transition:transform .18s ease-out;will-change:transform}
 html[data-motion=on] [data-depth].depth-active::after{opacity:1}
+html[data-motion=on] [data-depth].depth-active::before{opacity:.8;transform:translate(-50%,-50%) scale(1)}
 html[data-motion=on] .hero-orbit{transform:rotate(calc(-24deg + var(--scene-turn,0deg))) scale(var(--scene-scale,1));transition:transform .15s linear}
 html[data-motion=on] .hero-outline{transform:translateY(var(--scene-y,0px));transition:transform .15s linear}
 html[data-motion=on] .story-statement::after{transform:translateY(var(--statement-y,0px));transition:transform .15s linear}
@@ -184,7 +186,7 @@ html[data-motion=off]::view-transition-group(*),html[data-motion=off]::view-tran
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
 @media(forced-colors:active){
-  .hero-orbit,.hero-outline,.map-orbit,[data-depth]::after,.reading-progress{display:none}
+  .hero-orbit,.hero-outline,.map-orbit,[data-depth]::before,[data-depth]::after,.reading-progress{display:none}
   .hero,.perspective-section,.story-statement,.workflow-explorer,.practice-grid article,.case-takeaway,.system-map{background:Canvas;color:CanvasText}
   .explorer-controls button[aria-pressed=true]{background:Highlight;color:HighlightText;border-color:Highlight}
   .motion-toggle,.chapter-nav,.photo-seal{background:Canvas;color:CanvasText;border:1px solid CanvasText}
