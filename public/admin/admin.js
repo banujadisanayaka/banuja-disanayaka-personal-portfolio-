@@ -46,6 +46,11 @@
     }))
   }
 
+  function renderCareer(){
+    const root=qs('#careerEditor');if(!root)return;
+    state.content.career=state.content.career||[];
+    root.replaceChildren(...state.content.career.map(item=>{const row=document.createElement('div');row.className='project-editor';for(const [key,label]of[['year','Dates'],['title','Role'],['company','Organisation']]){const l=document.createElement('label');l.textContent=label;const input=document.createElement('input');input.value=item[key]||'';input.oninput=()=>{item[key]=input.value;setDirty(true)};l.append(input);row.append(l)}return row}));
+  }
   function renderGallery(){
     let root=qs('#galleryEditor');if(!root)return;
     const photos=Array.isArray(state.content.dailyGaze)?state.content.dailyGaze:[];
@@ -60,7 +65,7 @@
   }
   function hydrate(){
     const base=blankContent();state.content=state.content||base;state.content.profile=state.content.profile||base.profile;state.content.settings=state.content.settings||base.settings;state.content.contact=state.content.contact||base.contact;state.content.projects=Array.isArray(state.content.projects)?state.content.projects:[];
-    bindFields();renderToggles();renderProjects();renderGallery();setDirty(false)
+    bindFields();renderToggles();renderProjects();renderGallery();renderCareer();setDirty(false)
   }
   async function loadContent(){clearFatal();const data=await api("/api/admin-content");state.content=data.content||blankContent();state.version=data.version||"empty";hydrate()}
   function showDashboard(session){state.authorized=true;state.mustChangePassword=Boolean(session.mustChangePassword);loginView.hidden=true;dashboardView.hidden=false;const user=qs("#sessionUser");if(user)user.textContent=session.user?.username||"Authenticated";if(state.mustChangePassword){activatePanel("securityPanel");showFatal("Password rotation is required before publishing content.");if(publishButton)publishButton.disabled=true}}

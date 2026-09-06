@@ -9,3 +9,5 @@ node_modules/
 public/assets/v9/gaze-*-480.webp
 public/assets/v9/gaze-*-960.webp
 public/assets/v9/gaze-*-1600.webp
+
+public/build-info.json
