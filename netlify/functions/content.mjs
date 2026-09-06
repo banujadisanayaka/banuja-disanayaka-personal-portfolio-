@@ -1,5 +1,6 @@
 import { contentVersion, getMasterContent } from '../../server/cms.mjs';
 import { publicProjection } from '../../server/content-schema.mjs';
+import { withV9Defaults } from '../../server/v9-content.mjs';
 
 const jsonHeaders = (etag, { error = false } = {}) => ({
   'content-type': 'application/json; charset=utf-8',
@@ -27,13 +28,13 @@ export default async (request) => {
   try {
     const content = await getMasterContent();
     const version = contentVersion(content);
-    const etag = `"${version}"`;
+    const etag = `"v9-${version}"`;
 
     if (request.headers.get('if-none-match') === etag) {
       return new Response(null, { status: 304, headers: jsonHeaders(etag) });
     }
 
-    return new Response(JSON.stringify({ content: content ? publicProjection(content) : null, version }), {
+    return new Response(JSON.stringify({ content: publicProjection(withV9Defaults(content)), version }), {
       headers: jsonHeaders(etag)
     });
   } catch {

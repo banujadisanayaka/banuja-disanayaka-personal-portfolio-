@@ -45,9 +45,27 @@
       const visible=document.createElement("label");visible.className="toggle";const check=document.createElement("input");check.type="checkbox";check.checked=project.visible!==false;check.onchange=()=>{project.visible=check.checked;setDirty(true)};visible.append(check,document.createTextNode("Visible on public site"));box.append(head,grid,descLabel,visible);return box
     }))
   }
+
+  function renderCareer(){
+    const root=qs('#careerEditor');if(!root)return;
+    state.content.career=state.content.career||[];
+    root.replaceChildren(...state.content.career.map(item=>{const row=document.createElement('div');row.className='project-editor';for(const [key,label]of[['year','Dates'],['title','Role'],['company','Organisation']]){const l=document.createElement('label');l.textContent=label;const input=document.createElement('input');input.value=item[key]||'';input.oninput=()=>{item[key]=input.value;setDirty(true)};l.append(input);row.append(l)}return row}));
+  }
+  function renderGallery(){
+    let root=qs('#galleryEditor');if(!root)return;
+    const photos=Array.isArray(state.content.dailyGaze)?state.content.dailyGaze:[];
+    root.replaceChildren(...photos.map((photo,index)=>{
+      const row=document.createElement('details');row.className='project-editor';
+      const summary=document.createElement('summary');summary.textContent=`${index+1}. ${photo.title||'Untitled photograph'}`;row.append(summary);
+      const preview=document.createElement('img');preview.src=photo.preview;preview.alt=photo.alt||photo.title;preview.loading='lazy';preview.width=140;preview.style.maxHeight='160px';preview.style.objectFit='contain';row.append(preview);
+      for(const [key,label]of[['title','Title'],['category','Category'],['location','Location (optional)'],['caption','Caption'],['alt','Image description'],['preview','Image URL'],['download','Download URL']]){const l=document.createElement('label');l.textContent=label;const input=document.createElement('input');input.value=photo[key]||'';input.oninput=()=>{photo[key]=input.value;if(key==='title')summary.textContent=`${index+1}. ${photo.title}`;if(key==='preview')photo.derivatives=[];setDirty(true)};l.append(input);row.append(l)}
+      for(const [key,label]of[['visible','Publish photograph'],['featured','Feature on homepage'],['downloadable','Allow personal download']]){const l=document.createElement('label');l.className='toggle';const input=document.createElement('input');input.type='checkbox';input.checked=photo[key]!==false&&(key!=='featured'||photo.featured===true);input.onchange=()=>{photo[key]=input.checked;setDirty(true)};l.append(input,document.createTextNode(label));row.append(l)}
+      return row;
+    }));
+  }
   function hydrate(){
     const base=blankContent();state.content=state.content||base;state.content.profile=state.content.profile||base.profile;state.content.settings=state.content.settings||base.settings;state.content.contact=state.content.contact||base.contact;state.content.projects=Array.isArray(state.content.projects)?state.content.projects:[];
-    bindFields();renderToggles();renderProjects();setDirty(false)
+    bindFields();renderToggles();renderProjects();renderGallery();renderCareer();setDirty(false)
   }
   async function loadContent(){clearFatal();const data=await api("/api/admin-content");state.content=data.content||blankContent();state.version=data.version||"empty";hydrate()}
   function showDashboard(session){state.authorized=true;state.mustChangePassword=Boolean(session.mustChangePassword);loginView.hidden=true;dashboardView.hidden=false;const user=qs("#sessionUser");if(user)user.textContent=session.user?.username||"Authenticated";if(state.mustChangePassword){activatePanel("securityPanel");showFatal("Password rotation is required before publishing content.");if(publishButton)publishButton.disabled=true}}
@@ -89,7 +107,9 @@
       let data=null;try{data=await response.json()}catch{}
       if(!response.ok)throw new Error(data?.message||`Upload failed (${response.status}).`);
       if(!data?.url)throw new Error("Upload completed without a media URL.");
-      const result=qs("#mediaResult"),preview=qs("#mediaPreview"),url=qs("#mediaUrl");if(preview)preview.src=data.url;if(url)url.value=data.url;if(result)result.hidden=false;setStatus("#mediaStatus","Image optimized and stored securely.");input.value=""
+      const result=qs("#mediaResult"),preview=qs("#mediaPreview"),url=qs("#mediaUrl");if(preview)preview.src=data.url;if(url)url.value=data.url;if(result)result.hidden=false;setStatus("#mediaStatus","Image optimized and stored securely.");input.value="";
+      let add=qs('#addUploadedPhoto');if(!add){add=document.createElement('button');add.id='addUploadedPhoto';add.type='button';add.className='ghost';add.textContent='Add to The Daily Gaze';result.append(add)}
+      add.onclick=()=>{state.content.dailyGaze=state.content.dailyGaze||[];state.content.dailyGaze.push({id:crypto.randomUUID(),slug:'photograph-'+Date.now(),title:'New photograph',category:'Everyday',alt:'',caption:'',location:'',preview:data.url,download:data.url,width:data.width,height:data.height,derivatives:data.derivatives||[],visible:false,featured:false,downloadable:true});renderGallery();setDirty(true);setStatus('#mediaStatus','Added as an unpublished photograph. Add a title and description in Photography, then enable Publish photograph.');add.remove()};
     }catch(error){setStatus("#mediaStatus",error.message,true)}finally{state.uploading=false;if(button)button.disabled=false}
   }
 
