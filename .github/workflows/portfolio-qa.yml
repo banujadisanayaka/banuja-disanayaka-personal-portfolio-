@@ -107,7 +107,13 @@ jobs:
         env:
           QA_URL: ${{ steps.target.outputs.url }}
         run: |
-          curl -fsS -D /tmp/content-headers "$QA_URL/api/content" -o /tmp/content-body
+          # Static files may be visible a few seconds before function routes propagate.
+          for i in {1..12}; do
+            CODE="$(curl -sS -D /tmp/content-headers -o /tmp/content-body -w '%{http_code}' "$QA_URL/api/content" || true)"
+            if [ "$CODE" = "200" ]; then break; fi
+            sleep 5
+          done
+          test "$CODE" = "200"
           grep -qi '^x-robots-tag: noindex, nofollow, noarchive' /tmp/content-headers
           grep -qi '^referrer-policy: no-referrer' /tmp/content-headers
           grep -qi '^cross-origin-resource-policy: same-origin' /tmp/content-headers
