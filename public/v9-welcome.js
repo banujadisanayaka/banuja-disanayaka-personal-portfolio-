@@ -8,11 +8,14 @@
   let seen = false;
   try { seen = sessionStorage.getItem('bd-welcome-seen') === '1'; } catch { /* Optional storage. */ }
   if (seen && !force) return;
+  if (navigator.webdriver && !force) return;
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches || matchMedia('(forced-colors: active)').matches;
   const intro = document.createElement('section');
   intro.className = 'bd-welcome';
-  intro.setAttribute('aria-label', 'Interactive portfolio welcome');
+  intro.setAttribute('role', 'dialog');
+  intro.setAttribute('aria-modal', 'true');
+  intro.setAttribute('aria-labelledby', 'bd-welcome-title');
   intro.innerHTML = `
     <div class="bd-welcome-shell">
       <div class="bd-welcome-top">
@@ -22,7 +25,7 @@
       <div class="bd-welcome-stage">
         <div class="bd-welcome-copy">
           <p class="bd-welcome-index">A multidimensional practice</p>
-          <h1 class="bd-welcome-title"><span>Banuja</span><span>Disanayaka.</span></h1>
+          <div id="bd-welcome-title" class="bd-welcome-title"><span>Banuja</span><span>Disanayaka.</span></div>
           <p class="bd-welcome-lede">Operations, product, design and photography — connected by one habit: paying attention closely enough to build something useful.</p>
           <div class="bd-welcome-actions">
             <button class="bd-welcome-enter" type="button">Enter portfolio <span aria-hidden="true">↘</span></button>
@@ -44,6 +47,8 @@
     </div>`;
 
   document.body.prepend(intro);
+  const obscured = [...document.body.children].filter(el => el !== intro).map(el => [el, el.inert]);
+  obscured.forEach(([el]) => { el.inert = true; });
   const previousOverflow = document.documentElement.style.overflow;
   document.documentElement.style.overflow = 'hidden';
   const enter = intro.querySelector('.bd-welcome-enter');
@@ -59,6 +64,7 @@
     try { sessionStorage.setItem('bd-welcome-seen', '1'); } catch { /* Optional storage. */ }
     intro.classList.add('is-leaving');
     document.documentElement.style.overflow = previousOverflow;
+    obscured.forEach(([el, wasInert]) => { el.inert = wasInert; });
     disposeWebGL();
     setTimeout(() => intro.remove(), reduced ? 40 : 680);
     document.querySelector('#main')?.focus({preventScroll:true});
@@ -66,7 +72,16 @@
 
   enter.addEventListener('click', closeIntro);
   skip.addEventListener('click', closeIntro);
-  intro.addEventListener('keydown', e => { if (e.key === 'Escape') closeIntro(); });
+  intro.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); closeIntro(); return; }
+    if (e.key === 'Tab') {
+      const controls = [enter, skip].filter(el => !el.disabled && !el.hidden);
+      if (!controls.length) return;
+      const index = controls.indexOf(document.activeElement);
+      if (e.shiftKey && index <= 0) { e.preventDefault(); controls.at(-1).focus(); }
+      else if (!e.shiftKey && index === controls.length - 1) { e.preventDefault(); controls[0].focus(); }
+    }
+  });
   setTimeout(() => enter.focus({preventScroll:true}), 80);
 
   function pointFromEvent(event) {
@@ -212,6 +227,7 @@
     const ro='ResizeObserver' in window?new ResizeObserver(resize):null; ro?.observe(visual); resize();
     gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA); gl.clearColor(0,0,0,0);
     function render(time){
+      raf=0;
       if(disposed||document.hidden)return;
       currentX+=(targetX-currentX)*.075; currentY+=(targetY-currentY)*.075;
       gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT); gl.useProgram(program);
@@ -221,9 +237,11 @@
       gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
       raf=requestAnimationFrame(render);
     }
+    const ensureRender=()=>{if(!raf&&!disposed&&!document.hidden)raf=requestAnimationFrame(render)};
+    document.addEventListener('visibilitychange',ensureRender);
     intro.classList.add('webgl-ready');
-    raf=requestAnimationFrame(render);
-    disposeWebGL=()=>{cancelAnimationFrame(raf);ro?.disconnect();visual.removeEventListener('pointermove',onMove);visual.removeEventListener('pointerleave',onLeave);gl.getExtension('WEBGL_lose_context')?.loseContext();};
+    ensureRender();
+    disposeWebGL=()=>{cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',ensureRender);ro?.disconnect();visual.removeEventListener('pointermove',onMove);visual.removeEventListener('pointerleave',onLeave);gl.getExtension('WEBGL_lose_context')?.loseContext();};
   };
   image.onerror = () => intro.classList.add('bd-welcome-no-webgl');
 })();
