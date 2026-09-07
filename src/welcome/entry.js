@@ -38,7 +38,7 @@ if(section) {
     closed=false;section.hidden=false;stage.removeAttribute('data-ready');section.querySelector('.avatar-controls').hidden=true;
     history.replaceState(null,'','#welcome');section.scrollIntoView({behavior:'instant',block:'start'});entry.focus({preventScroll:true});
     if(scene){stage.dataset.ready='true';section.querySelector('.avatar-controls').hidden=false;scene.reset();}
-    else if(!forced.matches)load();else fallback();
+    else if(!forced.matches)load();else{fallback();loadButton.hidden=true;}
   }
   replay.addEventListener('click',open);
   window.addEventListener('hashchange',()=>{if(location.hash==='#welcome')open();});
