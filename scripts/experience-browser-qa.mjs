@@ -30,7 +30,7 @@ try {
     let transparent=0;for(let i=3;i<data.length;i+=4)if(data[i]<32)transparent++;
     const alphaAt=(x,y)=>data[(Math.min(height-1,Math.round(y*(height-1)))*width+Math.min(width-1,Math.round(x*(width-1))))*4+3];
     const sidePoints=[[.10,.25],[.90,.25],[.10,.50],[.90,.50],[.10,.75],[.90,.75]];
-    const bodyPoints=[[.50,.20],[.50,.30],[.50,.36],[.50,.50],[.50,.72]];
+    const bodyPoints=[[.50,.16],[.50,.20],[.50,.25],[.50,.30],[.50,.36],[.50,.42],[.50,.50]];
     return {transparentRatio:transparent/(data.length/4),sideAlphas:sidePoints.map(([x,y])=>alphaAt(x,y)),bodyAlphas:bodyPoints.map(([x,y])=>alphaAt(x,y)),render:canvas.dataset.render};
   });
   assert.equal(matte.render,'static-cutout','User supplied cutout is the visible fallback source');
