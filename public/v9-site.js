@@ -3,8 +3,13 @@
  const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
  const isHome=location.pathname==='/'||location.pathname.endsWith('/index.html');
  if(isHome){
-   const welcomeStyle=document.createElement('link');welcomeStyle.rel='stylesheet';welcomeStyle.href='/v9-welcome.css?v=91a3d';
-   let welcomeBooted=false;const bootWelcome=()=>{if(welcomeBooted)return;welcomeBooted=true;const script=document.createElement('script');script.src='/v9-welcome.js?v=91a3d';script.async=true;document.head.append(script)};
+   const welcomeRelease='914-subject-alpha';
+   const siteScript=document.currentScript||[...document.scripts].find(s=>/\/v9-site\.js(?:\?|$)/.test(s.src));
+   let siteVersion='direct';
+   try{siteVersion=new URL(siteScript?.src||location.href).searchParams.get('v')||siteVersion}catch{/* fallback token is sufficient */}
+   const welcomeToken=encodeURIComponent(`${welcomeRelease}-${siteVersion}`);
+   const welcomeStyle=document.createElement('link');welcomeStyle.rel='stylesheet';welcomeStyle.href=`/v9-welcome.css?v=${welcomeToken}`;
+   let welcomeBooted=false;const bootWelcome=()=>{if(welcomeBooted)return;welcomeBooted=true;const script=document.createElement('script');script.src=`/v9-welcome.js?v=${welcomeToken}`;script.async=true;document.head.append(script)};
    welcomeStyle.addEventListener('load',bootWelcome,{once:true});welcomeStyle.addEventListener('error',bootWelcome,{once:true});document.head.append(welcomeStyle);setTimeout(bootWelcome,1400);
  }
  const safe=value=>{try{const raw=String(value||'');if(/[\\\u0000-\u001f]/.test(raw))return '';const u=new URL(raw,location.origin);return u.origin===location.origin&&u.protocol===location.protocol?u.href:''}catch{return ''}};
