@@ -65,6 +65,12 @@ try {
     const copyRect = await introPage.locator('.bd-welcome-copy').boundingBox();
     assert.ok(copyRect.y >= visualRect.y + visualRect.height - 10,'Mobile copy stays below the portrait');
   }
+  const fallbackFit=await introPage.locator('.bd-welcome-fallback-canvas').evaluate(el=>({
+    width:el.clientWidth,height:el.clientHeight,
+    availableWidth:el.parentElement.clientWidth,availableHeight:el.parentElement.clientHeight
+  }));
+  assert.ok(fallbackFit.height <= fallbackFit.availableHeight + 1 && fallbackFit.width <= fallbackFit.availableWidth + 1,
+    `The full static portrait fits its visual area: ${JSON.stringify(fallbackFit)}`);
   await introPage.screenshot({path:`qa-artifacts/welcome/${name}.png`,animations:'disabled'});
   // Both exit controls must stay usable in the smallest layouts as well.
   const exitButton=introPage.getByRole('button',{name:scenario.name==='small-mobile'?'Skip introduction':/Enter portfolio/});

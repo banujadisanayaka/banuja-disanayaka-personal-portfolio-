@@ -4,3 +4,5 @@
 .bd-welcome-canvas{-webkit-mask-image:none;mask-image:none}
 .bd-welcome-canvas,.bd-welcome-fallback{height:calc(100% - 48px)}
 .bd-welcome-visual-label{bottom:8px}
+
+.bd-welcome-fallback{display:block}
