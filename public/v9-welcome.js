@@ -300,7 +300,7 @@
     let raf = 0;
 
     function resize() {
-      const rect = visual.getBoundingClientRect();
+      const rect = canvas.getBoundingClientRect();
       const dpr = Math.min(devicePixelRatio || 1, 1.75);
       const width = Math.max(1, Math.round(rect.width * dpr));
       const height = Math.max(1, Math.round(rect.height * dpr));
