@@ -36,11 +36,11 @@
         <div class="bd-welcome-visual" aria-hidden="true">
           <canvas class="bd-welcome-canvas"></canvas>
           <div class="bd-welcome-fallback"><canvas class="bd-welcome-fallback-canvas" width="360" height="540"></canvas></div>
-          <div class="bd-welcome-visual-label"><span>Move / touch to rotate</span><strong>Depth portrait / BD</strong></div>
+          <div class="bd-welcome-visual-label"><span>${reduced ? 'Welcome to my world' : 'Move / touch to explore'}</span><strong>A personal perspective</strong></div>
         </div>
       </div>
       <div class="bd-welcome-bottom">
-        <div class="bd-welcome-hint"><span aria-hidden="true"></span><b>${reduced ? 'Static experience' : 'Pointer-reactive WebGL relief'}</b></div>
+        <div class="bd-welcome-hint"><span aria-hidden="true"></span><b>${reduced ? 'Take a look around' : 'Move to explore'}</b></div>
         <div class="bd-welcome-progress" aria-hidden="true"><i></i></div>
         <span>Sri Lanka · Systems / Design / Image</span>
       </div>
@@ -57,7 +57,7 @@
   const visual = intro.querySelector('.bd-welcome-visual');
   const canvas = intro.querySelector('.bd-welcome-canvas');
   const fallbackCanvas = intro.querySelector('.bd-welcome-fallback-canvas');
-  fallbackCanvas.style.cssText = 'width:min(72%,520px);height:auto;max-height:92%;display:block;filter:drop-shadow(0 30px 46px rgba(0,0,0,.62));transform:rotateX(var(--wx)) rotateY(var(--wy)) rotate(1.5deg);transform-origin:center 55%;transition:transform .15s ease-out;';
+  fallbackCanvas.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 30px 46px rgba(0,0,0,.62));transform:rotateX(var(--wx)) rotateY(var(--wy)) rotate(1.5deg);transform-origin:center 55%;transition:transform .15s ease-out;';
 
   let disposed = false;
   let disposeWebGL = () => {};
