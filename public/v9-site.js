@@ -3,7 +3,7 @@
  const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
  const isHome=location.pathname==='/'||location.pathname.endsWith('/index.html');
  if(isHome){
-   const welcomeRelease='914-subject-alpha';
+   const welcomeRelease='915-user-cutout';
    const siteScript=document.currentScript||[...document.scripts].find(s=>/\/v9-site\.js(?:\?|$)/.test(s.src));
    let siteVersion='direct';
    try{siteVersion=new URL(siteScript?.src||location.href).searchParams.get('v')||siteVersion}catch{/* fallback token is sufficient */}
