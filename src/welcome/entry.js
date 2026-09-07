@@ -34,11 +34,14 @@ if(section) {
   }
   section.querySelectorAll('[data-enter]').forEach(link=>link.addEventListener('click',enter));
   document.querySelector('.skip')?.addEventListener('click',e=>{if(allowed())enter(e);});
-  replay.addEventListener('click',()=>{
+  function open(){
     closed=false;section.hidden=false;stage.removeAttribute('data-ready');section.querySelector('.avatar-controls').hidden=true;
     history.replaceState(null,'','#welcome');section.scrollIntoView({behavior:'instant',block:'start'});entry.focus({preventScroll:true});
-    if(!forced.matches)load();else fallback();
-  });
+    if(scene){stage.dataset.ready='true';section.querySelector('.avatar-controls').hidden=false;scene.reset();}
+    else if(!forced.matches)load();else fallback();
+  }
+  replay.addEventListener('click',open);
+  window.addEventListener('hashchange',()=>{if(location.hash==='#welcome')open();});
   loadButton.addEventListener('click',load);
   function preferences(){scene?.setMotion();if(forced.matches){scene?.dispose();fallback();loadButton.hidden=true;}else if(!scene&&allowed()&&!pending){loadButton.hidden=false;}}
   reduced.addEventListener('change',preferences);forced.addEventListener('change',preferences);

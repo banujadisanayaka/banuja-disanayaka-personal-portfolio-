@@ -21,21 +21,24 @@ export function mountScene(stage, {motion, onError}) {
   const orbit=new T.Mesh(new T.TorusGeometry(1.04,.003,6,120,Math.PI*1.48),new T.MeshBasicMaterial({color:'#c6af79',transparent:true,opacity:.38}));orbit.position.set(0,1.15,-.18);orbit.rotation.set(.15,.24,.36);scene.add(orbit);
 
   let rotation=-.18,target=-.18,tilt=0,targetTilt=0,look=0,targetLook=0;
-  let frame=0,visible=true,disposed=false,waveStart=0,last=0,pointer=null,dragged=false;
+  let frame=0,visible=true,disposed=false,waveStart=0,waveElapsed=0,last=0,pointer=null,dragged=false;
   const cleanup=[];const listen=(el,event,fn,options)=>{el.addEventListener(event,fn,options);cleanup.push(()=>el.removeEventListener(event,fn,options));};
   const hint=document.querySelector('#welcome-status');
   const degrees=()=>Math.round(((rotation*180/Math.PI)%360+360)%360);
   function render(time) {
     frame=0;if(disposed||!visible||document.hidden)return;
-    const dt=last?Math.min((time-last)/1000,.05):1/60;last=time;
+    const elapsed=last?Math.max(0,(time-last)/1000):1/60;
+    const dt=Math.min(elapsed,.05);last=time;
     const ease=motion()?1-Math.exp(-dt*12):1;
     rotation+=(target-rotation)*ease;tilt+=(targetTilt-tilt)*ease;look+=(targetLook-look)*ease;
     model.root.rotation.set(tilt,rotation,0);
     model.head.rotation.y=look*.13;model.pupils.forEach(p=>p.position.x=Math.sign(p.position.x)*.084+look*.008);
     let waving=false;
     if(waveStart){
-      const t=(time-waveStart)/1000;
-      if(t<2.25&&motion()){
+      // Limit phase jumps after a slow GPU frame so a greeting cannot skip
+      // straight from its initial pose to its final pose on a slower device.
+      const t=waveElapsed+=Math.min(elapsed,.15);
+      if(t<2.25&&time-waveStart<10000&&motion()){
         const ramp=Math.min(1,t/.42)*Math.min(1,(2.25-t)/.45);
         model.greeting.upper.rotation.z=-.13-ramp*2.16;
         model.greeting.elbow.rotation.x=-.15-ramp*.28;
@@ -44,9 +47,10 @@ export function mountScene(stage, {motion, onError}) {
     }
     renderer.render(scene,camera);
     stage.dataset.rotation=String(degrees());stage.dataset.wave=String(waving);
+    stage.dataset.greetingPose=model.greeting.upper.rotation.z.toFixed(2);
     if(waving||Math.abs(target-rotation)>.0005||Math.abs(targetTilt-tilt)>.0005||Math.abs(targetLook-look)>.0005)invalidate();
   }
-  function resetWave(){waveStart=0;model.greeting.upper.rotation.z=-.13;model.greeting.elbow.rotation.x=-.15;model.greeting.hand.rotation.z=0;}
+  function resetWave(){waveStart=0;waveElapsed=0;model.greeting.upper.rotation.z=-.13;model.greeting.elbow.rotation.x=-.15;model.greeting.hand.rotation.z=0;}
   function invalidate(){if(!frame&&!disposed&&visible&&!document.hidden)frame=requestAnimationFrame(render);}
   function resize(){const {width,height}=stage.getBoundingClientRect();if(!width||!height)return;renderer.setSize(width,height,false);camera.aspect=width/height;const distance=Math.max(4.4,2.9/camera.aspect);camera.position.set(0,1.29,distance);camera.lookAt(0,1.1,0);camera.updateProjectionMatrix();invalidate();}
   const observer=new ResizeObserver(resize);observer.observe(stage);
@@ -68,7 +72,7 @@ export function mountScene(stage, {motion, onError}) {
   listen(section.querySelector('[data-reset]'),'click',reset);
   listen(section.querySelector('[data-wave]'),'click',()=>{
     if(hint)hint.textContent='Hello! I’m Banu. Welcome to my corner of the internet.';
-    target=-.18;targetTilt=0;waveStart=motion()?performance.now():0;invalidate();
+    target=-.18;targetTilt=0;waveElapsed=0;waveStart=motion()?performance.now():0;invalidate();
   });
   listen(section.querySelector('[data-light]'),'click',e=>{
     const cool=e.currentTarget.getAttribute('aria-pressed')!=='true';e.currentTarget.setAttribute('aria-pressed',String(cool));

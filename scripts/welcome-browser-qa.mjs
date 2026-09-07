@@ -31,7 +31,7 @@ try {
   assert.equal(await page.locator('#welcome').getAttribute('data-light'),'cool');
   await page.getByRole('button',{name:/Say hello/}).click();
   await page.waitForFunction(()=>document.querySelector('.welcome-stage').dataset.wave==='true');
-  await page.waitForTimeout(650);
+  await page.waitForFunction(()=>Number(document.querySelector('.welcome-stage').dataset.greetingPose)<-1.8);
   await page.screenshot({path:'artifacts/welcome/greeting.png',clip:await stage.boundingBox()});
   await page.waitForFunction(()=>document.querySelector('.welcome-stage').dataset.wave==='false');
   assert.match(await page.locator('#welcome-status').textContent(),/Hello! I’m Banu/);
