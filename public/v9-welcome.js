@@ -20,7 +20,7 @@
     <div class="bd-welcome-shell">
       <div class="bd-welcome-top">
         <div class="bd-welcome-mark"><img src="/assets/v9/banuja-logo-gold.webp" width="42" height="42" alt=""><span>Banuja Disanayaka<br>Portfolio</span></div>
-        <div class="bd-welcome-status"><i aria-hidden="true"></i><span>Interactive identity</span><span>V9.1 / 2026</span></div>
+        <div class="bd-welcome-status"><i aria-hidden="true"></i><span>Interactive identity</span><span>V9.1.3 / 2026</span></div>
       </div>
       <div class="bd-welcome-stage">
         <div class="bd-welcome-copy">
@@ -34,8 +34,7 @@
         </div>
         <div class="bd-welcome-visual" aria-hidden="true">
           <canvas class="bd-welcome-canvas"></canvas>
-          <div class="bd-welcome-fallback"><img src="/assets/v9/portrait-960.webp" width="960" height="1442" alt=""></div>
-          <div class="bd-welcome-frame"></div>
+          <div class="bd-welcome-fallback"><img width="960" height="1442" alt=""></div>
           <div class="bd-welcome-visual-label"><span>Move / touch to rotate</span><strong>Depth portrait / BD</strong></div>
         </div>
       </div>
@@ -55,6 +54,7 @@
   const skip = intro.querySelector('.bd-welcome-skip');
   const visual = intro.querySelector('.bd-welcome-visual');
   const canvas = intro.querySelector('.bd-welcome-canvas');
+  const fallbackImage = intro.querySelector('.bd-welcome-fallback img');
   let disposed = false;
   let disposeWebGL = () => {};
 
@@ -102,81 +102,151 @@
     intro.style.setProperty('--wx','0deg'); intro.style.setProperty('--wy','0deg');
   }, {passive:true});
 
-  if (reduced) return;
+  function isolatePortrait(source) {
+    const naturalWidth = source.naturalWidth || 960;
+    const naturalHeight = source.naturalHeight || 1442;
+    const width = Math.min(720, naturalWidth);
+    const height = Math.max(1, Math.round(naturalHeight * width / naturalWidth));
+    const isolated = document.createElement('canvas');
+    isolated.width = width;
+    isolated.height = height;
+    const ctx = isolated.getContext('2d', {willReadFrequently:true});
+    if (!ctx) throw new Error('2D canvas unavailable');
+    ctx.drawImage(source, 0, 0, width, height);
+    const frame = ctx.getImageData(0, 0, width, height);
+    const data = frame.data;
+    const count = width * height;
+    const candidates = new Uint8Array(count);
+    const background = new Uint8Array(count);
+    const queue = new Int32Array(count);
 
-  const gl = canvas.getContext('webgl', {alpha:true,antialias:true,premultipliedAlpha:true,preserveDrawingBuffer:false});
-  if (!gl) { intro.classList.add('bd-welcome-no-webgl'); return; }
+    for (let p = 0; p < count; p++) {
+      const i = p * 4;
+      const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+      const hi = Math.max(r,g,b), lo = Math.min(r,g,b);
+      const chroma = hi - lo;
+      const luminance = r * .2126 + g * .7152 + b * .0722;
+      if ((luminance > .24 && chroma < .13) || (luminance > .58 && chroma < .22) || luminance > .92) candidates[p] = 1;
+    }
 
-  const vertexSource = `
-    attribute vec3 a_position;
-    attribute vec2 a_uv;
-    uniform float u_aspect;
-    uniform float u_rx;
-    uniform float u_ry;
-    uniform float u_scale;
-    uniform vec2 u_shift;
-    varying vec2 v_uv;
-    varying float v_depth;
-    void main(){
-      vec3 p=a_position;
-      float cy=cos(u_ry), sy=sin(u_ry);
-      float cx=cos(u_rx), sx=sin(u_rx);
-      p=vec3(cy*p.x+sy*p.z,p.y,-sy*p.x+cy*p.z);
-      p=vec3(p.x,cx*p.y-sx*p.z,sx*p.y+cx*p.z);
-      float perspective=1.28/(2.25-p.z);
-      vec2 projected=vec2((p.x*perspective/u_aspect)+u_shift.x,(p.y*perspective)+u_shift.y)*u_scale;
-      gl_Position=vec4(projected,clamp(p.z*.18,-.9,.9),1.0);
-      v_uv=a_uv;
-      v_depth=a_position.z;
-    }`;
-  const fragmentSource = `
-    precision mediump float;
-    uniform sampler2D u_image;
-    uniform vec2 u_pointer;
-    uniform float u_time;
-    varying vec2 v_uv;
-    varying float v_depth;
-    void main(){
-      vec4 tex=texture2D(u_image,v_uv);
-      float d=distance(v_uv,u_pointer);
-      float glow=smoothstep(.46,0.0,d)*.12;
-      float edge=smoothstep(.03,.13,v_uv.x)*smoothstep(.03,.13,1.0-v_uv.x)*smoothstep(.02,.12,v_uv.y)*smoothstep(.02,.12,1.0-v_uv.y);
-      vec3 warm=vec3(1.03,.98,.86);
-      vec3 color=tex.rgb*(.92+v_depth*.46)+warm*glow;
-      float scan=.012*sin((v_uv.y*150.0)+(u_time*.0015));
-      color+=scan;
-      gl_FragColor=vec4(color,tex.a*edge);
-    }`;
+    let head = 0, tail = 0;
+    const enqueue = p => {
+      if (p < 0 || p >= count || background[p] || !candidates[p]) return;
+      background[p] = 1;
+      queue[tail++] = p;
+    };
+    for (let x = 0; x < width; x++) { enqueue(x); enqueue((height - 1) * width + x); }
+    for (let y = 1; y < height - 1; y++) { enqueue(y * width); enqueue(y * width + width - 1); }
 
-  function shader(type, source) {
-    const s = gl.createShader(type); gl.shaderSource(s,source); gl.compileShader(s);
-    if (!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'Shader compile failed');
-    return s;
+    while (head < tail) {
+      const p = queue[head++];
+      const x = p % width;
+      if (x > 0) enqueue(p - 1);
+      if (x < width - 1) enqueue(p + 1);
+      if (p >= width) enqueue(p - width);
+      if (p < count - width) enqueue(p + width);
+    }
+
+    const removedRatio = tail / count;
+    if (removedRatio < .35 || removedRatio > .94) throw new Error(`Unexpected portrait matte ratio ${removedRatio.toFixed(3)}`);
+
+    for (let p = 0; p < count; p++) {
+      const i = p * 4;
+      if (background[p]) {
+        data[i + 3] = 0;
+        continue;
+      }
+      const x = p % width;
+      const touchesBackground =
+        (x > 0 && background[p - 1]) ||
+        (x < width - 1 && background[p + 1]) ||
+        (p >= width && background[p - width]) ||
+        (p < count - width && background[p + width]);
+      if (touchesBackground) {
+        const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+        const hi = Math.max(r,g,b), lo = Math.min(r,g,b);
+        const chroma = hi - lo;
+        const luminance = r * .2126 + g * .7152 + b * .0722;
+        data[i + 3] = luminance > .58 && chroma < .18 ? 72 : 205;
+      }
+    }
+
+    ctx.putImageData(frame, 0, 0);
+    intro.dataset.subjectIsolation = 'ready';
+    intro.dataset.subjectIsolationRatio = removedRatio.toFixed(3);
+    intro.classList.add('bd-welcome-isolated');
+    return isolated;
   }
 
-  let program;
-  try {
-    program = gl.createProgram();
-    gl.attachShader(program,shader(gl.VERTEX_SHADER,vertexSource));
-    gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragmentSource));
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || 'Program link failed');
-  } catch (error) {
-    console.warn('Welcome WebGL fallback:', error);
-    intro.classList.add('bd-welcome-no-webgl');
-    return;
-  }
+  function startWebGL(textureSource, depthSource) {
+    if (reduced || disposed) return;
+    const gl = canvas.getContext('webgl', {alpha:true,antialias:true,premultipliedAlpha:true,preserveDrawingBuffer:false});
+    if (!gl) { intro.classList.add('bd-welcome-no-webgl'); return; }
 
-  const image = new Image();
-  image.decoding = 'async';
-  image.src = '/assets/v9/portrait-960.webp';
-  image.onload = async () => {
-    if (disposed) return;
-    try { await image.decode?.(); } catch { /* Loaded is sufficient. */ }
+    const vertexSource = `
+      attribute vec3 a_position;
+      attribute vec2 a_uv;
+      uniform float u_aspect;
+      uniform float u_rx;
+      uniform float u_ry;
+      uniform float u_scale;
+      uniform vec2 u_shift;
+      varying vec2 v_uv;
+      varying float v_depth;
+      void main(){
+        vec3 p=a_position;
+        float cy=cos(u_ry), sy=sin(u_ry);
+        float cx=cos(u_rx), sx=sin(u_rx);
+        p=vec3(cy*p.x+sy*p.z,p.y,-sy*p.x+cy*p.z);
+        p=vec3(p.x,cx*p.y-sx*p.z,sx*p.y+cx*p.z);
+        float perspective=1.28/(2.25-p.z);
+        vec2 projected=vec2((p.x*perspective/u_aspect)+u_shift.x,(p.y*perspective)+u_shift.y)*u_scale;
+        gl_Position=vec4(projected,clamp(p.z*.18,-.9,.9),1.0);
+        v_uv=a_uv;
+        v_depth=a_position.z;
+      }`;
+    const fragmentSource = `
+      precision mediump float;
+      uniform sampler2D u_image;
+      uniform vec2 u_pointer;
+      uniform float u_time;
+      varying vec2 v_uv;
+      varying float v_depth;
+      void main(){
+        vec4 tex=texture2D(u_image,v_uv);
+        float d=distance(v_uv,u_pointer);
+        float glow=smoothstep(.46,0.0,d)*.12;
+        float edge=smoothstep(.03,.13,v_uv.x)*smoothstep(.03,.13,1.0-v_uv.x)*smoothstep(.02,.12,v_uv.y)*smoothstep(.02,.12,1.0-v_uv.y);
+        vec3 warm=vec3(1.03,.98,.86);
+        vec3 color=tex.rgb*(.92+v_depth*.46)+warm*glow;
+        float scan=.012*sin((v_uv.y*150.0)+(u_time*.0015));
+        color+=scan;
+        gl_FragColor=vec4(color,tex.a*edge);
+      }`;
+
+    function shader(type, source) {
+      const s = gl.createShader(type); gl.shaderSource(s,source); gl.compileShader(s);
+      if (!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'Shader compile failed');
+      return s;
+    }
+
+    let program;
+    try {
+      program = gl.createProgram();
+      gl.attachShader(program,shader(gl.VERTEX_SHADER,vertexSource));
+      gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragmentSource));
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || 'Program link failed');
+    } catch (error) {
+      console.warn('Welcome WebGL fallback:', error);
+      intro.classList.add('bd-welcome-no-webgl');
+      return;
+    }
+
     const cols=54, rows=78, vertexCount=(cols+1)*(rows+1);
     const sample=document.createElement('canvas'); sample.width=cols+1; sample.height=rows+1;
     const sctx=sample.getContext('2d',{willReadFrequently:true});
-    sctx.drawImage(image,0,0,sample.width,sample.height);
+    sctx.drawImage(depthSource,0,0,sample.width,sample.height);
     const pixels=sctx.getImageData(0,0,sample.width,sample.height).data;
     const vertices=new Float32Array(vertexCount*5);
     let o=0;
@@ -184,12 +254,12 @@
       const u=x/cols, v=y/rows;
       const px=(u-.5)*1.38, py=(.5-v)*2.04;
       const i=(y*(cols+1)+x)*4;
-      const lum=(pixels[i]*.2126+pixels[i+1]*.7152+pixels[i+2]*.0722)/255;
+      const lum=pixels[i+3] < 16 ? .5 : (pixels[i]*.2126+pixels[i+1]*.7152+pixels[i+2]*.0722)/255;
       const nx=(u-.5)/.52, ny=(v-.46)/.6;
       const radial=Math.max(0,1-(nx*nx+ny*ny));
-      const head=Math.exp(-((u-.5)*(u-.5)/.08 + (v-.31)*(v-.31)/.11));
+      const headShape=Math.exp(-((u-.5)*(u-.5)/.08 + (v-.31)*(v-.31)/.11));
       const torso=Math.exp(-((u-.5)*(u-.5)/.22 + (v-.72)*(v-.72)/.23));
-      const relief=(head*.18+torso*.055+radial*.028)+(lum-.5)*.025*radial;
+      const relief=(headShape*.18+torso*.055+radial*.028)+(lum-.5)*.025*radial;
       vertices[o++]=px; vertices[o++]=py; vertices[o++]=relief; vertices[o++]=u; vertices[o++]=v;
     }
     const indices=new Uint16Array(cols*rows*6); o=0;
@@ -209,7 +279,7 @@
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,textureSource);
     gl.uniform1i(gl.getUniformLocation(program,'u_image'),0);
     const uAspect=gl.getUniformLocation(program,'u_aspect'),uRx=gl.getUniformLocation(program,'u_rx'),uRy=gl.getUniformLocation(program,'u_ry'),uScale=gl.getUniformLocation(program,'u_scale'),uShift=gl.getUniformLocation(program,'u_shift'),uPointer=gl.getUniformLocation(program,'u_pointer'),uTime=gl.getUniformLocation(program,'u_time');
     let targetX=0,targetY=0,currentX=0,currentY=0,pointerU=.5,pointerV=.42,raf=0;
@@ -242,6 +312,30 @@
     intro.classList.add('webgl-ready');
     ensureRender();
     disposeWebGL=()=>{cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',ensureRender);ro?.disconnect();visual.removeEventListener('pointermove',onMove);visual.removeEventListener('pointerleave',onLeave);gl.getExtension('WEBGL_lose_context')?.loseContext();};
+  }
+
+  const image = new Image();
+  image.decoding = 'async';
+  image.src = '/assets/v9/portrait-960.webp';
+  image.onload = async () => {
+    if (disposed) return;
+    try { await image.decode?.(); } catch { /* Loaded is sufficient. */ }
+    let isolated;
+    try {
+      isolated = isolatePortrait(image);
+      fallbackImage.src = isolated.toDataURL('image/png');
+    } catch (error) {
+      console.warn('Welcome subject isolation fallback:', error);
+      intro.dataset.subjectIsolation = 'fallback';
+      fallbackImage.src = image.src;
+      intro.classList.add('bd-welcome-isolation-fallback');
+    }
+    if (reduced) return;
+    startWebGL(isolated || image, isolated || image);
   };
-  image.onerror = () => intro.classList.add('bd-welcome-no-webgl');
+  image.onerror = () => {
+    fallbackImage.src = '/assets/v9/portrait-960.webp';
+    intro.dataset.subjectIsolation = 'error';
+    intro.classList.add('bd-welcome-no-webgl','bd-welcome-isolation-fallback');
+  };
 })();
