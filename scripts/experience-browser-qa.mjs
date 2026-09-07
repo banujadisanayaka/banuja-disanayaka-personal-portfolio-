@@ -3,6 +3,24 @@ import {chromium} from 'playwright';
 const base = process.env.BROWSER_QA_BASE_URL || 'http://127.0.0.1:4173';
 const browser = await chromium.launch();
 try {
+  const introContext = await browser.newContext({viewport:{width:1366,height:900}});
+  const introPage = await introContext.newPage();
+  const introErrors=[];introPage.on('pageerror',e=>introErrors.push(e.message));
+  await introPage.goto(base+'/?intro=1',{waitUntil:'networkidle'});
+  const welcome=introPage.locator('.bd-welcome');
+  await welcome.waitFor({state:'visible'});
+  assert.equal(await welcome.getAttribute('role'),'dialog');
+  assert.equal(await welcome.getAttribute('aria-modal'),'true');
+  assert.equal(await introPage.locator('#main').getAttribute('inert'),'');
+  await introPage.waitForFunction(()=>document.querySelector('.bd-welcome')?.classList.contains('webgl-ready')||document.querySelector('.bd-welcome')?.classList.contains('bd-welcome-no-webgl'),null,{timeout:8000});
+  await introPage.getByRole('button',{name:/Enter portfolio/}).click();
+  await introPage.locator('.bd-welcome').waitFor({state:'detached'});
+  assert.equal(await introPage.locator('#main').getAttribute('inert'),null);
+  assert.equal(await introPage.evaluate(()=>document.documentElement.style.overflow),'');
+  assert.deepEqual(introErrors,[]);
+  await introContext.close();
+  console.log('V9.1 welcome dialog, WebGL fallback gate and focus boundary passed');
+
   const context = await browser.newContext({viewport:{width:1366,height:900}});
   const page = await context.newPage();
   await page.goto(base+'/',{waitUntil:'networkidle'});
