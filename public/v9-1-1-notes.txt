@@ -1,5 +1,0 @@
-V9.1.1 mobile welcome refinement
-- separates the depth portrait from copy on narrow screens
-- removes portrait/copy/button collisions
-- softens rectangular photo edges so the WebGL portrait integrates into the scene
-- adds compact-height handling for smaller mobile viewports
