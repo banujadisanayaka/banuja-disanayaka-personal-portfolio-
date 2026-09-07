@@ -9,6 +9,10 @@ try {
   await introPage.goto(base+'/?intro=1',{waitUntil:'networkidle'});
   const welcome=introPage.locator('.bd-welcome');
   await welcome.waitFor({state:'visible'});
+  const welcomeScriptSrc=await introPage.locator('script[src*="/v9-welcome.js"]').getAttribute('src');
+  const welcomeStyleHref=await introPage.locator('link[href*="/v9-welcome.css"]').getAttribute('href');
+  assert.match(welcomeScriptSrc||'',/\/v9-welcome\.js\?v=914-subject-alpha-/,'Welcome JS uses the V9.1.4 cache-busted release key');
+  assert.match(welcomeStyleHref||'',/\/v9-welcome\.css\?v=914-subject-alpha-/,'Welcome CSS uses the V9.1.4 cache-busted release key');
   assert.equal(await welcome.getAttribute('role'),'dialog');
   assert.equal(await welcome.getAttribute('aria-modal'),'true');
   assert.equal(await introPage.locator('#main').getAttribute('inert'),'');
@@ -16,6 +20,21 @@ try {
   assert.equal(await introPage.locator('.bd-welcome-frame').count(),0,'Decorative portrait frame is removed from the welcome DOM');
   const isolationRatio=Number(await welcome.getAttribute('data-subject-isolation-ratio'));
   assert.ok(isolationRatio>.35&&isolationRatio<.94,`Subject isolation ratio is plausible: ${isolationRatio}`);
+  const matte=await introPage.evaluate(async()=>{
+    const img=document.querySelector('.bd-welcome-fallback img');
+    if(!img?.src?.startsWith('data:image/png')) return {transparentRatio:0,probeAlphas:[],src:''};
+    try{await img.decode()}catch{/* already loaded is sufficient */}
+    const width=240,height=Math.max(1,Math.round(width*(img.naturalHeight||1442)/(img.naturalWidth||960)));
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,width,height);
+    const data=ctx.getImageData(0,0,width,height).data;
+    let transparent=0;for(let i=3;i<data.length;i+=4)if(data[i]<32)transparent++;
+    const points=[[.22,.32],[.78,.32],[.22,.50],[.78,.50],[.22,.68],[.78,.68]];
+    const probeAlphas=points.map(([x,y])=>data[(Math.min(height-1,Math.round(y*(height-1)))*width+Math.min(width-1,Math.round(x*(width-1))))*4+3]);
+    return {transparentRatio:transparent/(data.length/4),probeAlphas,src:img.src.slice(0,24)};
+  });
+  assert.ok(matte.transparentRatio>.38,`Isolated PNG contains substantial real transparency: ${matte.transparentRatio.toFixed(3)}`);
+  assert.ok(matte.probeAlphas.filter(a=>a<48).length>=5,`Backdrop probes are transparent: ${matte.probeAlphas.join(',')}`);
   await introPage.waitForFunction(()=>document.querySelector('.bd-welcome')?.classList.contains('webgl-ready')||document.querySelector('.bd-welcome')?.classList.contains('bd-welcome-no-webgl'),null,{timeout:8000});
   await introPage.getByRole('button',{name:/Enter portfolio/}).click();
   await introPage.locator('.bd-welcome').waitFor({state:'detached'});
@@ -23,7 +42,7 @@ try {
   assert.equal(await introPage.evaluate(()=>document.documentElement.style.overflow),'');
   assert.deepEqual(introErrors,[]);
   await introContext.close();
-  console.log('V9.1 welcome subject isolation, dialog, WebGL fallback gate and focus boundary passed');
+  console.log('V9.1.4 cache key, rendered subject alpha, welcome dialog, WebGL fallback gate and focus boundary passed');
 
   const context = await browser.newContext({viewport:{width:1366,height:900}});
   const page = await context.newPage();
