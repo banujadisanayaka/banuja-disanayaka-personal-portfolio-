@@ -373,7 +373,7 @@
 
   const image = new Image();
   image.decoding = 'async';
-  image.src = '/assets/v9/portrait-cutout.webp?v=915-user-cutout';
+  image.src = '/assets/v9/portrait-cutout-8a7c9e4c1dc9.webp';
   image.onload = async () => {
     if (disposed) return;
     try { await image.decode?.(); } catch { /* onload is sufficient */ }
@@ -393,3 +393,4 @@
     intro.classList.add('bd-welcome-no-webgl');
   };
 })();
+
