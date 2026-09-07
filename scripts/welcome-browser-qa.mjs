@@ -32,7 +32,7 @@ try {
   await page.getByRole('button',{name:/Say hello/}).click();
   await page.waitForFunction(()=>document.querySelector('.welcome-stage').dataset.wave==='true');
   await page.waitForTimeout(650);
-  await page.locator('.welcome-stage').screenshot({path:'artifacts/welcome/greeting.png'});
+  await page.screenshot({path:'artifacts/welcome/greeting.png',clip:await stage.boundingBox()});
   await page.waitForFunction(()=>document.querySelector('.welcome-stage').dataset.wave==='false');
   assert.match(await page.locator('#welcome-status').textContent(),/Hello! I’m Banu/);
   await page.getByRole('link',{name:/Enter portfolio/}).click();
@@ -40,6 +40,9 @@ try {
   assert.equal(await page.locator('.welcome-stage canvas').count(),0,'Entering releases the rendering surface');
   assert.equal(await page.evaluate(()=>document.activeElement.id),'portfolio');
   await page.getByRole('button',{name:/Replay 3D welcome/}).click();await ready(page);
+  await page.getByRole('link',{name:/Skip intro/}).click();
+  await page.goto(base+'/#welcome',{waitUntil:'networkidle'});await ready(page);
+  assert.ok(await page.locator('#welcome').isVisible(),'An explicit welcome link reopens the scene');
   await page.getByRole('link',{name:/Skip intro/}).click();
   const welcomeRequests=[];page.on('request',r=>{if(r.url().includes('/scene-'))welcomeRequests.push(r.url());});
   await page.goto(base+'/about/');await page.goto(base+'/',{waitUntil:'networkidle'});

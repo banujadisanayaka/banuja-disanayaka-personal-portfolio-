@@ -12,7 +12,7 @@ if(section) {
   const motion=()=>!reduced.matches&&!forced.matches&&document.documentElement.dataset.motion!=='off';
   const allowed=()=>!closed&&!section.hidden;
   let seen=false;try{seen=sessionStorage.getItem('bd-welcome')==='entered';}catch{}
-  if(location.hash&&location.hash!=='#welcome'||seen){section.hidden=true;closed=true;}
+  if(location.hash!=='#welcome'&&(location.hash||seen)){section.hidden=true;closed=true;}
   replay.hidden=false;
 
   function fallback(){scene=null;stage.removeAttribute('data-ready');section.dataset.state='fallback';loadButton.hidden=false;stage.tabIndex=-1;section.querySelector('.avatar-controls').hidden=true;status.textContent='The portrait is ready. You can enter the portfolio at any time.';}
@@ -43,8 +43,8 @@ if(section) {
   function preferences(){scene?.setMotion();if(forced.matches){scene?.dispose();fallback();loadButton.hidden=true;}else if(!scene&&allowed()&&!pending){loadButton.hidden=false;}}
   reduced.addEventListener('change',preferences);forced.addEventListener('change',preferences);
   const preferenceObserver=new MutationObserver(preferences);preferenceObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-motion']});
-  window.addEventListener('pagehide',()=>{scene?.dispose();scene=null;});
-  window.addEventListener('pageshow',e=>{if(e.persisted&&allowed()&&motion())load();});
+  window.addEventListener('pagehide',()=>{scene?.dispose();scene=null;stage.removeAttribute('data-ready');section.querySelector('.avatar-controls').hidden=true;stage.tabIndex=-1;loadButton.hidden=forced.matches;});
+  window.addEventListener('pageshow',e=>{if(e.persisted&&allowed()){if(motion())load();else{section.dataset.state='poster';status.textContent='Welcome, at your pace. Enter below or explore the 3D portrait.';}}});
   if(allowed()){
     if(motion()&&!navigator.connection?.saveData)load();
     else{section.dataset.state='poster';loadButton.hidden=forced.matches;status.textContent='Welcome, at your pace. Enter below or explore the 3D portrait.';}

@@ -5,13 +5,13 @@ export function mountScene(stage, {motion, onError}) {
   const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
   renderer.outputColorSpace=T.SRGBColorSpace;
-  renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.3;
+  renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
   renderer.setClearColor(0x000000,0);
   const canvas=renderer.domElement;canvas.setAttribute('aria-hidden','true');stage.append(canvas);
   const scene=new T.Scene(),camera=new T.PerspectiveCamera(33,1,.1,30);
   const model=createAvatar();scene.add(model.root);
-  const hemisphere=new T.HemisphereLight('#dce9f4','#353b2d',2.7);scene.add(hemisphere);
-  const key=new T.DirectionalLight('#fff0da',4.1);key.position.set(-3,4,5);scene.add(key);
+  const hemisphere=new T.HemisphereLight('#dce9f4','#353b2d',2.2);scene.add(hemisphere);
+  const key=new T.DirectionalLight('#fff0da',3.1);key.position.set(-3,4,5);scene.add(key);
   const fill=new T.DirectionalLight('#9fbdd8',2.1);fill.position.set(3,2,3);scene.add(fill);
   const rim=new T.DirectionalLight('#e9c38a',3.4);rim.position.set(1,3,-3);scene.add(rim);
   const plinth=new T.Mesh(new T.CylinderGeometry(.71,.74,.09,80),new T.MeshStandardMaterial({color:'#404b42',roughness:.57,metalness:.25}));

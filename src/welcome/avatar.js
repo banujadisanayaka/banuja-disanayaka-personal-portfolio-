@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
 // An illustrated likeness, hand-built from the owner's approved navy-suit portrait.
 // These are real closed meshes, with a complete back and sides, not a photo plane.
@@ -6,9 +7,9 @@ export function createAvatar() {
   const root = new T.Group(); root.name = 'Banuja — illustrated studio portrait';
   const m = {};
   for (const [name,color,roughness,metalness] of [
-    ['skin','#aa6e50',.72,0],['ear','#91543f',.85,0],['lip','#834737',.8,0],
+    ['skin','#975c40',.72,0],['ear','#824c38',.85,0],['lip','#754335',.8,0],
     ['hair','#111719',.86,0],['beard','#242024',.9,0],['suit','#17263c',.74,.04],
-    ['lapel','#23364d',.6,.06],['seam','#35475b',.8,0],['shirt','#f6f0df',.78,0],
+    ['lapel','#1c2b41',.7,.03],['seam','#29384b',.8,0],['shirt','#f6f0df',.78,0],
     ['tie','#122236',.5,.07],['shoe','#121a22',.3,.17],['sole','#090f13',.84,0],
     ['eye','#f6e5cc',.36,0],['iris','#332720',.42,0],['pupil','#101519',.3,0],
     ['gold','#c8ab74',.3,.65]
@@ -45,16 +46,16 @@ export function createAvatar() {
   // Trousers are subtly asymmetric, grounded in the easy stance of the source photograph.
   for(const side of [-1,1]) {
     const x=side*.165;
-    tailored(`${side<0?'Right':'Left'} trouser leg`,[[.12,.001,.001,x],[.16,.115,.12,x],[.32,.12,.13,x],[.60,.132,.14,x-side*.014],[.86,.15,.15,x-side*.025],[.98,.135,.13,x-side*.015],[1.01,.001,.001,x]],'suit');
+    tailored(`${side<0?'Right':'Left'} trouser leg`,[[.12,.001,.001,x],[.16,.108,.115,x],[.32,.113,.123,x],[.60,.125,.135,x-side*.014],[.86,.133,.14,x-side*.025],[.95,.125,.13,x-side*.02],[.99,.001,.001,x]],'suit');
     const shoe=ellipsoid('Polished derby shoe','shoe',[x,.091,.074],[.125,.092,.225]);
     shoe.rotation.y=side*.075;
     ellipsoid('Shoe sole','sole',[x,.034,.07],[.13,.032,.227]);
     for(let i=0;i<3;i++)tube('Leather lacing',[[x-.052,.156-i*.013,.08+i*.035],[x,.17-i*.011,.10+i*.035],[x+.052,.156-i*.013,.08+i*.035]],.0038,'seam');
     tube('Trouser pressed crease',[[x,.25,.117],[x,.52,.134],[x-side*.014,.83,.149]],.0025,'seam');
   }
-  tailored('Tailored two-button navy jacket',[[.83,.001,.001],[.85,.265,.153],[.91,.30,.175],[1.03,.282,.173],[1.20,.277,.164],[1.36,.315,.17],[1.48,.355,.151],[1.54,.295,.125],[1.59,.15,.09],[1.60,.001,.001]],'suit');
+  tailored('Tailored two-button navy jacket',[[.825,.001,.001],[.845,.29,.162],[.91,.30,.175],[1.03,.29,.173],[1.20,.277,.164],[1.36,.315,.17],[1.48,.355,.151],[1.54,.295,.125],[1.59,.15,.09],[1.60,.001,.001]],'suit');
   ellipsoid('Neck','skin',[0,1.60,0],[.114,.17,.102]);
-  patch('Ivory shirt front',[[-.12,1.58],[-.19,1.44],[0,1.09],[.18,1.44],[.12,1.58]],.166,'shirt');
+  patch('Ivory shirt front',[[-.12,1.58],[-.16,1.44],[0,1.23],[.16,1.44],[.12,1.58]],.166,'shirt');
   patch('Left notched lapel',[[-.135,1.59],[-.282,1.49],[-.22,1.405],[-.265,1.405],[0,1.08],[-.095,1.43]],.186,'lapel');
   patch('Right notched lapel',[[.135,1.59],[.282,1.49],[.22,1.405],[.265,1.405],[.014,1.08],[.095,1.43]],.192,'lapel');
   patch('Left shirt collar',[[-.12,1.60],[0,1.535],[-.065,1.445],[-.145,1.555]],.205,'shirt');
@@ -71,10 +72,9 @@ export function createAvatar() {
   function arm(side) {
     const upper=new T.Group();upper.name=side<0?'Greeting shoulder':'Resting shoulder';upper.position.set(side*.33,1.47,0);root.add(upper);
     upper.rotation.z=side*.13;
-    ellipsoid('Jacket shoulder','suit',[side*.025,-.047,0],[.102,.115,.123],upper);
-    ellipsoid('Tailored upper sleeve','suit',[side*.04,-.18,0],[.095,.215,.11],upper);
+    tailored('Continuous tailored upper sleeve',[[-.37,.075,.084,side*.065],[-.31,.087,.096,side*.06],[-.17,.097,.112,side*.043],[-.05,.101,.12,side*.014],[.035,.074,.09],[.062,.001,.001]],'suit',upper,32);
     const elbow=new T.Group();elbow.name='Elbow';elbow.position.set(side*.065,-.34,0);upper.add(elbow);elbow.rotation.x=-.15;
-    ellipsoid('Lower sleeve','suit',[0,-.142,.011],[.079,.178,.09],elbow);
+    tailored('Continuous forearm sleeve',[[-.305,.062,.068,0,.009],[-.275,.071,.078,0,.011],[-.15,.082,.09,0,.011],[-.025,.082,.09],[.027,.067,.075],[.045,.001,.001]],'suit',elbow,32);
     ellipsoid('Ivory cuff','shirt',[0,-.298,.009],[.065,.033,.072],elbow);
     const hand=new T.Group();hand.name='Hand';hand.position.set(0,-.337,.013);elbow.add(hand);
     ellipsoid('Palm','skin',[0,-.034,0],[.056,.074,.033],hand);
@@ -92,18 +92,19 @@ export function createAvatar() {
   }
   // Close-cropped sideburns and a low beard line leave the actual face readable.
   const beardPositions=[],beardIndices=[],cols=64,rows=10;
+  const faceRings=[[-.17,.055,.062],[-.155,.13,.121],[-.12,.174,.153],[-.05,.205,.172],[.04,.222,.179],[.13,.216,.173]];
+  function faceRadius(y){let i=0;while(i<faceRings.length-2&&y>faceRings[i+1][0])i++;const a=faceRings[i],b=faceRings[i+1],t=T.MathUtils.clamp((y-a[0])/(b[0]-a[0]),0,1);return [T.MathUtils.lerp(a[1],b[1],t),T.MathUtils.lerp(a[2],b[2],t)];}
   for(let row=0;row<=rows;row++)for(let col=0;col<=cols;col++){
     const angle=(col/cols-.5)*Math.PI*1.17,edge=Math.abs(Math.sin(angle));
-    const top=-.075+Math.pow(edge,2.2)*.075,bottom=-.169+Math.pow(edge,1.6)*.027;
+    const top=-.106+Math.pow(edge,1.6)*.142,bottom=-.168+Math.pow(edge,1.6)*.035;
     const v=row/rows,y=bottom+(top-bottom)*v;
-    const rx=.113+v*.074,rz=.127+v*.047;
-    beardPositions.push(Math.sin(angle)*rx,y,Math.cos(angle)*rz+.008);
+    const [rx,rz]=faceRadius(y);
+    beardPositions.push(Math.sin(angle)*rx*1.024,y,Math.cos(angle)*rz*1.024+.005);
   }
   for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){const a=i*(cols+1)+j,b=a+cols+1;beardIndices.push(a,a+1,b,b,a+1,b+1);}
   const beardGeo=new T.BufferGeometry();beardGeo.setAttribute('position',new T.Float32BufferAttribute(beardPositions,3));beardGeo.setIndex(beardIndices);beardGeo.computeVertexNormals();
   const beard=new T.Mesh(beardGeo,m.beard);beard.name='Sculpted short beard';head.add(beard);
-  for(const side of [-1,1])ellipsoid('Sideburn','hair',[side*.203,.049,.057],[.026,.096,.047],head);
-  ellipsoid('Chin beard','beard',[0,-.136,.114],[.132,.047,.07],head);
+  for(const side of [-1,1])ellipsoid('Sideburn','hair',[side*.207,.066,.043],[.017,.075,.034],head);
   // Almond eyes, restrained catchlights, the brow shape and full lips echo the portrait.
   const pupils=[];
   for(const side of [-1,1]){
@@ -114,7 +115,7 @@ export function createAvatar() {
     ellipsoid('Pupil','pupil',[0,0,.004],[.009,.012,.004],pupil,smallSphere);
     ellipsoid('Eye catchlight','eye',[-.004,.006,.008],[.0037,.0037,.002],pupil,smallSphere);
     tube('Upper eyelid',[[side*.035,.076,.19],[side*.082,.093,.19],[side*.132,.075,.179]],.005,'skin',head);
-    tube('Defined eyebrow',[[side*.03,.126,.182],[side*.079,.143,.18],[side*.13,.126,.166]],.011,'hair',head);
+    tube('Defined eyebrow',[[side*.03,.129,.182],[side*.061,.139,.18],[side*.098,.136,.175],[side*.133,.122,.164]],.0075,'hair',head);
   }
   ellipsoid('Nose bridge','skin',[0,.031,.181],[.029,.056,.041],head);
   ellipsoid('Nose tip','skin',[0,-.002,.217],[.040,.026,.033],head);
@@ -124,24 +125,40 @@ export function createAvatar() {
   }
   tube('Upper lip',[[ -.064,-.077,.171],[-.029,-.071,.186],[0,-.075,.19],[.029,-.071,.186],[.064,-.077,.171]],.009,'lip',head);
   ellipsoid('Lower lip','lip',[0,-.089,.178],[.052,.013,.015],head);
-  tube('Moustache left',[[-.065,-.060,.17],[-.035,-.048,.185],[-.008,-.052,.191]],.013,'beard',head);
-  tube('Moustache right',[[.008,-.052,.191],[.035,-.048,.185],[.065,-.060,.17]],.013,'beard',head);
+  tube('Moustache left',[[-.053,-.061,.178],[-.03,-.053,.188],[-.009,-.055,.192]],.007,'beard',head);
+  tube('Moustache right',[[.009,-.055,.192],[.03,-.053,.188],[.053,-.061,.178]],.007,'beard',head);
   // A single instanced draw call makes the curls inexpensive on a phone.
   const curlGeo=new T.IcosahedronGeometry(1,2);
-  const curls=new T.InstancedMesh(curlGeo,m.hair,132);curls.name='Short textured black curls';
+  const curls=new T.InstancedMesh(curlGeo,m.hair,220);curls.name='Short textured black curls';
   const transform=new T.Object3D();
-  for(let i=0;i<132;i++){
-    const theta=i*2.399963229728653,level=(i+.5)/132,cos=level*.94;
+  for(let i=0;i<220;i++){
+    const theta=i*2.399963229728653,level=(i+.5)/220,cos=level*.94;
     const sin=Math.sqrt(1-cos*cos);
     const x=Math.cos(theta)*sin*.208,z=Math.sin(theta)*sin*.171;
     const front=Math.max(0,z/.171);
     const y=.182+cos*.16+front*.018;
-    const size=.035+.007*Math.sin(i*13.2);
+    const size=.026+.004*Math.sin(i*13.2);
     transform.position.set(x,y,z);transform.scale.set(size*1.12,size*.84,size);
     transform.rotation.set(i*.61,i*.34,i*.22);transform.updateMatrix();curls.setMatrixAt(i,transform.matrix);
   }
   curls.castShadow=true;head.add(curls);
   ellipsoid('Hair volume','hair',[0,.223,-.006],[.209,.113,.166],head);
+  // Batch static parts by material within each articulated group. The source
+  // remains editable while the phone submits far fewer individual draw calls.
+  function batch(parent){
+    const byMaterial=new Map();
+    for(const child of [...parent.children]){
+      if(child.isGroup)batch(child);
+      else if(child.isMesh&&!child.isInstancedMesh){const parts=byMaterial.get(child.material)||[];parts.push(child);byMaterial.set(child.material,parts);}
+    }
+    for(const [material,parts]of byMaterial){
+      if(parts.length<2)continue;
+      const geometries=parts.map(part=>{part.updateMatrix();const g=part.geometry.index?part.geometry.toNonIndexed():part.geometry.clone();g.deleteAttribute('uv');g.applyMatrix4(part.matrix);return g;});
+      const merged=new T.Mesh(mergeGeometries(geometries),material);merged.name=material.name+' — grouped details';merged.castShadow=true;merged.receiveShadow=true;
+      parts.forEach(part=>parent.remove(part));parent.add(merged);geometries.forEach(g=>g.dispose());
+    }
+  }
+  batch(root);
   root.userData={description:'Illustrated 3D likeness based on Banuja’s approved navy-suit photograph. Not a biometric scan.',author:'Banuja Disanayaka portfolio'};
   return {root,head,pupils,greeting};
 }
