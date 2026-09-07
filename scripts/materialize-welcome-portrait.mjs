@@ -4,8 +4,8 @@ import {mkdir, readFile, writeFile} from 'node:fs/promises';
 const parts = [1,2,3,4,5,6].map(n => `assets-src/v9/portrait-cutout.b64.part${n}`);
 const encoded = (await Promise.all(parts.map(file => readFile(file, 'utf8')))).join('').replace(/\s+/g, '');
 const bytes = Buffer.from(encoded, 'base64');
-const expectedBytes = 25640;
-const expectedSha256 = 'eb1c811b9e95be1a94fca0a298370a5aa394ca34a82c813573c03e2bb36609cc';
+const expectedBytes = 35292;
+const expectedSha256 = '8a7c9e4c1dc98c72739b23c5953e2b577200311243b98e9c3da99b9fb4e031b6';
 const actualSha256 = createHash('sha256').update(bytes).digest('hex');
 
 if (bytes.length !== expectedBytes) {
