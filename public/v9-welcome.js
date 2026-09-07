@@ -1,12 +1,13 @@
 (() => {
   'use strict';
+
   const home = location.pathname === '/' || location.pathname.endsWith('/index.html');
   if (!home || document.querySelector('.bd-welcome')) return;
 
   const params = new URLSearchParams(location.search);
   const force = params.has('intro') || params.get('welcome') === '1';
   let seen = false;
-  try { seen = sessionStorage.getItem('bd-welcome-seen') === '1'; } catch { /* Optional storage. */ }
+  try { seen = sessionStorage.getItem('bd-welcome-seen') === '1'; } catch { /* optional storage */ }
   if (seen && !force) return;
   if (navigator.webdriver && !force) return;
 
@@ -20,7 +21,7 @@
     <div class="bd-welcome-shell">
       <div class="bd-welcome-top">
         <div class="bd-welcome-mark"><img src="/assets/v9/banuja-logo-gold.webp" width="42" height="42" alt=""><span>Banuja Disanayaka<br>Portfolio</span></div>
-        <div class="bd-welcome-status"><i aria-hidden="true"></i><span>Interactive identity</span><span>V9.1.4 / 2026</span></div>
+        <div class="bd-welcome-status"><i aria-hidden="true"></i><span>Interactive identity</span><span>V9.1.5 / 2026</span></div>
       </div>
       <div class="bd-welcome-stage">
         <div class="bd-welcome-copy">
@@ -34,12 +35,12 @@
         </div>
         <div class="bd-welcome-visual" aria-hidden="true">
           <canvas class="bd-welcome-canvas"></canvas>
-          <div class="bd-welcome-fallback"><canvas class="bd-welcome-fallback-canvas" width="720" height="1082"></canvas></div>
-          <div class="bd-welcome-visual-label"><span>Move / touch to rotate</span><strong>Depth portrait / BD</strong></div>
+          <div class="bd-welcome-fallback"><canvas class="bd-welcome-fallback-canvas" width="360" height="540"></canvas></div>
+          <div class="bd-welcome-visual-label"><span>${reduced ? 'Welcome to my world' : 'Move / touch to explore'}</span><strong>A personal perspective</strong></div>
         </div>
       </div>
       <div class="bd-welcome-bottom">
-        <div class="bd-welcome-hint"><span aria-hidden="true"></span><b>${reduced ? 'Static experience' : 'Pointer-reactive WebGL relief'}</b></div>
+        <div class="bd-welcome-hint"><span aria-hidden="true"></span><b>${reduced ? 'Take a look around' : 'Move to explore'}</b></div>
         <div class="bd-welcome-progress" aria-hidden="true"><i></i></div>
         <span>Sri Lanka · Systems / Design / Image</span>
       </div>
@@ -50,19 +51,21 @@
   obscured.forEach(([el]) => { el.inert = true; });
   const previousOverflow = document.documentElement.style.overflow;
   document.documentElement.style.overflow = 'hidden';
+
   const enter = intro.querySelector('.bd-welcome-enter');
   const skip = intro.querySelector('.bd-welcome-skip');
   const visual = intro.querySelector('.bd-welcome-visual');
   const canvas = intro.querySelector('.bd-welcome-canvas');
   const fallbackCanvas = intro.querySelector('.bd-welcome-fallback-canvas');
-  fallbackCanvas.style.cssText = 'width:min(72%,520px);height:auto;max-height:92%;aspect-ratio:960/1442;display:block;filter:drop-shadow(0 30px 46px rgba(0,0,0,.62));transform:rotateX(var(--wx)) rotateY(var(--wy)) rotate(1.5deg);transform-origin:center 55%;transition:transform .15s ease-out;';
+  fallbackCanvas.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 30px 46px rgba(0,0,0,.62));transform:rotateX(var(--wx)) rotateY(var(--wy)) rotate(1.5deg);transform-origin:center 55%;transition:transform .15s ease-out;';
+
   let disposed = false;
   let disposeWebGL = () => {};
 
   function closeIntro() {
     if (disposed) return;
     disposed = true;
-    try { sessionStorage.setItem('bd-welcome-seen', '1'); } catch { /* Optional storage. */ }
+    try { sessionStorage.setItem('bd-welcome-seen', '1'); } catch { /* optional storage */ }
     intro.classList.add('is-leaving');
     document.documentElement.style.overflow = previousOverflow;
     obscured.forEach(([el, wasInert]) => { el.inert = wasInert; });
@@ -73,250 +76,321 @@
 
   enter.addEventListener('click', closeIntro);
   skip.addEventListener('click', closeIntro);
-  intro.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { e.preventDefault(); closeIntro(); return; }
-    if (e.key === 'Tab') {
-      const controls = [enter, skip].filter(el => !el.disabled && !el.hidden);
-      if (!controls.length) return;
-      const index = controls.indexOf(document.activeElement);
-      if (e.shiftKey && index <= 0) { e.preventDefault(); controls.at(-1).focus(); }
-      else if (!e.shiftKey && index === controls.length - 1) { e.preventDefault(); controls[0].focus(); }
+  intro.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeIntro();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const controls = [enter, skip].filter(el => !el.disabled && !el.hidden);
+    if (!controls.length) return;
+    const index = controls.indexOf(document.activeElement);
+    if (event.shiftKey && index <= 0) {
+      event.preventDefault();
+      controls.at(-1).focus();
+    } else if (!event.shiftKey && index === controls.length - 1) {
+      event.preventDefault();
+      controls[0].focus();
     }
   });
   setTimeout(() => enter.focus({preventScroll:true}), 80);
 
   function pointFromEvent(event) {
-    const r = visual.getBoundingClientRect();
+    const rect = visual.getBoundingClientRect();
     return {
-      x: Math.max(-1, Math.min(1, ((event.clientX - r.left) / Math.max(r.width,1) - .5) * 2)),
-      y: Math.max(-1, Math.min(1, ((event.clientY - r.top) / Math.max(r.height,1) - .5) * 2))
+      x: Math.max(-1, Math.min(1, ((event.clientX - rect.left) / Math.max(rect.width, 1) - .5) * 2)),
+      y: Math.max(-1, Math.min(1, ((event.clientY - rect.top) / Math.max(rect.height, 1) - .5) * 2))
     };
   }
+
   function fallbackMove(event) {
     if (reduced) return;
-    const p = pointFromEvent(event);
-    intro.style.setProperty('--wx', (p.y * -6).toFixed(2) + 'deg');
-    intro.style.setProperty('--wy', (p.x * 9).toFixed(2) + 'deg');
+    const point = pointFromEvent(event);
+    intro.style.setProperty('--wx', (point.y * -6).toFixed(2) + 'deg');
+    intro.style.setProperty('--wy', (point.x * 9).toFixed(2) + 'deg');
   }
   visual.addEventListener('pointermove', fallbackMove, {passive:true});
   visual.addEventListener('pointerleave', () => {
-    intro.style.setProperty('--wx','0deg'); intro.style.setProperty('--wy','0deg');
+    intro.style.setProperty('--wx', '0deg');
+    intro.style.setProperty('--wy', '0deg');
   }, {passive:true});
 
-  function isolatePortrait(source) {
-    const naturalWidth = source.naturalWidth || 960;
-    const naturalHeight = source.naturalHeight || 1442;
-    const width = Math.min(720, naturalWidth);
-    const height = Math.max(1, Math.round(naturalHeight * width / naturalWidth));
-    const isolated = document.createElement('canvas');
-    isolated.width = width;
-    isolated.height = height;
-    const ctx = isolated.getContext('2d', {willReadFrequently:true});
-    if (!ctx) throw new Error('2D canvas unavailable');
-    ctx.drawImage(source, 0, 0, width, height);
-    const frame = ctx.getImageData(0, 0, width, height);
-    const data = frame.data;
-    const count = width * height;
-    const candidates = new Uint8Array(count);
-    const relaxed = new Uint8Array(count);
-    const background = new Uint8Array(count);
-    const queue = new Int32Array(count);
-
-    for (let p = 0; p < count; p++) {
-      const i = p * 4;
-      const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
-      const hi = Math.max(r,g,b), lo = Math.min(r,g,b);
-      const chroma = hi - lo;
-      const luminance = r * .2126 + g * .7152 + b * .0722;
-      if ((luminance > .22 && chroma < .16) || (luminance > .52 && chroma < .25) || luminance > .90) candidates[p] = 1;
-      if ((luminance > .17 && chroma < .28) || luminance > .84) relaxed[p] = 1;
-    }
-
-    let head = 0, tail = 0;
-    const enqueue = p => {
-      if (p < 0 || p >= count || background[p] || !candidates[p]) return;
-      background[p] = 1;
-      queue[tail++] = p;
-    };
-    for (let x = 0; x < width; x++) { enqueue(x); enqueue((height - 1) * width + x); }
-    for (let y = 1; y < height - 1; y++) { enqueue(y * width); enqueue(y * width + width - 1); }
-    while (head < tail) {
-      const p = queue[head++], x = p % width;
-      if (x > 0) enqueue(p - 1);
-      if (x < width - 1) enqueue(p + 1);
-      if (p >= width) enqueue(p - width);
-      if (p < count - width) enqueue(p + width);
-    }
-
-    for (let pass = 0; pass < 3; pass++) {
-      const additions = [];
-      for (let p = 0; p < count; p++) {
-        if (background[p] || !relaxed[p]) continue;
-        const x = p % width;
-        const adjacent = (x > 0 && background[p - 1]) || (x < width - 1 && background[p + 1]) || (p >= width && background[p - width]) || (p < count - width && background[p + width]);
-        if (adjacent) additions.push(p);
-      }
-      additions.forEach(p => { background[p] = 1; });
-      if (!additions.length) break;
-    }
-
-    let removed = 0;
-    for (let p = 0; p < count; p++) {
-      const i = p * 4;
-      if (background[p]) {
-        data[i + 3] = 0;
-        removed++;
-        continue;
-      }
-      const x = p % width;
-      const touchesBackground = (x > 0 && background[p - 1]) || (x < width - 1 && background[p + 1]) || (p >= width && background[p - width]) || (p < count - width && background[p + width]);
-      if (touchesBackground) data[i + 3] = Math.min(data[i + 3], 190);
-    }
-
-    const removedRatio = removed / count;
-    if (removedRatio < .35 || removedRatio > .94) throw new Error(`Unexpected portrait matte ratio ${removedRatio.toFixed(3)}`);
-    ctx.putImageData(frame, 0, 0);
-
-    const probePoints = [[.22,.32],[.78,.32],[.22,.50],[.78,.50],[.22,.68],[.78,.68]];
-    const probeAlphas = probePoints.map(([x,y]) => data[(Math.min(height - 1, Math.round(y * (height - 1))) * width + Math.min(width - 1, Math.round(x * (width - 1)))) * 4 + 3]);
-    if (probeAlphas.filter(a => a < 48).length < 5) throw new Error(`Backdrop alpha validation failed: ${probeAlphas.join(',')}`);
-
-    intro.dataset.subjectIsolation = 'ready';
-    intro.dataset.subjectIsolationRatio = removedRatio.toFixed(3);
-    intro.dataset.subjectIsolationProbes = probeAlphas.join(',');
-    intro.classList.add('bd-welcome-isolated');
-    return isolated;
-  }
-
   function paintFallback(source) {
-    fallbackCanvas.width = source.width;
-    fallbackCanvas.height = source.height;
-    const ctx = fallbackCanvas.getContext('2d', {alpha:true});
-    if (!ctx) throw new Error('Fallback canvas unavailable');
-    ctx.clearRect(0,0,fallbackCanvas.width,fallbackCanvas.height);
-    ctx.drawImage(source,0,0);
-    fallbackCanvas.dataset.render = 'isolated';
+    fallbackCanvas.width = source.naturalWidth || source.width || 360;
+    fallbackCanvas.height = source.naturalHeight || source.height || 540;
+    const context = fallbackCanvas.getContext('2d', {alpha:true});
+    if (!context) throw new Error('Fallback canvas unavailable');
+    context.clearRect(0, 0, fallbackCanvas.width, fallbackCanvas.height);
+    context.drawImage(source, 0, 0, fallbackCanvas.width, fallbackCanvas.height);
+    fallbackCanvas.dataset.render = 'static-cutout';
+    intro.dataset.subjectSource = 'static-cutout';
+    intro.classList.add('bd-welcome-isolated');
   }
 
-  function startWebGL(textureSource, depthSource) {
+  function startWebGL(textureSource) {
     if (reduced || disposed) return;
-    const gl = canvas.getContext('webgl', {alpha:true,antialias:true,premultipliedAlpha:true,preserveDrawingBuffer:false});
-    if (!gl) { intro.classList.add('bd-welcome-no-webgl'); return; }
+    const gl = canvas.getContext('webgl', {
+      alpha:true,
+      antialias:true,
+      premultipliedAlpha:true,
+      preserveDrawingBuffer:false
+    });
+    if (!gl) {
+      intro.classList.add('bd-welcome-no-webgl');
+      return;
+    }
 
     const vertexSource = `
-      attribute vec3 a_position; attribute vec2 a_uv;
-      uniform float u_aspect; uniform float u_rx; uniform float u_ry; uniform float u_scale; uniform vec2 u_shift;
-      varying vec2 v_uv; varying float v_depth;
+      attribute vec3 a_position;
+      attribute vec2 a_uv;
+      uniform float u_aspect;
+      uniform float u_rx;
+      uniform float u_ry;
+      uniform float u_scale;
+      uniform vec2 u_shift;
+      varying vec2 v_uv;
+      varying float v_depth;
       void main(){
-        vec3 p=a_position; float cy=cos(u_ry),sy=sin(u_ry),cx=cos(u_rx),sx=sin(u_rx);
-        p=vec3(cy*p.x+sy*p.z,p.y,-sy*p.x+cy*p.z); p=vec3(p.x,cx*p.y-sx*p.z,sx*p.y+cx*p.z);
+        vec3 p=a_position;
+        float cy=cos(u_ry), sy=sin(u_ry), cx=cos(u_rx), sx=sin(u_rx);
+        p=vec3(cy*p.x+sy*p.z,p.y,-sy*p.x+cy*p.z);
+        p=vec3(p.x,cx*p.y-sx*p.z,sx*p.y+cx*p.z);
         float perspective=1.28/(2.25-p.z);
         vec2 projected=vec2((p.x*perspective/u_aspect)+u_shift.x,(p.y*perspective)+u_shift.y)*u_scale;
-        gl_Position=vec4(projected,clamp(p.z*.18,-.9,.9),1.0); v_uv=a_uv; v_depth=a_position.z;
-      }`;
-    const fragmentSource = `
-      precision mediump float; uniform sampler2D u_image; uniform vec2 u_pointer; uniform float u_time;
-      varying vec2 v_uv; varying float v_depth;
-      void main(){
-        vec4 tex=texture2D(u_image,v_uv); if(tex.a<.01) discard;
-        float d=distance(v_uv,u_pointer); float glow=smoothstep(.46,0.0,d)*.12;
-        vec3 color=tex.rgb*(.92+v_depth*.46)+vec3(1.03,.98,.86)*glow;
-        color+=.012*sin((v_uv.y*150.0)+(u_time*.0015)); gl_FragColor=vec4(color,tex.a);
+        gl_Position=vec4(projected,clamp(p.z*.18,-.9,.9),1.0);
+        v_uv=a_uv;
+        v_depth=a_position.z;
       }`;
 
-    function shader(type, source) {
-      const s = gl.createShader(type); gl.shaderSource(s,source); gl.compileShader(s);
-      if (!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'Shader compile failed');
-      return s;
+    const fragmentSource = `
+      precision mediump float;
+      uniform sampler2D u_image;
+      uniform vec2 u_pointer;
+      uniform float u_time;
+      varying vec2 v_uv;
+      varying float v_depth;
+      void main(){
+        vec4 tex=texture2D(u_image,v_uv);
+        if(tex.a<.01) discard;
+        float d=distance(v_uv,u_pointer);
+        float glow=smoothstep(.46,0.0,d)*.10;
+        vec3 color=tex.rgb*(.94+v_depth*.34)+vec3(1.03,.98,.86)*glow;
+        color+=.008*sin((v_uv.y*150.0)+(u_time*.0015));
+        gl_FragColor=vec4(color,tex.a);
+      }`;
+
+    function compile(type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        throw new Error(gl.getShaderInfoLog(shader) || 'Shader compile failed');
+      }
+      return shader;
     }
 
     let program;
     try {
       program = gl.createProgram();
-      gl.attachShader(program,shader(gl.VERTEX_SHADER,vertexSource));
-      gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragmentSource));
+      gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
+      gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource));
       gl.linkProgram(program);
-      if (!gl.getProgramParameter(program,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || 'Program link failed');
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw new Error(gl.getProgramInfoLog(program) || 'Program link failed');
+      }
     } catch (error) {
       console.warn('Welcome WebGL fallback:', error);
       intro.classList.add('bd-welcome-no-webgl');
       return;
     }
 
-    const cols=54, rows=78, vertexCount=(cols+1)*(rows+1);
-    const sample=document.createElement('canvas'); sample.width=cols+1; sample.height=rows+1;
-    const sctx=sample.getContext('2d',{willReadFrequently:true});
-    sctx.drawImage(depthSource,0,0,sample.width,sample.height);
-    const pixels=sctx.getImageData(0,0,sample.width,sample.height).data;
-    const vertices=new Float32Array(vertexCount*5); let o=0;
-    for(let y=0;y<=rows;y++) for(let x=0;x<=cols;x++){
-      const u=x/cols,v=y/rows,px=(u-.5)*1.38,py=(.5-v)*2.04,i=(y*(cols+1)+x)*4;
-      const visible=pixels[i+3]>=16,lum=visible?(pixels[i]*.2126+pixels[i+1]*.7152+pixels[i+2]*.0722)/255:.5;
-      const nx=(u-.5)/.52,ny=(v-.46)/.6,radial=Math.max(0,1-(nx*nx+ny*ny));
-      const headShape=Math.exp(-((u-.5)*(u-.5)/.08+(v-.31)*(v-.31)/.11));
-      const torso=Math.exp(-((u-.5)*(u-.5)/.22+(v-.72)*(v-.72)/.23));
-      const relief=visible?((headShape*.18+torso*.055+radial*.028)+(lum-.5)*.025*radial):0;
-      vertices[o++]=px;vertices[o++]=py;vertices[o++]=relief;vertices[o++]=u;vertices[o++]=v;
+    const cols = 54;
+    const rows = 78;
+    const vertexCount = (cols + 1) * (rows + 1);
+    const sample = document.createElement('canvas');
+    sample.width = cols + 1;
+    sample.height = rows + 1;
+    const sampleContext = sample.getContext('2d', {willReadFrequently:true});
+    sampleContext.drawImage(textureSource, 0, 0, sample.width, sample.height);
+    const pixels = sampleContext.getImageData(0, 0, sample.width, sample.height).data;
+    const vertices = new Float32Array(vertexCount * 5);
+    let offset = 0;
+
+    for (let y = 0; y <= rows; y++) {
+      for (let x = 0; x <= cols; x++) {
+        const u = x / cols;
+        const v = y / rows;
+        const px = (u - .5) * 1.38;
+        const py = (.5 - v) * 2.04;
+        const index = (y * (cols + 1) + x) * 4;
+        const visible = pixels[index + 3] >= 16;
+        const luminance = visible ? (pixels[index] * .2126 + pixels[index + 1] * .7152 + pixels[index + 2] * .0722) / 255 : .5;
+        const nx = (u - .5) / .52;
+        const ny = (v - .46) / .60;
+        const radial = Math.max(0, 1 - (nx * nx + ny * ny));
+        const head = Math.exp(-((u - .5) * (u - .5) / .08 + (v - .27) * (v - .27) / .10));
+        const torso = Math.exp(-((u - .5) * (u - .5) / .22 + (v - .58) * (v - .58) / .26));
+        const relief = visible ? (head * .16 + torso * .055 + radial * .024 + (luminance - .5) * .018 * radial) : 0;
+        vertices[offset++] = px;
+        vertices[offset++] = py;
+        vertices[offset++] = relief;
+        vertices[offset++] = u;
+        vertices[offset++] = v;
+      }
     }
-    const indices=new Uint16Array(cols*rows*6); o=0;
-    for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
-      const a=y*(cols+1)+x,b=a+1,c=a+(cols+1),d=c+1;
-      indices[o++]=a;indices[o++]=c;indices[o++]=b;indices[o++]=b;indices[o++]=c;indices[o++]=d;
+
+    const indices = new Uint16Array(cols * rows * 6);
+    offset = 0;
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const a = y * (cols + 1) + x;
+        const b = a + 1;
+        const c = a + cols + 1;
+        const d = c + 1;
+        indices[offset++] = a;
+        indices[offset++] = c;
+        indices[offset++] = b;
+        indices[offset++] = b;
+        indices[offset++] = c;
+        indices[offset++] = d;
+      }
     }
-    const vb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,vb); gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.STATIC_DRAW);
-    const ib=gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indices,gl.STATIC_DRAW);
+
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     gl.useProgram(program);
-    const pos=gl.getAttribLocation(program,'a_position'),uv=gl.getAttribLocation(program,'a_uv');
-    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,3,gl.FLOAT,false,20,0);
-    gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,20,12);
-    const tex=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,0);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,textureSource);
-    gl.uniform1i(gl.getUniformLocation(program,'u_image'),0);
-    const uAspect=gl.getUniformLocation(program,'u_aspect'),uRx=gl.getUniformLocation(program,'u_rx'),uRy=gl.getUniformLocation(program,'u_ry'),uScale=gl.getUniformLocation(program,'u_scale'),uShift=gl.getUniformLocation(program,'u_shift'),uPointer=gl.getUniformLocation(program,'u_pointer'),uTime=gl.getUniformLocation(program,'u_time');
-    let targetX=0,targetY=0,currentX=0,currentY=0,pointerU=.5,pointerV=.42,raf=0;
-    function resize(){
-      const r=visual.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,1.75),w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));
-      if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
+
+    const position = gl.getAttribLocation(program, 'a_position');
+    const uv = gl.getAttribLocation(program, 'a_uv');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 20, 0);
+    gl.enableVertexAttribArray(uv);
+    gl.vertexAttribPointer(uv, 2, gl.FLOAT, false, 20, 12);
+
+    const texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureSource);
+    gl.uniform1i(gl.getUniformLocation(program, 'u_image'), 0);
+
+    const uAspect = gl.getUniformLocation(program, 'u_aspect');
+    const uRx = gl.getUniformLocation(program, 'u_rx');
+    const uRy = gl.getUniformLocation(program, 'u_ry');
+    const uScale = gl.getUniformLocation(program, 'u_scale');
+    const uShift = gl.getUniformLocation(program, 'u_shift');
+    const uPointer = gl.getUniformLocation(program, 'u_pointer');
+    const uTime = gl.getUniformLocation(program, 'u_time');
+
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let pointerU = .5;
+    let pointerV = .42;
+    let raf = 0;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(devicePixelRatio || 1, 1.75);
+      const width = Math.max(1, Math.round(rect.width * dpr));
+      const height = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+        gl.viewport(0, 0, width, height);
+      }
     }
-    function onMove(event){const p=pointFromEvent(event);targetY=p.x*.22;targetX=p.y*-.12;pointerU=(p.x+1)/2;pointerV=1-((p.y+1)/2);}
-    function onLeave(){targetX=0;targetY=0;pointerU=.5;pointerV=.42;}
-    visual.addEventListener('pointermove',onMove,{passive:true});visual.addEventListener('pointerleave',onLeave,{passive:true});
-    const ro='ResizeObserver'in window?new ResizeObserver(resize):null;ro?.observe(visual);resize();
-    gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(0,0,0,0);
-    function render(time){
-      raf=0;if(disposed||document.hidden)return;currentX+=(targetX-currentX)*.075;currentY+=(targetY-currentY)*.075;
-      gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uAspect,Math.max(canvas.width/canvas.height,.65));
-      gl.uniform1f(uRx,currentX);gl.uniform1f(uRy,currentY);gl.uniform1f(uScale,1.76);gl.uniform2f(uShift,.12,-.015);gl.uniform2f(uPointer,pointerU,pointerV);gl.uniform1f(uTime,time);
-      gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);raf=requestAnimationFrame(render);
+
+    function onMove(event) {
+      const point = pointFromEvent(event);
+      targetY = point.x * .22;
+      targetX = point.y * -.12;
+      pointerU = (point.x + 1) / 2;
+      pointerV = 1 - ((point.y + 1) / 2);
     }
-    const ensureRender=()=>{if(!raf&&!disposed&&!document.hidden)raf=requestAnimationFrame(render)};
-    document.addEventListener('visibilitychange',ensureRender);intro.classList.add('webgl-ready');ensureRender();
-    disposeWebGL=()=>{cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',ensureRender);ro?.disconnect();visual.removeEventListener('pointermove',onMove);visual.removeEventListener('pointerleave',onLeave);gl.getExtension('WEBGL_lose_context')?.loseContext();};
+    function onLeave() {
+      targetX = 0;
+      targetY = 0;
+      pointerU = .5;
+      pointerV = .42;
+    }
+
+    visual.addEventListener('pointermove', onMove, {passive:true});
+    visual.addEventListener('pointerleave', onLeave, {passive:true});
+    const observer = 'ResizeObserver' in window ? new ResizeObserver(resize) : null;
+    observer?.observe(visual);
+    resize();
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor(0, 0, 0, 0);
+
+    function render(time) {
+      raf = 0;
+      if (disposed || document.hidden) return;
+      currentX += (targetX - currentX) * .075;
+      currentY += (targetY - currentY) * .075;
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.useProgram(program);
+      gl.uniform1f(uAspect, Math.max(canvas.width / canvas.height, .65));
+      gl.uniform1f(uRx, currentX);
+      gl.uniform1f(uRy, currentY);
+      gl.uniform1f(uScale, 1.76);
+      gl.uniform2f(uShift, .12, -.015);
+      gl.uniform2f(uPointer, pointerU, pointerV);
+      gl.uniform1f(uTime, time);
+      gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+      raf = requestAnimationFrame(render);
+    }
+
+    const ensureRender = () => {
+      if (!raf && !disposed && !document.hidden) raf = requestAnimationFrame(render);
+    };
+    document.addEventListener('visibilitychange', ensureRender);
+    intro.classList.add('webgl-ready');
+    ensureRender();
+
+    disposeWebGL = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      document.removeEventListener('visibilitychange', ensureRender);
+      observer?.disconnect();
+      visual.removeEventListener('pointermove', onMove);
+      visual.removeEventListener('pointerleave', onLeave);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+    };
   }
 
   const image = new Image();
   image.decoding = 'async';
-  image.src = '/assets/v9/portrait-960.webp';
+  image.src = '/assets/v9/portrait-cutout-8a7c9e4c1dc9.webp';
   image.onload = async () => {
     if (disposed) return;
-    try { await image.decode?.(); } catch { /* Loaded is sufficient. */ }
-    let isolated;
+    try { await image.decode?.(); } catch { /* onload is sufficient */ }
     try {
-      isolated = isolatePortrait(image);
-      paintFallback(isolated);
+      paintFallback(image);
     } catch (error) {
-      console.warn('Welcome subject isolation failed closed:', error);
-      intro.dataset.subjectIsolation = 'fallback';
-      intro.classList.add('bd-welcome-no-webgl','bd-welcome-isolation-fallback');
+      console.warn('Welcome portrait fallback failed:', error);
+      intro.dataset.subjectSource = 'error';
+      intro.classList.add('bd-welcome-no-webgl');
       return;
     }
-    if (!reduced) startWebGL(isolated, isolated);
+    if (!reduced) startWebGL(image);
+    else intro.classList.add('bd-welcome-no-webgl');
   };
   image.onerror = () => {
-    intro.dataset.subjectIsolation = 'error';
-    intro.classList.add('bd-welcome-no-webgl','bd-welcome-isolation-fallback');
+    intro.dataset.subjectSource = 'error';
+    intro.classList.add('bd-welcome-no-webgl');
   };
 })();
+

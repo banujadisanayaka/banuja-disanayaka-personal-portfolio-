@@ -1,9 +1,26 @@
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
+import {mkdir} from 'node:fs/promises';
 const base = process.env.BROWSER_QA_BASE_URL || 'http://127.0.0.1:4173';
 const browser = await chromium.launch();
 try {
-  const introContext = await browser.newContext({viewport:{width:1366,height:900}});
+  await mkdir('qa-artifacts/welcome', {recursive:true});
+  for (const scenario of [
+    {name:'desktop', viewport:{width:1366,height:900}},
+    {name:'mobile', viewport:{width:390,height:844}, hasTouch:true, isMobile:true},
+    {name:'small-mobile', viewport:{width:360,height:640}, hasTouch:true, isMobile:true},
+    {name:'landscape', viewport:{width:844,height:390}, hasTouch:true, isMobile:true},
+    {name:'reduced-motion', viewport:{width:390,height:844}, reducedMotion:'reduce'},
+    {name:'no-webgl', viewport:{width:390,height:844}, noWebGL:true}
+  ]) {
+  const {name, noWebGL, ...options} = scenario;
+  const introContext = await browser.newContext(options);
+  if (noWebGL) await introContext.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+      return type === 'webgl' || type === 'webgl2' ? null : getContext.call(this, type, ...args);
+    };
+  });
   const introPage = await introContext.newPage();
   const introErrors=[];introPage.on('pageerror',e=>introErrors.push(e.message));
   await introPage.goto(base+'/?intro=1',{waitUntil:'networkidle'});
@@ -11,38 +28,68 @@ try {
   await welcome.waitFor({state:'visible'});
   const welcomeScriptSrc=await introPage.locator('script[src*="/v9-welcome.js"]').getAttribute('src');
   const welcomeStyleHref=await introPage.locator('link[href*="/v9-welcome.css"]').getAttribute('href');
-  assert.match(welcomeScriptSrc||'',/\/v9-welcome\.js\?v=914-subject-alpha-/,'Welcome JS uses the V9.1.4 cache-busted release key');
-  assert.match(welcomeStyleHref||'',/\/v9-welcome\.css\?v=914-subject-alpha-/,'Welcome CSS uses the V9.1.4 cache-busted release key');
+  assert.match(welcomeScriptSrc||'',/\/v9-welcome\.js\?v=915-user-cutout-/,'Welcome JS uses the V9.1.5 cache-busted release key');
+  assert.match(welcomeStyleHref||'',/\/v9-welcome\.css\?v=915-user-cutout-/,'Welcome CSS uses the V9.1.5 cache-busted release key');
   assert.equal(await welcome.getAttribute('role'),'dialog');
   assert.equal(await welcome.getAttribute('aria-modal'),'true');
   assert.equal(await introPage.locator('#main').getAttribute('inert'),'');
-  await introPage.waitForFunction(()=>document.querySelector('.bd-welcome')?.dataset.subjectIsolation==='ready',null,{timeout:8000});
+  await introPage.waitForFunction(()=>document.querySelector('.bd-welcome')?.dataset.subjectSource==='static-cutout',null,{timeout:8000});
   assert.equal(await introPage.locator('.bd-welcome-frame').count(),0,'Decorative portrait frame is removed from the welcome DOM');
-  assert.equal(await introPage.locator('.bd-welcome-fallback img').count(),0,'Welcome fallback never re-loads the matte through an image/data URL');
-  const isolationRatio=Number(await welcome.getAttribute('data-subject-isolation-ratio'));
-  assert.ok(isolationRatio>.35&&isolationRatio<.94,`Subject isolation ratio is plausible: ${isolationRatio}`);
+  assert.equal(await introPage.locator('.bd-welcome-fallback img').count(),0,'Welcome fallback does not reprocess the portrait through a data URL');
+  assert.equal(await welcome.getAttribute('data-subject-isolation'),null,'Runtime subject isolation is removed');
+  const portraitResponse=await introPage.request.get(base+'/assets/v9/portrait-cutout-8a7c9e4c1dc9.webp');
+  assert.equal(portraitResponse.status(),200,'Static transparent portrait is deployed');
   const matte=await introPage.evaluate(()=>{
     const canvas=document.querySelector('.bd-welcome-fallback-canvas');
     const ctx=canvas?.getContext('2d',{willReadFrequently:true});
-    if(!canvas||!ctx||canvas.dataset.render!=='isolated') return {transparentRatio:0,probeAlphas:[],centerAlpha:0,render:''};
+    if(!canvas||!ctx||canvas.dataset.render!=='static-cutout') return {transparentRatio:0,sideAlphas:[],bodyAlphas:[],render:''};
     const width=canvas.width,height=canvas.height,data=ctx.getImageData(0,0,width,height).data;
     let transparent=0;for(let i=3;i<data.length;i+=4)if(data[i]<32)transparent++;
-    const points=[[.22,.32],[.78,.32],[.22,.50],[.78,.50],[.22,.68],[.78,.68]];
     const alphaAt=(x,y)=>data[(Math.min(height-1,Math.round(y*(height-1)))*width+Math.min(width-1,Math.round(x*(width-1))))*4+3];
-    return {transparentRatio:transparent/(data.length/4),probeAlphas:points.map(([x,y])=>alphaAt(x,y)),centerAlpha:alphaAt(.5,.5),render:canvas.dataset.render};
+    const sidePoints=[[.10,.25],[.90,.25],[.10,.50],[.90,.50],[.10,.75],[.90,.75]];
+    const bodyPoints=[[.50,.16],[.50,.20],[.50,.25],[.50,.30],[.50,.36],[.50,.42],[.50,.50]];
+    return {transparentRatio:transparent/(data.length/4),sideAlphas:sidePoints.map(([x,y])=>alphaAt(x,y)),bodyAlphas:bodyPoints.map(([x,y])=>alphaAt(x,y)),render:canvas.dataset.render};
   });
-  assert.equal(matte.render,'isolated','Transparent canvas is the visible fallback source');
-  assert.ok(matte.transparentRatio>.38,`Isolated canvas contains substantial real transparency: ${matte.transparentRatio.toFixed(3)}`);
-  assert.ok(matte.probeAlphas.filter(a=>a<48).length>=5,`Backdrop probes are transparent: ${matte.probeAlphas.join(',')}`);
-  assert.ok(matte.centerAlpha>180,`Subject center remains visible after isolation: alpha ${matte.centerAlpha}`);
+  assert.equal(matte.render,'static-cutout','User supplied cutout is the visible fallback source');
+  assert.ok(matte.transparentRatio>.65,`Static cutout contains substantial real transparency: ${matte.transparentRatio.toFixed(3)}`);
+  assert.ok(matte.sideAlphas.filter(a=>a<48).length>=5,`Cutout side probes are transparent: ${matte.sideAlphas.join(',')}`);
+  assert.ok(matte.bodyAlphas.every(a=>a>180),`Head/neck/tie/torso stay intact: ${matte.bodyAlphas.join(',')}`);
   await introPage.waitForFunction(()=>document.querySelector('.bd-welcome')?.classList.contains('webgl-ready')||document.querySelector('.bd-welcome')?.classList.contains('bd-welcome-no-webgl'),null,{timeout:8000});
-  await introPage.getByRole('button',{name:/Enter portfolio/}).click();
+  assert.equal(await introPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Welcome has no horizontal overflow');
+  if (noWebGL || scenario.reducedMotion) {
+    assert.ok(await welcome.evaluate(el=>el.classList.contains('bd-welcome-no-webgl')),'Accessible static fallback is active');
+    assert.equal(await introPage.locator('.bd-welcome-fallback').evaluate(el=>getComputedStyle(el).opacity),'1','Static portrait is visible');
+  }
+  if (scenario.viewport.width <= 900) {
+    const visualRect = await introPage.locator('.bd-welcome-visual').boundingBox();
+    const copyRect = await introPage.locator('.bd-welcome-copy').boundingBox();
+    if (scenario.viewport.width > scenario.viewport.height && scenario.viewport.height <= 520) {
+      assert.ok(copyRect.x + copyRect.width <= visualRect.x + 1,'Landscape copy stays beside the portrait');
+      assert.ok(visualRect.y >= 0 && visualRect.y + visualRect.height <= scenario.viewport.height,'Landscape portrait is inside the viewport');
+    } else {
+      assert.ok(copyRect.y >= visualRect.y + visualRect.height - 10,'Mobile copy stays below the portrait');
+    }
+  }
+  const fallbackFit=await introPage.locator('.bd-welcome-fallback-canvas').evaluate(el=>({
+    width:el.clientWidth,height:el.clientHeight,
+    availableWidth:el.parentElement.clientWidth,availableHeight:el.parentElement.clientHeight
+  }));
+  assert.ok(fallbackFit.height <= fallbackFit.availableHeight + 1 && fallbackFit.width <= fallbackFit.availableWidth + 1,
+    `The full static portrait fits its visual area: ${JSON.stringify(fallbackFit)}`);
+  const entryRect=await introPage.getByRole('button',{name:/Enter portfolio/}).boundingBox();
+  assert.ok(entryRect.y >= 0 && entryRect.y + entryRect.height <= scenario.viewport.height,
+    `Entry control is immediately visible in ${name}`);
+  await introPage.screenshot({path:`qa-artifacts/welcome/${name}.png`,animations:'disabled'});
+  // Both exit controls must stay usable in the smallest layouts as well.
+  const exitButton=introPage.getByRole('button',{name:scenario.name==='small-mobile'?'Skip introduction':/Enter portfolio/});
+  await exitButton.click();
   await introPage.locator('.bd-welcome').waitFor({state:'detached'});
   assert.equal(await introPage.locator('#main').getAttribute('inert'),null);
   assert.equal(await introPage.evaluate(()=>document.documentElement.style.overflow),'');
   assert.deepEqual(introErrors,[]);
   await introContext.close();
-  console.log('V9.1.4 cache key, direct canvas subject alpha, welcome dialog, WebGL fallback gate and focus boundary passed');
+  console.log(`V9.1.5 supplied cutout and welcome layout passed: ${name}`);
+  }
 
   const context = await browser.newContext({viewport:{width:1366,height:900}});
   const page = await context.newPage();
@@ -133,3 +180,4 @@ try {
   }
   console.log('All five interactive workflows work with reduced motion; all stages remain readable without JavaScript');
 } finally { await browser.close(); }
+
