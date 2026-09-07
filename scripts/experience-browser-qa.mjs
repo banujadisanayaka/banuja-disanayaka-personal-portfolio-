@@ -12,6 +12,10 @@ try {
   assert.equal(await welcome.getAttribute('role'),'dialog');
   assert.equal(await welcome.getAttribute('aria-modal'),'true');
   assert.equal(await introPage.locator('#main').getAttribute('inert'),'');
+  await introPage.waitForFunction(()=>document.querySelector('.bd-welcome')?.dataset.subjectIsolation==='ready',null,{timeout:8000});
+  assert.equal(await introPage.locator('.bd-welcome-frame').count(),0,'Decorative portrait frame is removed from the welcome DOM');
+  const isolationRatio=Number(await welcome.getAttribute('data-subject-isolation-ratio'));
+  assert.ok(isolationRatio>.35&&isolationRatio<.94,`Subject isolation ratio is plausible: ${isolationRatio}`);
   await introPage.waitForFunction(()=>document.querySelector('.bd-welcome')?.classList.contains('webgl-ready')||document.querySelector('.bd-welcome')?.classList.contains('bd-welcome-no-webgl'),null,{timeout:8000});
   await introPage.getByRole('button',{name:/Enter portfolio/}).click();
   await introPage.locator('.bd-welcome').waitFor({state:'detached'});
@@ -19,7 +23,7 @@ try {
   assert.equal(await introPage.evaluate(()=>document.documentElement.style.overflow),'');
   assert.deepEqual(introErrors,[]);
   await introContext.close();
-  console.log('V9.1 welcome dialog, WebGL fallback gate and focus boundary passed');
+  console.log('V9.1 welcome subject isolation, dialog, WebGL fallback gate and focus boundary passed');
 
   const context = await browser.newContext({viewport:{width:1366,height:900}});
   const page = await context.newPage();
