@@ -1,0 +1,1 @@
+Mobile visual QA target: 390x844 and tall Android portrait viewports. Verify the WebGL portrait remains above the copy, CTA controls do not overlap the figure, and the intro fits without horizontal overflow.
