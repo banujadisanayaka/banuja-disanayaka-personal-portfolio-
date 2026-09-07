@@ -5,7 +5,7 @@ const parts = [1,2,3,4,5,6].map(n => `assets-src/v9/portrait-cutout.b64.part${n}
 const encoded = (await Promise.all(parts.map(file => readFile(file, 'utf8')))).join('').replace(/\s+/g, '');
 const bytes = Buffer.from(encoded, 'base64');
 const expectedBytes = 25640;
-const expectedSha256 = 'f0d976163172121da1cecbc26496be7ead109223724e603fa78387d07f14d253';
+const expectedSha256 = 'eb1c811b9e95be1a94fca0a298370a5aa394ca34a82c813573c03e2bb36609cc';
 const actualSha256 = createHash('sha256').update(bytes).digest('hex');
 
 if (bytes.length !== expectedBytes) {
