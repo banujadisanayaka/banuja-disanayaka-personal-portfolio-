@@ -1,1 +1,0 @@
-V9.1.1 focuses on the mobile welcome experience shown in the 2026-09-07 user recording: no text/portrait overlap, cleaner portrait integration, and compact-height responsiveness.
