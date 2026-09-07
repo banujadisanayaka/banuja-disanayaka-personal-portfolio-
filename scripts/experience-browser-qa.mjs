@@ -63,7 +63,12 @@ try {
   if (scenario.viewport.width <= 900) {
     const visualRect = await introPage.locator('.bd-welcome-visual').boundingBox();
     const copyRect = await introPage.locator('.bd-welcome-copy').boundingBox();
-    assert.ok(copyRect.y >= visualRect.y + visualRect.height - 10,'Mobile copy stays below the portrait');
+    if (scenario.viewport.width > scenario.viewport.height && scenario.viewport.height <= 520) {
+      assert.ok(copyRect.x + copyRect.width <= visualRect.x + 1,'Landscape copy stays beside the portrait');
+      assert.ok(visualRect.y >= 0 && visualRect.y + visualRect.height <= scenario.viewport.height,'Landscape portrait is inside the viewport');
+    } else {
+      assert.ok(copyRect.y >= visualRect.y + visualRect.height - 10,'Mobile copy stays below the portrait');
+    }
   }
   const fallbackFit=await introPage.locator('.bd-welcome-fallback-canvas').evaluate(el=>({
     width:el.clientWidth,height:el.clientHeight,
@@ -71,6 +76,9 @@ try {
   }));
   assert.ok(fallbackFit.height <= fallbackFit.availableHeight + 1 && fallbackFit.width <= fallbackFit.availableWidth + 1,
     `The full static portrait fits its visual area: ${JSON.stringify(fallbackFit)}`);
+  const entryRect=await introPage.getByRole('button',{name:/Enter portfolio/}).boundingBox();
+  assert.ok(entryRect.y >= 0 && entryRect.y + entryRect.height <= scenario.viewport.height,
+    `Entry control is immediately visible in ${name}`);
   await introPage.screenshot({path:`qa-artifacts/welcome/${name}.png`,animations:'disabled'});
   // Both exit controls must stay usable in the smallest layouts as well.
   const exitButton=introPage.getByRole('button',{name:scenario.name==='small-mobile'?'Skip introduction':/Enter portfolio/});
