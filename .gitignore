@@ -11,3 +11,7 @@ public/assets/v9/gaze-*-960.webp
 public/assets/v9/gaze-*-1600.webp
 
 public/build-info.json
+
+# Reproducible first-party 3D bundle (built by scripts/build-site.mjs)
+public/assets/welcome/
+artifacts/

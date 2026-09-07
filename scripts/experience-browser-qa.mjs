@@ -6,6 +6,7 @@ try {
   const context = await browser.newContext({viewport:{width:1366,height:900}});
   const page = await context.newPage();
   await page.goto(base+'/',{waitUntil:'networkidle'});
+  await page.getByRole('link',{name:'Enter portfolio',exact:false}).click();
   const portrait = page.locator('.portrait-frame');
   const box = await portrait.boundingBox();
   await page.mouse.move(box.x+box.width*.75,box.y+box.height*.35);
