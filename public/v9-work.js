@@ -224,6 +224,14 @@
   grid.addEventListener('lostpointercapture', cancelGesture, {passive:true});
   grid.addEventListener('dragstart', e => e.preventDefault());
   closeButton.addEventListener('click', close);
+  dialog.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const focusable = qa('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])', dialog).filter(el => el.getClientRects().length && !el.closest('[hidden]'));
+    const first = focusable[0], last = focusable.at(-1);
+    if (!first) { e.preventDefault(); return; }
+    if (e.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+  });
   dialog.addEventListener('cancel', e => { e.preventDefault(); close(); });
   dialog.addEventListener('click', e => {
     if (e.target !== dialog) return;
