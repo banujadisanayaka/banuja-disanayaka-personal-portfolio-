@@ -46,7 +46,7 @@ try {
       await fits(page, '.work-dock');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `Page fits with ${projects[i]} selected at ${name}`);
       const coverFits = await page.locator('.project.is-selected .system-map').evaluate(el => el.scrollHeight <= el.clientHeight + 1);
-      assert.ok(coverFits, `Workflow and technology labels fit in ${projects[i]} at ${name}`);
+    assert.ok(coverFits, `Workflow and technology labels fit in ${projects[i]} at ${name}`);
     }
     await page.locator('.work-pick').first().click();
     await settle(page);
@@ -55,6 +55,7 @@ try {
     await openButton.click();
     await page.locator('#work-preview[open]').waitFor();
     await settle(page);
+    await page.screenshot({path:`qa-artifacts/work/${name}-preview-top.png`});
     assert.equal(await page.locator('#work-preview-title').textContent(), 'TFC Orders Tracker');
     assert.ok((await page.locator('.work-preview-story').textContent()).includes('retail, wholesale and delivery'));
     await fits(page, '#work-preview');
@@ -111,7 +112,7 @@ try {
     await page.locator('.project.is-selected .work-open').click();
     await page.getByRole('link',{name:/View full case study/}).click();
     await page.waitForURL('**/work/class-tracker/');
-    assert.equal(await page.locator('h1').textContent(), 'Class Tracker TDG');
+    assert.equal(await page.locator('h1').textContent(), 'Class Tracker TDG.');
     assert.equal(await page.locator('.work-showcase').count(), 0, 'Enhancement stays on the homepage');
     await context.close();
     console.log('Pointer drag, vertical-scroll intent, accidental-open protection and case-study navigation passed');

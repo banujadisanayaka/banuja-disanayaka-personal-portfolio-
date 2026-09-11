@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import sharp from 'sharp';
 
-for (const name of ['desktop-carousel', 'tablet-carousel', 'mobile-carousel', 'mobile-preview', 'small-mobile-carousel', 'small-mobile-preview', 'landscape-preview']) {
+for (const name of ['desktop-carousel', 'tablet-carousel', 'mobile-carousel', 'mobile-preview-top', 'mobile-preview', 'small-mobile-carousel', 'small-mobile-preview-top', 'landscape-preview']) {
   const path = `qa-artifacts/work/${name}.png`;
   try { await fs.access(path); } catch { continue; }
   const bytes = await sharp(path).resize({width:900, withoutEnlargement:true}).webp({quality:72}).toBuffer();
