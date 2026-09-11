@@ -124,14 +124,29 @@ jobs:
       - name: Browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
+        run: node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
 
 
       - name: Save welcome visual verification
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: welcome-visual-qa
           path: qa-artifacts/welcome/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Save project carousel visual verification
+        id: work_visual_artifact
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: work-carousel-visual-qa
+          path: qa-artifacts/work/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Preserve review images in logs if artifact storage is unavailable
+        if: always() && steps.work_visual_artifact.outcome == 'failure'
+        run: node scripts/work-visual-log.mjs
