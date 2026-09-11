@@ -44,6 +44,9 @@ try {
       await fits(page, '.project.is-selected');
       await fits(page, '.project.is-selected h3');
       await fits(page, '.work-dock');
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `Page fits with ${projects[i]} selected at ${name}`);
+      const coverFits = await page.locator('.project.is-selected .system-map').evaluate(el => el.scrollHeight <= el.clientHeight + 1);
+      assert.ok(coverFits, `Workflow and technology labels fit in ${projects[i]} at ${name}`);
     }
     await page.locator('.work-pick').first().click();
     await settle(page);

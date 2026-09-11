@@ -124,7 +124,7 @@ jobs:
       - name: Browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs && node scripts/work-browser-qa.mjs
+        run: node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
 
 
       - name: Save welcome visual verification

@@ -2,7 +2,7 @@
 .work-showcase { --work-rgb: 113, 207, 164; position: relative; isolation: isolate; }
 .work-ambience { display: none; }
 .work-showcase.is-ready { padding: 16px 0 20px; }
-.work-showcase.is-ready .work-ambience { display: block; position: absolute; inset: 0 -6%; overflow: hidden; pointer-events: none; z-index: -1; border-radius: 32px; }
+.work-showcase.is-ready .work-ambience { display: block; position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; border-radius: 32px; }
 .work-ambience>span { --glow-rgb: 113, 207, 164; position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at 50% 42%, rgba(var(--glow-rgb), .27), rgba(var(--glow-rgb), .08) 43%, transparent 72%); transition: opacity .7s ease; }
 .work-ambience>span[data-glow-tone="lavender"] { --glow-rgb: 177, 152, 246; }
 .work-ambience>span[data-glow-tone="sand"] { --glow-rgb: 234, 177, 112; }
@@ -18,12 +18,13 @@
 .work-showcase.is-ready .project.is-selected { border-color: rgba(var(--card-rgb), .6); box-shadow: 0 30px 60px #0007, 0 0 40px rgba(var(--card-rgb), .09), inset 0 1px 0 #ffffff29; }
 .work-showcase.is-ready .project-visual { border-radius: 13px; overflow: hidden; transform: none; }
 .work-showcase.is-ready .project-visual::after { display: none; }
-.work-showcase.is-ready .system-map, .work-preview .system-map { --map-ink: #eef3ef; position: relative; min-height: 237px; height: 237px; padding: 19px; border: 1px solid rgba(var(--card-rgb),.18); border-radius: 13px; background: radial-gradient(ellipse at 90% 0%, rgba(var(--card-rgb), .32), transparent 75%), linear-gradient(150deg, #213028, #0c1611); color: #eef3ef; overflow: hidden; }
+.work-showcase.is-ready .system-map, .work-preview .system-map { --map-ink: #eef3ef; position: relative; min-height: 264px; height: auto; padding: 19px; border: 1px solid rgba(var(--card-rgb),.18); border-radius: 13px; background: radial-gradient(ellipse at 90% 0%, rgba(var(--card-rgb), .32), transparent 75%), linear-gradient(150deg, #213028, #0c1611); color: #eef3ef; overflow: hidden; }
 .work-showcase.is-ready .map-label, .work-preview .map-label { font-size: 12px; letter-spacing: .09em; color: rgb(var(--card-rgb)); }
 .work-showcase.is-ready .map-orbit, .work-preview .map-orbit { display: none; }
 .work-showcase.is-ready .map-path, .work-preview .map-path { position: relative; display: grid; grid-template-columns: 1fr; gap: 10px; padding: 16px 0; }
 .work-showcase.is-ready .map-path::before, .work-preview .map-path::before { content: ""; position: absolute; top: 27px; bottom: 27px; left: 10px; width: 1px; background: rgba(var(--card-rgb), .25); }
-.work-showcase.is-ready .map-path>div, .work-preview .map-path>div { display: flex; align-items: center; gap: 11px; font-size: 14px; line-height: 1.4; }
+.work-showcase.is-ready .map-path>div, .work-preview .map-path>div { display: flex; align-items: center; gap: 11px; padding: 0; border: 0; font-size: 14px; line-height: 1.4; }
+.work-showcase.is-ready .map-path>div::before, .work-preview .map-path>div::before { display: none; }
 .work-showcase.is-ready .map-dot, .work-preview .map-dot { position: relative; display: grid; place-items: center; flex: 0 0 22px; width: 22px; height: 22px; margin: 0; border: 1px solid rgba(var(--card-rgb), .5); border-radius: 50%; color: rgb(var(--card-rgb)); background: #14241d; font-size: 10px; }
 .work-showcase.is-ready .system-map>p, .work-preview .system-map>p { position: relative; font-size: 12px; line-height: 1.5; color: #bcc9c0; }
 .work-showcase.is-ready .project-copy { padding: 20px 10px 8px; }
@@ -82,7 +83,7 @@
   .work-showcase.is-ready { padding-top: 0; }
   .work-showcase.is-ready .project-grid { --work-step: 195px; min-height: 520px; margin: 0 -6.85%; perspective: 1000px; }
   .work-showcase.is-ready .project { width: min(76vw, 310px); top: 24px; padding: 10px; border-radius: 20px; }
-  .work-showcase.is-ready .system-map { min-height: 224px; height: 224px; padding: 16px; }
+  .work-showcase.is-ready .system-map { min-height: 254px; padding: 16px; }
   .work-showcase.is-ready .project-copy { padding: 16px 8px 7px; }
   .work-showcase.is-ready .project h3 { font-size: 27px; }
   .work-showcase.is-ready .project-copy>p:not(.eyebrow) { font-size: 15px; }
