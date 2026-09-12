@@ -110,6 +110,20 @@
       const height = q('.story-visual', story).clientHeight || innerHeight;
       const position = cinematic ? clamp(-journey.getBoundingClientRect().top / height, 0, 2) : 0;
       story.style.setProperty('--story-progress', String(position / 2));
+      beats.forEach((beat, i) => {
+        const copy = q('div', beat);
+        if (!cinematic) {
+          copy.style.removeProperty('transform'); copy.style.removeProperty('opacity');
+          qa('a', copy).forEach(link => link.style.removeProperty('pointer-events'));
+          return;
+        }
+        const away = Math.abs(i - position);
+        // Compensate for the article's native scroll position so copy stays beside
+        // the camera. Chapters trade focus without sliding across the photograph.
+        copy.style.transform = `translate3d(0,${((position - i) * height + (i - position) * 36).toFixed(2)}px,0)`;
+        copy.style.opacity = String(clamp((.5 - away) / .18, 0, 1));
+        qa('a', copy).forEach(link => { link.style.pointerEvents = away < .5 ? 'auto' : 'none'; });
+      });
       const compact = innerWidth <= 700;
       const width = journey.clientWidth;
       // Read card geometry before applying any transforms.
@@ -132,7 +146,7 @@
       words.forEach((word, i) => {
         const d = i - position;
         word.style.opacity = String(clamp(1 - Math.abs(d), 0, 1));
-        word.style.transform = `translateX(${(d * 10).toFixed(2)}%)`;
+        word.style.transform = `translate3d(${(d * 10).toFixed(2)}%,${(d * 95).toFixed(2)}%,0)`;
       });
     }
     const available = chapters.filter(link => {
@@ -150,6 +164,9 @@
   }
   const requestScene = () => { if (!frame) frame = requestAnimationFrame(updateScene); };
   if (story || rail) {
+    beats.forEach((beat, i) => qa('a', beat).forEach(link => link.addEventListener('focus', () => {
+      if (story.classList.contains('is-cinematic') && Number(story.dataset.scene) !== i) beat.scrollIntoView({block:'start',behavior:'instant'});
+    })));
     if (rail) rail.hidden = false;
     addEventListener('scroll', requestScene, {passive:true});
     document.fonts?.ready.then(requestScene);

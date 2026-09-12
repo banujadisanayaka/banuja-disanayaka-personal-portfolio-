@@ -8,7 +8,7 @@ export function opening(picture, featured, profile) {
     <h1><span data-text="profile.firstName">Banuja</span><span data-text="profile.lastName">Disanayaka</span></h1>
     <div class="hero-copy"><p class="eyebrow" data-text="profile.heroEyebrow">${esc(profile.heroEyebrow)}</p><p class="hero-lede" data-text="profile.heroLede">${esc(profile.heroLede)}</p><div class="hero-actions"><a class="button primary" href="#work">Explore selected work <span aria-hidden="true">↗</span></a><a class="text-link" href="/about/">My story ↗</a></div></div>
     <div class="hero-image" data-hero-scene>
-      <div class="hero-orbit" role="group" aria-label="Explore my perspectives" data-orbit>
+      <div class="perspective-orbit" role="group" aria-label="Explore my perspectives" data-orbit>
         <div class="orbit-track" aria-hidden="true"></div>
         <button class="hero-card" type="button" data-hero-select="0" aria-label="Bring the person forward" aria-pressed="true"><span class="portrait-frame" data-depth>${picture('portrait','Banuja Disanayaka in a navy suit, standing in a studio.','',true)}</span><span class="hero-card-caption"><span>01 / THE PERSON</span><span>People & process</span></span></button>
         <button class="hero-card" type="button" data-hero-select="1" aria-label="Bring the designer forward" aria-pressed="false"><span class="hero-card-image">${picture('about','Banuja beside a display of his graphic design work.')}</span><span class="hero-card-caption"><span>02 / THE DESIGNER</span><span>Form & meaning</span></span></button>

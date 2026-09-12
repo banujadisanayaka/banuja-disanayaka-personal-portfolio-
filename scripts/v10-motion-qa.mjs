@@ -53,6 +53,11 @@ try {
       transforms.push(await page.locator('[data-art="0"]').evaluate(el => getComputedStyle(el).transform));
       if (fraction === .6) await page.screenshot({path:`qa-artifacts/v10/${name}-story-between.png`});
       if (mobile && fraction === 1) await page.screenshot({path:'qa-artifacts/v10/mobile-story-connect.png'});
+      if (mobile && fraction >= .6) {
+        const image = await page.locator('[data-art="1"]').boundingBox();
+        const copy = await page.locator('[data-beat="1"]>div').boundingBox();
+        assert.ok(copy.y >= image.y+image.height+8,'Mobile story text stays below the moving photograph');
+      }
     }
     assert.equal(new Set(transforms).size,4,'The camera changes between chapter boundaries, not just at triggers');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth+1),false);
