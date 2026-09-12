@@ -105,6 +105,7 @@ try {
     let release;
     const gate = new Promise(resolve => { release = resolve; });
     const content = JSON.parse(await readFile('public/content-default.json','utf8'));
+    content.profile.aboutImage = '/assets/v9/personal-480.webp';
     content.dailyGaze = empty ? [] : content.dailyGaze.slice().reverse();
     await page.route('**/api/content', async route => { await gate; await route.fulfill({json:{content}}); });
     await page.goto(base+'/', {waitUntil:'domcontentloaded'});
@@ -113,6 +114,7 @@ try {
     const selected = await page.locator('.gaze-viewer').getAttribute('data-selected-photo');
     release();
     await page.waitForLoadState('networkidle');
+    assert.ok(await page.locator('[data-portrait="about"]').evaluateAll(images => images.length > 1 && images.every(image => image.src.endsWith('/assets/v9/personal-480.webp'))),'CMS portrait changes reach every repeated scene');
     if (empty) {
       assert.equal(await page.locator('.featured-photos .photo-tile').count(), 0);
       assert.equal(await page.locator('.gaze-controls').isVisible(), false);
