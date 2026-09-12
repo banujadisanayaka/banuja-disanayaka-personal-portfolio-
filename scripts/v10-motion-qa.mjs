@@ -44,12 +44,28 @@ try {
       assert.equal(await orbit.getAttribute('data-selected-perspective'),'1');
       await page.screenshot({path:'qa-artifacts/v10/desktop-hero-designer.png',animations:'disabled'});
     }
+    // Finish the real touch fling before measuring exact scroll positions.
+    // Otherwise the compositor can continue the gesture after scrollTo().
+    await page.evaluate(() => new Promise(resolve => {
+      let last = scrollY, quiet = 0;
+      const check = () => {
+        quiet = Math.abs(scrollY-last) < .1 ? quiet+1 : 0;
+        last = scrollY;
+        if (quiet >= 12) resolve(); else requestAnimationFrame(check);
+      };
+      requestAnimationFrame(check);
+    }));
     await page.locator('.v10-story.is-cinematic').waitFor();
     const geometry = await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight}));
     const transforms = [];
     for (const fraction of [.15,.35,.6,1]) {
       await page.evaluate(({top,height,fraction}) => scrollTo({top:top+height*fraction,behavior:'instant'}),{...geometry,fraction});
-      await page.waitForFunction(f => Math.abs(Number(document.querySelector('.v10-story').style.getPropertyValue('--story-progress'))*2-f)<.02,fraction);
+      try {
+        await page.waitForFunction(f => Math.abs(Number(document.querySelector('.v10-story').style.getPropertyValue('--story-progress'))*2-f)<.02,fraction,{timeout:5000});
+      } catch (error) {
+        console.error('Story scroll geometry',fraction,geometry,await page.evaluate(() => ({scroll:scrollY,top:document.querySelector('.story-journey').getBoundingClientRect().top,height:document.querySelector('.story-visual').clientHeight,progress:document.querySelector('.v10-story').style.getPropertyValue('--story-progress')})));
+        throw error;
+      }
       transforms.push(await page.locator('[data-art="0"]').evaluate(el => getComputedStyle(el).transform));
       if (fraction === .6) await page.screenshot({path:`qa-artifacts/v10/${name}-story-between.png`});
       if (mobile && fraction === 1) await page.screenshot({path:'qa-artifacts/v10/mobile-story-connect.png'});
