@@ -72,7 +72,7 @@ body{background:var(--bg)}
 .is-cinematic .story-photo{height:min(57svh,570px)}
 .is-cinematic .story-system-sheet{height:min(64svh,600px);min-height:0}
 .is-cinematic .story-art a{pointer-events:auto}
-.is-cinematic .story-path{display:block;position:absolute;left:6%;right:6%;top:86%;height:1px;background:#cdd2be25}
+.is-cinematic .story-path{display:block;position:absolute;left:6%;right:6%;top:94%;height:1px;background:#cdd2be25}
 .story-path i{display:block;height:1px;width:100%;transform-origin:left;background:var(--gold);transform:scaleX(var(--story-progress))}
 .is-cinematic .story-beats{display:block;position:relative;z-index:2;margin-top:-100svh;pointer-events:none}
 .is-cinematic .story-beat{height:100svh;min-height:0;padding:0 0 0 6%;width:43%;position:relative}
