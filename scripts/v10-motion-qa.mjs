@@ -68,7 +68,9 @@ try {
     assert.equal(await active.evaluate(el => getComputedStyle(el).objectFit),'contain');
     const animation = await active.evaluate(el => el.getAnimations().map(a => a.effect.getKeyframes()));
     assert.ok(animation.some(frames => frames[0]?.transform?.includes('scale(')),'The thumbnail becomes the main photograph');
-    await page.getByRole('button',{name:'Animation effects',exact:true}).click();
+    // Exercise native keyboard activation. Netlify's preview-only review drawer
+    // may cover the lower corner; it is not present on the production website.
+    await page.getByRole('button',{name:'Animation effects',exact:true}).press('Enter');
     await page.waitForFunction(() => !document.querySelector('.v10-story').classList.contains('is-cinematic'));
     assert.equal(await page.evaluate(() => document.getAnimations().filter(a => a.playState==='running').length),0);
     assert.equal(await page.locator('.story-art:visible').count(),3,'Motion off exposes every visual chapter');
