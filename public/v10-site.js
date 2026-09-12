@@ -41,6 +41,9 @@
   }
   function endDrag(event) {
     if (!drag || (event && event.pointerId !== drag.id)) return;
+    // Touch begins with implicit capture on the image's child element. Moving
+    // capture to the depth surface must not cancel the gesture we just started.
+    if (event?.type === 'lostpointercapture' && event.target !== drag.capture) return;
     const completed = event?.type === 'pointerup' && drag.horizontal;
     const distance = drag.dx;
     suppressClick = completed && Math.abs(distance) > 12;
