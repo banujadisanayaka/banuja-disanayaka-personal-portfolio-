@@ -28,9 +28,16 @@ try {
     const x = Math.round(rect.x+rect.width*.65), y = Math.round(rect.y+rect.height*.4);
     if (mobile) {
       const cdp = await context.newCDPSession(page);
+      await page.evaluate(() => {
+        window.motionTouchTrace = [];
+        for (const type of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture','click']) document.addEventListener(type,event => {
+          window.motionTouchTrace.push({type,x:event.clientX,y:event.clientY,target:event.target.className,selected:document.querySelector('[data-orbit]').dataset.selectedPerspective});
+        },{passive:true});
+      });
       await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
       for (const dx of [20,45,70,100]) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-dx,y,id:1}]});
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      console.log('Spatial touch trace',JSON.stringify(await page.evaluate(() => window.motionTouchTrace)));
       await page.waitForFunction(() => document.querySelector('[data-orbit]').dataset.selectedPerspective === '1');
       const start = await page.evaluate(() => scrollY);
       await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:2}]});
