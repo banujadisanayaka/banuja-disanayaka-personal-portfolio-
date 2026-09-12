@@ -108,7 +108,7 @@
   }
 
   function open(card, source) {
-    if (!href(card) || dialog.open || document.querySelector('.bd-welcome:not(.is-leaving)')) return;
+    if (!href(card) || dialog.open) return;
     trigger = source;
     closing = false;
     renderPreview(card);
