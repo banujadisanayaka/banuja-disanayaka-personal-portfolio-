@@ -120,12 +120,11 @@
           qa('a', copy).forEach(link => link.style.removeProperty('pointer-events'));
           return;
         }
-        const away = Math.abs(i - position);
         // Compensate for the article's native scroll position so copy stays beside
         // the camera. Chapters trade focus without sliding across the photograph.
         copy.style.transform = `translate3d(0,${((position - i) * height + (i - position) * 36).toFixed(2)}px,0)`;
-        copy.style.opacity = String(clamp((.5 - away) / .18, 0, 1));
-        qa('a', copy).forEach(link => { link.style.pointerEvents = away < .5 ? 'auto' : 'none'; });
+        copy.style.opacity = i === active ? '1' : '0';
+        qa('a', copy).forEach(link => { link.style.pointerEvents = i === active ? 'auto' : 'none'; });
       });
       const compact = innerWidth <= 700;
       const width = journey.clientWidth;
