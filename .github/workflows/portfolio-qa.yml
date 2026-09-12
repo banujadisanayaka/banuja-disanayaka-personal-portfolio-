@@ -30,7 +30,7 @@ jobs:
         run: npm ci --no-audit --no-fund --ignore-scripts
 
       - name: Build release and responsive media
-        run: node scripts/validate-welcome-portrait.mjs && node scripts/build-derivatives.mjs && node scripts/build-site.mjs
+        run: node scripts/build-derivatives.mjs && node scripts/build-site.mjs
 
       - name: Release content, migration and media QA
         run: node scripts/release-qa.mjs
@@ -77,7 +77,6 @@ jobs:
       - name: Start static preview for branch pushes
         if: steps.target.outputs.remote == 'false'
         run: |
-          node scripts/validate-welcome-portrait.mjs
           node scripts/build-derivatives.mjs
           node scripts/build-site.mjs
           node scripts/build-info.mjs
@@ -124,18 +123,23 @@ jobs:
       - name: Browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
+        run: node scripts/v10-browser-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
 
 
-      - name: Save welcome visual verification
+      - name: Save V10 visual verification
+        id: v10_visual_artifact
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: welcome-visual-qa
-          path: qa-artifacts/welcome/
+          name: v10-visual-qa
+          path: qa-artifacts/v10/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Preserve V10 review images if artifact storage is unavailable
+        if: always() && steps.v10_visual_artifact.outcome == 'failure'
+        run: node scripts/v10-visual-log.mjs
 
       - name: Save project carousel visual verification
         id: work_visual_artifact
