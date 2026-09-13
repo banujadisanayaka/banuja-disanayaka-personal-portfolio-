@@ -75,7 +75,13 @@ async function measure(url, label) {
       });
     });
     assert.equal(outside,0,'Offscreen story stays idle');
-    await page.getByRole('button',{name:'Animation effects',exact:true}).press('Enter');
+    const motionToggle=page.getByRole('button',{name:'Animation effects',exact:true});
+    await motionToggle.press('Enter');
+    await page.waitForFunction(() =>
+      document.documentElement.dataset.motion === 'off' &&
+      document.querySelectorAll('.story-beat[aria-hidden="false"]').length === 3
+    );
+    assert.equal(await motionToggle.getAttribute('aria-pressed'),'false','Keyboard toggle reports motion off');
     assert.equal(await page.locator('.story-beat[aria-hidden="false"]').count(),3);
   }
   await context.close();
