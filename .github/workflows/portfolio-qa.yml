@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "url=https://deploy-preview-${{ github.event.pull_request.number }}--banuja-personal-log.netlify.app" >> "$GITHUB_OUTPUT"
+            echo "url=https://deploy-preview-${{ github.event.pull_request.number }}--banujadisanayaka.netlify.app" >> "$GITHUB_OUTPUT"
             echo "commit=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
             echo "remote=true" >> "$GITHUB_OUTPUT"
           else
@@ -107,18 +107,21 @@ jobs:
         env:
           QA_URL: ${{ steps.target.outputs.url }}
         run: |
-          # Static files may be visible a few seconds before function routes propagate.
-          for i in {1..12}; do
-            CODE="$(curl -sS -D /tmp/content-headers -o /tmp/content-body -w '%{http_code}' "$QA_URL/api/content" || true)"
-            if [ "$CODE" = "200" ]; then break; fi
+          # Netlify can publish static files before every function route reaches the edge.
+          for i in {1..18}; do
+            CONTENT_CODE="$(curl -sS -D /tmp/content-headers -o /tmp/content-body -w '%{http_code}' "$QA_URL/api/content" || true)"
+            SESSION_CODE="$(curl -sS -o /tmp/session-body -w '%{http_code}' "$QA_URL/api/admin-session" || true)"
+            ADMIN_CODE="$(curl -sS -o /tmp/admin-body -w '%{http_code}' "$QA_URL/api/admin-content" || true)"
+            if [ "$CONTENT_CODE" = "200" ] && [ "$SESSION_CODE" = "401" ] && [ "$ADMIN_CODE" = "401" ]; then break; fi
+            echo "Waiting for function boundaries: content=$CONTENT_CODE session=$SESSION_CODE admin=$ADMIN_CODE"
             sleep 5
           done
-          test "$CODE" = "200"
+          test "$CONTENT_CODE" = "200"
+          test "$SESSION_CODE" = "401"
+          test "$ADMIN_CODE" = "401"
           grep -qi '^x-robots-tag: noindex, nofollow, noarchive' /tmp/content-headers
           grep -qi '^referrer-policy: no-referrer' /tmp/content-headers
           grep -qi '^cross-origin-resource-policy: same-origin' /tmp/content-headers
-          test "$(curl -sS -o /tmp/session-body -w '%{http_code}' "$QA_URL/api/admin-session")" = "401"
-          test "$(curl -sS -o /tmp/admin-body -w '%{http_code}' "$QA_URL/api/admin-content")" = "401"
 
       - name: Browser accessibility and responsive QA
         env:
@@ -129,7 +132,7 @@ jobs:
       - name: Mobile scroll performance regression
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-          PERFORMANCE_BASELINE_URL: ${{ github.event_name == 'pull_request' && 'https://banuja-personal-log.netlify.app/' || '' }}
+          PERFORMANCE_BASELINE_URL: ${{ github.event_name == 'pull_request' && 'https://banujadisanayaka.netlify.app/' || '' }}
         run: node scripts/performance-browser-qa.mjs
 
       - name: Save V10 visual verification

@@ -1,4 +1,5 @@
-const origin = 'https://banujadisanayaka.netlify.app';
+export const siteOrigin = 'https://banujadisanayaka.netlify.app';
+const origin = siteOrigin;
 const personId = origin + '/#person';
 const websiteId = origin + '/#website';
 

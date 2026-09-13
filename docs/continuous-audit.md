@@ -1,8 +1,8 @@
 # Portfolio improvement cycle
 
-Owner: Banuja Disanayaka. Production: https://banuja-personal-log.netlify.app/.
+Owner: Banuja Disanayaka. Production: https://banujadisanayaka.netlify.app/.
 Repository: banujadisanayaka/banuja-disanayaka-personal-portfolio-.
-Netlify project: banuja-personal-log (caf01a3b-bf76-42af-8fd9-d8a67dbf0c7f).
+Netlify project: banujadisanayaka (caf01a3b-bf76-42af-8fd9-d8a67dbf0c7f).
 
 The owner requested an ongoing audit, fix, UI/UX and animation improvement, SEO and deployment cycle on 12 September 2026, continuing until stopped. Inspect current main, open PRs, workflow results and the published deployment at the start of each iteration. Continue unfinished work before starting a competing branch. Never overlap releases. Use the GitHub/Netlify workflow for this existing site.
 
@@ -40,3 +40,14 @@ Measured before release (same 390×844 viewport, device scale 2, Chromium, 4× C
 | Layout count | 0 | 0 |
 
 This establishes style invalidation and asynchronous text compensation as the problems measured here; layout count alone would not have caught them. A 500ms style-work ceiling gives the observed candidate substantial CI headroom while rejecting the original regression. These are controlled lab measurements, not a guarantee for every physical device. All existing browser scenarios, nine responsive routes, native gestures, reduced/no-JS/forced-color fallbacks, CMS and security checks passed on 0654e7de9d4ab1c3c8bc62d22fcca3435ed8d88b. Final release also requires the same gates on the final commit.
+
+
+## V10.2.1 canonical-origin release integrity
+
+Finding on 13 September 2026: Netlify production had been renamed to `banujadisanayaka.netlify.app` and was healthy at main commit `282effe5d4d3afa422848a732b26d48a7a43df85`, but Portfolio QA failed because the structured-data generator used the new origin while the SEO assertion still expected the retired origin. The pull-request preview URL and performance baseline also targeted the retired Netlify project name.
+
+Repair: export one canonical `siteOrigin` from `scripts/seo.mjs` and consume it in both page generation and SEO QA. The QA now rejects the retired origin in every generated public route, `robots.txt` and `sitemap.xml`. Netlify builds no longer require a post-build search-and-replace pass. Preview and production comparison targets use the renamed Netlify project, and the public security contact plus this audit record use the current canonical address.
+
+The first renamed preview confirmed that individual Netlify function routes can reach the edge at different times: the public content route was ready before both protected routes. Preview QA now waits for the complete `200/401/401` privacy boundary before evaluating headers, while preserving every status and header assertion.
+
+Validation required before release: release/content/media, SEO, backend security, CMS concurrency, all browser accessibility/responsive/motion/workflow scenarios, mobile performance budgets, Netlify build smoke, exact preview commit, and final published production commit. Next useful audit: verify the retired Netlify hostname redirects cleanly if Netlify continues serving it; canonical metadata must remain on the current hostname regardless.
