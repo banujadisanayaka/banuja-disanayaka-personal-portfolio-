@@ -61,9 +61,9 @@ try {
     for (const fraction of [.15,.35,.6,1]) {
       await page.evaluate(({top,height,fraction}) => scrollTo({top:top+height*fraction,behavior:'instant'}),{...geometry,fraction});
       try {
-        await page.waitForFunction(f => Math.abs(Number(document.querySelector('.v10-story').style.getPropertyValue('--story-progress'))*2-f)<.02,fraction,{timeout:5000});
+        await page.waitForFunction(f => Math.abs(Number(document.querySelector('.story-path i').style.transform.match(/scaleX\(([^)]+)\)/)?.[1])*2-f)<.02,fraction,{timeout:5000});
       } catch (error) {
-        console.error('Story scroll geometry',fraction,geometry,await page.evaluate(() => ({scroll:scrollY,top:document.querySelector('.story-journey').getBoundingClientRect().top,height:document.querySelector('.story-visual').clientHeight,progress:document.querySelector('.v10-story').style.getPropertyValue('--story-progress')})));
+        console.error('Story scroll geometry',fraction,geometry,await page.evaluate(() => ({scroll:scrollY,top:document.querySelector('.story-journey').getBoundingClientRect().top,height:document.querySelector('.story-visual').clientHeight,progress:document.querySelector('.story-path i').style.transform})));
         throw error;
       }
       transforms.push(await page.locator('[data-art="0"]').evaluate(el => getComputedStyle(el).transform));

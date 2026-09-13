@@ -92,88 +92,123 @@
     orbit.addEventListener('pointerleave', event => { if (drag && !drag.horizontal) endDrag(event); }, {passive:true});
   }
 
-  // Native scrolling moves the camera continuously between three connected scenes.
+  // The browser pins one stage containing both imagery and copy. Text never
+  // counter-scrolls in JavaScript: that raced native touch scrolling on Android.
   const story = q('.v10-story');
   const journey = q('.story-journey');
+  const visual = q('.story-visual');
   const beats = qa('[data-beat]', story || document);
   const art = qa('[data-art]', story || document);
   const words = qa('[data-word]', story || document);
+  const storyControls = q('.story-controls');
+  const storyButtons = qa('[data-story-select]');
+  const path = q('.story-path i');
   const rail = q('.scene-nav');
-  const chapters = rail ? qa('a', rail) : [];
-  let frame = 0;
+  const chapters = rail ? qa('a', rail).map(link => ({link, target:q(link.hash)})) : [];
+  let frame = 0, layoutDirty = true, cinematic = false, lastPosition = -1, activeScene = -1;
+  let sceneGeometry = null, chapterGeometry = [], currentChapter = null;
+  const requestScene = () => { if (!frame && !document.hidden) frame = requestAnimationFrame(updateScene); };
+  const invalidateScene = () => { layoutDirty = true; requestScene(); };
+
+  function configureScene() {
+    const next = motion() && innerHeight > 560;
+    if (next !== cinematic) {
+      cinematic = next;
+      story?.classList.toggle('is-cinematic', cinematic);
+      if (storyControls) storyControls.hidden = !cinematic;
+      activeScene = -1; lastPosition = -1;
+      if (!cinematic) {
+        art.forEach(item => { item.style.removeProperty('transform'); item.style.removeProperty('opacity'); });
+        words.forEach(word => { word.style.removeProperty('transform'); word.style.removeProperty('opacity'); });
+      }
+    }
+    invalidateScene();
+  }
+
+  function setScene(index) {
+    if (index === activeScene) return;
+    activeScene = index;
+    story.dataset.scene = String(index);
+    beats.forEach((beat, i) => {
+      const inactive = cinematic && i !== index;
+      beat.classList.toggle('is-current', i === index);
+      beat.inert = inactive;
+      beat.setAttribute('aria-hidden', String(inactive));
+    });
+    art.forEach((item, i) => {
+      const inactive = cinematic && i !== index;
+      item.classList.toggle('is-current', i === index);
+      item.setAttribute('aria-hidden', String(inactive));
+      item.inert = inactive;
+    });
+    storyButtons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
+  }
+
   function updateScene() {
     frame = 0;
     if (document.hidden) return;
-    if (story && beats.length) {
-      const cinematic = motion() && innerHeight > 560;
-      story.classList.toggle('is-cinematic', cinematic);
-      let active = 0;
-      beats.forEach((beat, i) => { if (beat.getBoundingClientRect().top <= innerHeight * .52) active = i; });
-      story.dataset.scene = String(active);
-      const height = q('.story-visual', story).clientHeight || innerHeight;
-      const position = cinematic ? clamp(-journey.getBoundingClientRect().top / height, 0, 2) : 0;
-      story.style.setProperty('--story-progress', String(position / 2));
-      beats.forEach((beat, i) => {
-        const copy = q('div', beat);
-        if (!cinematic) {
-          copy.style.removeProperty('transform'); copy.style.removeProperty('opacity');
-          qa('a', copy).forEach(link => link.style.removeProperty('pointer-events'));
-          return;
-        }
-        // Compensate for the article's native scroll position so copy stays beside
-        // the camera. Chapters trade focus without sliding across the photograph.
-        copy.style.transform = `translate3d(0,${((position - i) * height + (i - position) * 36).toFixed(2)}px,0)`;
-        copy.style.opacity = i === active ? '1' : '0';
-        qa('a', copy).forEach(link => { link.style.pointerEvents = i === active ? 'auto' : 'none'; });
-      });
-      const compact = innerWidth <= 700;
-      const width = journey.clientWidth;
-      // Read card geometry before applying any transforms.
-      const widths = art.map(item => item.offsetWidth);
-      art.forEach((item, i) => {
-        const d = i - position, away = Math.abs(d);
-        item.classList.toggle('is-current', i === active);
-        item.setAttribute('aria-hidden', String(cinematic && i !== active));
-        qa('a', item).forEach(link => { link.tabIndex = !cinematic || i === active ? 0 : -1; });
-        if (!cinematic) {
-          item.style.removeProperty('transform'); item.style.removeProperty('opacity'); item.style.removeProperty('z-index');
-          return;
-        }
-        const x = width * (compact ? .5 : .69) - widths[i] / 2 + d * width * (compact ? .66 : .42);
-        const y = height * (compact ? .095 : .17) + Math.sin(d * 1.2) * (compact ? 28 : 55);
-        item.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,${(-away * 340).toFixed(2)}px) rotateY(${(-d * 32).toFixed(2)}deg) rotateZ(${(d * 7).toFixed(2)}deg) scale(${(1 - Math.min(away,1.6) * .22).toFixed(4)})`;
-        item.style.opacity = String(clamp(1 - away * .56, 0, 1));
-        item.style.zIndex = String(4 - Math.round(away));
-      });
-      words.forEach((word, i) => {
-        const d = i - position;
-        word.style.opacity = String(clamp(1 - Math.abs(d), 0, 1));
-        word.style.transform = `translate3d(${(d * 10).toFixed(2)}%,${(d * 95).toFixed(2)}%,0)`;
-      });
+    const y = scrollY;
+    // Geometry is measured together, only when layout changes. Scrolling uses
+    // these cached coordinates and writes transforms on the affected layers.
+    if (layoutDirty) {
+      sceneGeometry = journey && cinematic ? {
+        top:journey.getBoundingClientRect().top + y,
+        height:visual.clientHeight,
+        width:journey.clientWidth,
+        widths:art.map(item => item.offsetWidth),
+        compact:innerWidth <= 700
+      } : null;
+      chapterGeometry = chapters.map(chapter => ({...chapter,
+        visible:!!chapter.target && !chapter.target.hidden,
+        top:chapter.target ? chapter.target.getBoundingClientRect().top + y : 0
+      }));
+      chapterGeometry.forEach(({link,visible}) => { link.hidden = !visible; });
+      layoutDirty = false; lastPosition = -1;
     }
-    const available = chapters.filter(link => {
-      const target = q(link.hash);
-      const visible = !!target && !target.hidden;
-      link.hidden = !visible;
-      return visible;
-    });
-    let activeChapter = available[0];
-    available.forEach(link => { if (q(link.hash).getBoundingClientRect().top <= innerHeight * .4) activeChapter = link; });
-    available.forEach(link => {
-      if (link === activeChapter) link.setAttribute('aria-current', 'location');
-      else link.removeAttribute('aria-current');
-    });
+    if (story && beats.length) {
+      if (!cinematic || !sceneGeometry?.height) setScene(0);
+      else {
+        const {top,height,width,widths,compact} = sceneGeometry;
+        const position = clamp((y-top)/height, 0, 2);
+        if (Math.abs(position-lastPosition) > .0001) {
+          lastPosition = position;
+          setScene(Math.min(2, Math.floor(position + .5)));
+          if (path) path.style.transform = `scaleX(${(position / 2).toFixed(4)})`;
+          art.forEach((item, i) => {
+            const d = i-position, away = Math.abs(d);
+            const x = width*(compact ? .5 : .69)-widths[i]/2+d*width*(compact ? .72 : .42);
+            const cardY = height*(compact ? .085 : .17)+Math.sin(d*1.2)*(compact ? 12 : 55);
+            item.style.transform = `translate3d(${x.toFixed(2)}px,${cardY.toFixed(2)}px,${compact ? 0 : (-away*340).toFixed(2)}px) rotateY(${compact ? 0 : (-d*32).toFixed(2)}deg) rotateZ(${(d*(compact ? 3 : 7)).toFixed(2)}deg) scale(${(1-Math.min(away,1.6)*(compact ? .12 : .22)).toFixed(4)})`;
+            item.style.opacity = String(clamp(1-away*.62,0,1));
+          });
+          words.forEach((word, i) => {
+            const d = i-position;
+            word.style.opacity = String(clamp(1-Math.abs(d),0,1));
+            word.style.transform = `translate3d(${(d*10).toFixed(2)}%,${(d*65).toFixed(2)}%,0)`;
+          });
+        }
+      }
+    }
+    const available = chapterGeometry.filter(chapter => chapter.visible);
+    let next = available[0]?.link;
+    available.forEach(chapter => { if (chapter.top <= y+innerHeight*.4) next = chapter.link; });
+    if (next !== currentChapter) {
+      currentChapter?.removeAttribute('aria-current');
+      next?.setAttribute('aria-current','location');
+      currentChapter = next;
+    }
   }
-  const requestScene = () => { if (!frame) frame = requestAnimationFrame(updateScene); };
   if (story || rail) {
-    beats.forEach((beat, i) => qa('a', beat).forEach(link => link.addEventListener('focus', () => {
-      if (story.classList.contains('is-cinematic') && Number(story.dataset.scene) !== i) beat.scrollIntoView({block:'start',behavior:'instant'});
-    })));
+    storyButtons.forEach((button, i) => button.addEventListener('click', () => {
+      if (sceneGeometry) scrollTo({top:sceneGeometry.top+sceneGeometry.height*i,behavior:motion() ? 'smooth' : 'instant'});
+    }));
     if (rail) rail.hidden = false;
     addEventListener('scroll', requestScene, {passive:true});
-    document.fonts?.ready.then(requestScene);
-    if ('ResizeObserver' in window) new ResizeObserver(requestScene).observe(document.body);
-    requestScene();
+    document.fonts?.ready.then(invalidateScene);
+    if ('ResizeObserver' in window) new ResizeObserver(invalidateScene).observe(document.body);
+    // Loading below-the-fold media can move an anchor without changing body height.
+    document.addEventListener('load', invalidateScene, {capture:true,passive:true});
+    configureScene();
   }
 
   const viewer = q('.gaze-viewer');
@@ -253,13 +288,17 @@
   q('[data-gaze-next]')?.addEventListener('click', () => choose(current + 1));
   new MutationObserver(() => {
     if (!motion()) { cancelAnimations(); endDrag(); }
-    requestScene();
+    configureScene();
   }).observe(html, {attributes:true,attributeFilter:['data-motion']});
-  addEventListener('resize', () => { cancelAnimations(); endDrag(); paintOrbit(); requestScene(); }, {passive:true});
+  let viewportWidth = innerWidth;
+  addEventListener('resize', () => {
+    if (innerWidth !== viewportWidth) { cancelAnimations(); endDrag(); paintOrbit(); viewportWidth = innerWidth; }
+    configureScene();
+  }, {passive:true});
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { cancelAnimations(); endDrag(); }
-    else requestScene();
+    else configureScene();
   });
-  document.addEventListener('portfolio:content', () => { setupGaze(); requestScene(); });
+  document.addEventListener('portfolio:content', () => { setupGaze(); invalidateScene(); });
   setupGaze();
 })();
