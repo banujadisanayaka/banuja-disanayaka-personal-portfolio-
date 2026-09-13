@@ -48,6 +48,7 @@ async function measure(url, label) {
     positions.push((await page.locator('[data-beat="1"]>div').boundingBox()).y);
   }
   result.copyDriftPx = +(Math.max(...positions)-Math.min(...positions)).toFixed(2);
+  console.log('PERFORMANCE_MEASURED '+JSON.stringify(result));
   if (label === 'candidate') {
     assert.ok(result.copyDriftPx <= 1, `Story copy moved ${result.copyDriftPx}px during native scroll`);
     assert.ok(result.layouts <= 12, `Scroll triggered ${result.layouts} layouts; budget is 12`);
