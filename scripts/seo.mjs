@@ -15,7 +15,11 @@ export function structuredData({title, description, path, projects}) {
     url:origin + '/about/', image:origin + '/assets/v9/portrait-960.webp',
     description:'Banuja Disanayaka works across operations, product development, graphic design and photography in Sri Lanka and Malaysia.',
     knowsAbout:['Operations', 'Product development', 'Graphic design', 'Photography'],
-    sameAs:['https://github.com/banujadisanayaka']
+    sameAs:[
+      'https://github.com/banujadisanayaka',
+      'https://www.linkedin.com/in/banuja-disanayaka-730904278',
+      'https://www.instagram.com/banuja_disanayaka/'
+    ]
   };
   const page = {
     '@type':profile ? 'ProfilePage' : path === '/daily-gaze/' ? 'CollectionPage' : 'WebPage',

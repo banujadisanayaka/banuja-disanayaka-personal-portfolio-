@@ -16,6 +16,11 @@ for(const route of routes){
   assert.equal(meta('og:url'),origin+route);assert.ok(meta('robots').includes('max-image-preview:large'));
   const graph=JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])['@graph'];
   const person=graph.find(n=>n['@type']==='Person');assert.equal(person.name,'Banuja Disanayaka');
+  assert.deepEqual(person.sameAs,[
+    'https://github.com/banujadisanayaka',
+    'https://www.linkedin.com/in/banuja-disanayaka-730904278',
+    'https://www.instagram.com/banuja_disanayaka/'
+  ],route+' keeps Banuja Disanayaka entity references');
   assert.equal(person['@id'],origin+'/#person');
   const page=graph.find(n=>n['@id']===origin+route+'#webpage');assert.equal(page.author['@id'],person['@id']);
   if(route!=='/')assert.ok(graph.some(n=>n['@type']==='BreadcrumbList'));

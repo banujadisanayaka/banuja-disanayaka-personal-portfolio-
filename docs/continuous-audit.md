@@ -51,3 +51,12 @@ Repair: export one canonical `siteOrigin` from `scripts/seo.mjs` and consume it 
 The first renamed preview confirmed that individual Netlify function routes can reach the edge at different times: the public content route was ready before both protected routes. Preview QA now waits for the complete `200/401/401` privacy boundary before evaluating headers, while preserving every status and header assertion.
 
 Validation required before release: release/content/media, SEO, backend security, CMS concurrency, all browser accessibility/responsive/motion/workflow scenarios, mobile performance budgets, Netlify build smoke, exact preview commit, and final published production commit. Next useful audit: verify the retired Netlify hostname redirects cleanly if Netlify continues serving it; canonical metadata must remain on the current hostname regardless.
+
+
+## V10.2.2 public-name entity continuity
+
+Audit on 13 September 2026: an exact-name search for “Banuja Disanayaka” already returned the new portfolio URL and its intended portfolio description. The public LinkedIn and Instagram profiles for the same name were also visible, while the Person graph only linked GitHub. The retired `banuja-personal-log.netlify.app` hostname returned Netlify `404` responses for the homepage, About, Daily Gaze, a project case study and `robots.txt`; it does not reach the renamed project, so a redirect cannot be implemented inside this repository.
+
+Repair: connect the existing Person entity to Banuja Disanayaka’s verified public GitHub, LinkedIn and Instagram profile URLs through `sameAs`. SEO QA asserts the exact identity set on every public route so CMS or template changes cannot silently remove or alter it. No private identity fields, tracking or unverified claims are added.
+
+Validation required before release: the complete static, SEO, security, CMS concurrency, responsive, accessibility, motion and mobile-performance gates on the exact final commit, followed by Netlify production-commit and live structured-data verification. Next useful step: recheck search indexing after crawlers process the strengthened graph; preserving the retired hostname would require a separately routed redirect host and is intentionally not created by this existing-site iteration.
