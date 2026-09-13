@@ -188,3 +188,5 @@ html[data-motion=off] .hero-card{transform:translate3d(calc(-50% + var(--card-x)
 /* Leave a clear touch area for the persistent motion preference. */
 .story-controls{right:max(6%,145px)}
 @media(max-width:700px){.story-controls{right:116px}.story-controls button{width:44px;min-width:44px;padding:10px;justify-content:center}.story-controls button>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.story-controls>a{max-width:48px;margin-left:0}}
+
+@media(max-width:700px){.story-skip-prefix{display:none}.story-controls>a{white-space:nowrap}}

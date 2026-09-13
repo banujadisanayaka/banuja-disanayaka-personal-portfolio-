@@ -51,6 +51,7 @@ async function measure(url, label) {
   console.log('PERFORMANCE_MEASURED '+JSON.stringify(result));
   if (label === 'candidate') {
     assert.ok(result.copyDriftPx <= 1, `Story copy moved ${result.copyDriftPx}px during native scroll`);
+    assert.ok(result.styleMs <= 500, `Scroll spent ${result.styleMs}ms recalculating styles; budget is 500ms at 4× CPU slowdown`);
     assert.ok(result.layouts <= 12, `Scroll triggered ${result.layouts} layouts; budget is 12`);
     const beforeControls=await page.locator('.story-controls').boundingBox();
     assert.ok(beforeControls.width<=390,'Story controls fit the mobile viewport');
@@ -58,6 +59,7 @@ async function measure(url, label) {
     await page.waitForFunction(() => document.querySelector('.v10-story').dataset.scene==='2');
     await page.getByRole('button',{name:'01 Observe',exact:true}).click();
     await page.waitForFunction(() => document.querySelector('.v10-story').dataset.scene==='0');
+    await page.waitForFunction(top => Math.abs(scrollY-top)<2,geometry.top);
     assert.equal(await page.locator('.story-beat:not(.is-current):not([inert])').count(),0,'Inactive copy cannot trap keyboard focus');
     await page.screenshot({path:'qa-artifacts/v10/mobile-story-performance.png'});
     // Returning to the opening must not leave story transforms rewriting offscreen.

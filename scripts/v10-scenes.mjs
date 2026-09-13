@@ -35,7 +35,7 @@ export function story(featured) {
         <article class="story-beat" data-beat="1"><div><span class="story-index">02 / CONNECT</span><h3>Find the shape<br>inside the details.</h3><p>Design and operations taught me to see relationships: between people, a message and the way a task gets done.</p><a class="text-link" href="/about/">The experiences behind it ↗</a></div></article>
         <article class="story-beat" data-beat="2"><div><span class="story-index">03 / CREATE</span><h3>Turn an observation<br>into something useful.</h3><p>An idea earns its place when it helps. I build products and creative systems, then examine how they work in practice.</p><a class="text-link" href="#work">See the work ↗</a></div></article>
       </div>
-      <div class="story-controls" role="group" aria-label="Story chapters" hidden><button type="button" data-story-select="0" aria-pressed="true">01 <span>Observe</span></button><button type="button" data-story-select="1" aria-pressed="false">02 <span>Connect</span></button><button type="button" data-story-select="2" aria-pressed="false">03 <span>Create</span></button><a href="#work">Skip to work <span aria-hidden="true">↗</span></a></div>
+      <div class="story-controls" role="group" aria-label="Story chapters" hidden><button type="button" data-story-select="0" aria-pressed="true">01 <span>Observe</span></button><button type="button" data-story-select="1" aria-pressed="false">02 <span>Connect</span></button><button type="button" data-story-select="2" aria-pressed="false">03 <span>Create</span></button><a href="#work" aria-label="Skip to work"><span><span class="story-skip-prefix">Skip to </span>work</span><span aria-hidden="true">↗</span></a></div>
       </div>
     </div>
   </section>`;

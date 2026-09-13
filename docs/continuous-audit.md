@@ -23,6 +23,20 @@ Repair: one native sticky stage contains both images and copy; inactive copy is 
 
 SEO: nine canonical public routes identify Banuja Disanayaka consistently, share the same Person/WebSite entities, connect case studies to their creator and expose breadcrumbs. Social title/description/image metadata is complete; CMS title/description changes update corresponding social and page schema fields. The 404 has an explicit noindex directive. No ranking promises.
 
-Validation: retain all existing responsive, native touch, reduced-motion, forced-colors, no-JS, CMS and backend gates. Added a 4× CPU mobile comparison against the pre-release production site, a <=1px story-copy drift assertion, <=12 scroll layouts budget, chapter control checks and offscreen-idle assertion. Record measured results after CI completes.
+Validation: retain all existing responsive, native touch, reduced-motion, forced-colors, no-JS, CMS and backend gates. Added a 4× CPU mobile comparison against the pre-release production site, a <=1px story-copy drift assertion, <=12 scroll layouts and <=500ms style recalculation budgets, chapter control checks and offscreen-idle assertion. Record measured results after CI completes.
 
 Technical references consulted: https://web.dev/articles/avoid-large-complex-layouts-and-layout-thrashing and https://developers.google.com/search/docs/appearance/structured-data/profile-page.
+
+
+Measured before release (same 390×844 viewport, device scale 2, Chromium, 4× CPU slowdown, 119 sampled frame intervals):
+
+| Measure | V10.1 production | V10.2 preview |
+| --- | ---: | ---: |
+| Story text drift within one chapter | 30.24 px | 0 px |
+| Frames over 50 ms | 82 | 0 |
+| 95th-percentile frame interval | 133 ms | 17 ms |
+| Style recalculation time | 8251 ms | 32 ms |
+| Script time | 200 ms | 56 ms |
+| Layout count | 0 | 0 |
+
+This establishes style invalidation and asynchronous text compensation as the problems measured here; layout count alone would not have caught them. A 500ms style-work ceiling gives the observed candidate substantial CI headroom while rejecting the original regression. These are controlled lab measurements, not a guarantee for every physical device. All existing browser scenarios, nine responsive routes, native gestures, reduced/no-JS/forced-color fallbacks, CMS and security checks passed on 0654e7de9d4ab1c3c8bc62d22fcca3435ed8d88b. Final release also requires the same gates on the final commit.
