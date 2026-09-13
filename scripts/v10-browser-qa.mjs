@@ -72,7 +72,8 @@ try {
     await panels.screenshot({path:`qa-artifacts/v10/${name}-perspectives.png`,animations:'disabled'});
     if (options.reducedMotion || options.forcedColors) assert.equal(await page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running').length), 0);
     if (name === 'desktop') {
-      await page.locator('[data-beat="2"]').scrollIntoViewIfNeeded();
+      await page.locator('.story-controls').scrollIntoViewIfNeeded();
+      await page.getByRole('button',{name:'03 Create',exact:true}).click();
       await page.waitForFunction(() => document.querySelector('.v10-story').dataset.scene === '2');
       assert.ok(await page.locator('[data-art="2"]').isVisible());
       await page.screenshot({path:'qa-artifacts/v10/desktop-story.png',animations:'disabled'});
