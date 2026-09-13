@@ -1,4 +1,4 @@
-const origin = 'https://banuja-personal-log.netlify.app';
+const origin = 'https://banujadisanayaka.netlify.app';
 const personId = origin + '/#person';
 const websiteId = origin + '/#website';
 
