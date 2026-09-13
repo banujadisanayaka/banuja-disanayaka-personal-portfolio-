@@ -60,3 +60,12 @@ Audit on 13 September 2026: an exact-name search for “Banuja Disanayaka” alr
 Repair: connect the existing Person entity to Banuja Disanayaka’s verified public GitHub, LinkedIn and Instagram profile URLs through `sameAs`. SEO QA asserts the exact identity set on every public route so CMS or template changes cannot silently remove or alter it. No private identity fields, tracking or unverified claims are added.
 
 Validation required before release: the complete static, SEO, security, CMS concurrency, responsive, accessibility, motion and mobile-performance gates on the exact final commit, followed by Netlify production-commit and live structured-data verification. Next useful step: recheck search indexing after crawlers process the strengthened graph; preserving the retired hostname would require a separately routed redirect host and is intentionally not created by this existing-site iteration.
+
+
+## V10.2.3 deterministic motion-preference gate
+
+The V10.2.2 exact preview passed, but its squash-merge push exposed a timing race in the mobile performance test: after the keyboard activated the motion preference, the assertion read story-panel accessibility state before the production `MutationObserver` completed. Performance itself remained within budget at 4× CPU slowdown: 0 frames over 50 ms, 17 ms p95, 25 ms style recalculation, 1 layout and 0 px copy drift.
+
+Repair: wait for both the root `data-motion="off"` state and all three story beats to become accessibility-visible, then assert the toggle’s `aria-pressed="false"` state. This retains the keyboard and reduced-motion coverage while removing scheduler-dependent ordering.
+
+The first PR19 preview also showed one transient edge-readiness response during the landscape scenario after four successful viewport loads. The V10 entry helper now allows three bounded initial navigations and still requires `body[data-version="10"]` before any interaction assertions. It does not retry failed controls, accessibility behavior or performance budgets.

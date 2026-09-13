@@ -6,6 +6,14 @@ const base = process.env.BROWSER_QA_BASE_URL || 'http://127.0.0.1:4173';
 const browser = await chromium.launch();
 await mkdir('qa-artifacts/v10', {recursive:true});
 const fits = async (page, label) => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, label);
+async function openRelease(page, path) {
+  for (let attempt=0; attempt<3; attempt++) {
+    await page.goto(base + path, {waitUntil:'networkidle'});
+    if (await page.locator('body').getAttribute('data-version') === '10') return;
+    await page.waitForTimeout(500);
+  }
+  assert.equal(await page.locator('body').getAttribute('data-version'), '10', path+' serves the V10 release');
+}
 try {
   for (const scenario of [
     {name:'desktop',viewport:{width:1366,height:900}},
@@ -22,8 +30,7 @@ try {
     const errors = [], requests = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => requests.push(request.url()));
-    await page.goto(base + '/?intro=1', {waitUntil:'networkidle'});
-    assert.equal(await page.locator('body').getAttribute('data-version'), '10');
+    await openRelease(page, '/?intro=1');
     assert.equal(await page.locator('.bd-welcome').count(), 0, 'Old replay links cannot open an intro');
     assert.equal(await page.locator('#main').getAttribute('inert'), null);
     assert.equal(await page.locator('dialog[open]').count(), 0);
