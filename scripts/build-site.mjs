@@ -3,9 +3,9 @@ import crypto from 'node:crypto';
 import projects from '../content/projects.mjs';
 import {projectCards as buildProjectCards, workShowcase} from './work-showcase.mjs';
 import {opening, story, chapterRail} from './v10-scenes.mjs';
-import {structuredData} from './seo.mjs';
+import {siteOrigin, structuredData} from './seo.mjs';
 import {educationBlock, perspectiveExplorer, aboutPage, casePage} from './editorial.mjs';
-const root='https://banuja-personal-log.netlify.app';
+const root=siteOrigin;
 const versions={};
 for(const ext of ['css','js']){const b=await fs.readFile('public/v9-site.'+ext);versions[ext]=crypto.createHash('sha256').update(b).digest('hex').slice(0,12);versions['motion-'+ext]=crypto.createHash('sha256').update(await fs.readFile('public/v9-motion.'+ext)).digest('hex').slice(0,12)}
 for (const ext of ['css','js']) versions['work-'+ext]=crypto.createHash('sha256').update(await fs.readFile('public/v9-work.'+ext)).digest('hex').slice(0,12);

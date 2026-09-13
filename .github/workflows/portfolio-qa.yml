@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "url=https://deploy-preview-${{ github.event.pull_request.number }}--banuja-personal-log.netlify.app" >> "$GITHUB_OUTPUT"
+            echo "url=https://deploy-preview-${{ github.event.pull_request.number }}--banujadisanayaka.netlify.app" >> "$GITHUB_OUTPUT"
             echo "commit=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
             echo "remote=true" >> "$GITHUB_OUTPUT"
           else
@@ -129,7 +129,7 @@ jobs:
       - name: Mobile scroll performance regression
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-          PERFORMANCE_BASELINE_URL: ${{ github.event_name == 'pull_request' && 'https://banuja-personal-log.netlify.app/' || '' }}
+          PERFORMANCE_BASELINE_URL: ${{ github.event_name == 'pull_request' && 'https://banujadisanayaka.netlify.app/' || '' }}
         run: node scripts/performance-browser-qa.mjs
 
       - name: Save V10 visual verification
