@@ -82,13 +82,11 @@ try {
     await panels.screenshot({path:`qa-artifacts/v10/${name}-perspectives.png`,animations:'disabled'});
     if (options.reducedMotion || options.forcedColors) assert.equal(await page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running').length), 0);
     if (name === 'desktop') {
-      await page.locator('.story-controls').scrollIntoViewIfNeeded();
-      await page.getByRole('button',{name:'03 Create',exact:true}).click();
-      await page.waitForFunction(() => document.querySelector('.v10-story').dataset.scene === '2');
-      assert.ok(await page.locator('[data-art="2"]').isVisible());
-      await page.screenshot({path:'qa-artifacts/v10/desktop-story.png',animations:'disabled'});
-      await page.locator('#photography').scrollIntoViewIfNeeded();
-      await page.waitForFunction(() => document.querySelector('.scene-nav a[href="#photography"]').getAttribute('aria-current') === 'location');
+      await page.locator('.journey-controls').scrollIntoViewIfNeeded();
+      await page.getByRole('button',{name:'Scene 5: VELORIA',exact:true}).click();
+      await page.waitForFunction(() => document.querySelector('.scene-journey').dataset.activeScene === '4');
+      assert.ok(await page.locator('[data-journey-scene="4"] .journey-art').isVisible());
+      await page.screenshot({path:'qa-artifacts/v10/desktop-veloria-scene.png',animations:'disabled'});
     }
     assert.deepEqual(errors, []);
     await context.close();

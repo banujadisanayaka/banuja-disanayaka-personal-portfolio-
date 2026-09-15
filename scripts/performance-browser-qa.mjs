@@ -11,8 +11,9 @@ async function measure(url, label) {
   const context = await browser.newContext({viewport:{width:390,height:844}, isMobile:true, hasTouch:true, deviceScaleFactor:2});
   const page = await context.newPage();
   await page.goto(url, {waitUntil:'networkidle'});
-  await page.locator('.v10-story.is-cinematic').waitFor();
-  const geometry = await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY, height:el.querySelector('.story-visual').clientHeight}));
+  const scenes = await page.locator('.scene-journey').count() > 0;
+  await page.locator(scenes ? '.scene-journey.is-scrubbed' : '.v10-story.is-cinematic').waitFor();
+  const geometry = scenes ? await page.locator('.scene-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.journey-stage').clientHeight*.9,range:4.9})) : await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight,range:1.9}));
   const cdp = await context.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', {rate:4});
   await cdp.send('Performance.enable');
@@ -23,7 +24,7 @@ async function measure(url, label) {
     const times=[]; let previous=0, index=0;
     function step(now) {
       if(previous) times.push(now-previous); previous=now;
-      scrollTo({top:g.top+g.height*(.05+1.9*index/119),behavior:'instant'});
+      scrollTo({top:g.top+g.height*(.05+g.range*index/119),behavior:'instant'});
       if(++index<120) requestAnimationFrame(step); else requestAnimationFrame(() => resolve(times));
     }
     requestAnimationFrame(step);
@@ -39,13 +40,13 @@ async function measure(url, label) {
     p95FrameMs:Math.round([...frames].sort((a,b)=>a-b)[Math.floor(frames.length*.95)])};
   await cdp.send('Emulation.setCPUThrottlingRate', {rate:1});
 
-  // Reproduce the visible defect: copy must hold the same position while
-  // the photograph crosses intermediate scroll positions within one chapter.
+  // Preserve the native pinned stage position while the composition transforms.
+  // The previous release is measured with its original stable-copy probe.
   const positions=[];
   for (const fraction of [.58,.72,.86,1,1.14,1.28,1.42]) {
     await page.evaluate(({g,f}) => scrollTo({top:g.top+g.height*f,behavior:'instant'}),{g:geometry,f:fraction});
     await page.waitForTimeout(60);
-    positions.push((await page.locator('[data-beat="1"]>div').boundingBox()).y);
+    positions.push((await page.locator(scenes ? '.journey-stage' : '[data-beat="1"]>div').boundingBox()).y);
   }
   result.copyDriftPx = +(Math.max(...positions)-Math.min(...positions)).toFixed(2);
   console.log('PERFORMANCE_MEASURED '+JSON.stringify(result));
@@ -53,24 +54,24 @@ async function measure(url, label) {
     assert.ok(result.copyDriftPx <= 1, `Story copy moved ${result.copyDriftPx}px during native scroll`);
     assert.ok(result.styleMs <= 500, `Scroll spent ${result.styleMs}ms recalculating styles; budget is 500ms at 4× CPU slowdown`);
     assert.ok(result.layouts <= 12, `Scroll triggered ${result.layouts} layouts; budget is 12`);
-    const beforeControls=await page.locator('.story-controls').boundingBox();
+    const beforeControls=await page.locator('.journey-controls').boundingBox();
     assert.ok(beforeControls.width<=390,'Story controls fit the mobile viewport');
-    await page.getByRole('button',{name:'03 Create',exact:true}).click();
-    await page.waitForFunction(() => document.querySelector('.v10-story').dataset.scene==='2');
-    await page.getByRole('button',{name:'01 Observe',exact:true}).click();
-    await page.waitForFunction(() => document.querySelector('.v10-story').dataset.scene==='0');
+    await page.getByRole('button',{name:'Scene 6: Contact',exact:true}).click();
+    await page.waitForFunction(() => document.querySelector('.scene-journey').dataset.activeScene==='5');
+    await page.getByRole('button',{name:'Scene 1: Identity',exact:true}).click();
+    await page.waitForFunction(() => document.querySelector('.scene-journey').dataset.activeScene==='0');
     await page.waitForFunction(top => Math.abs(scrollY-top)<2,geometry.top);
-    assert.equal(await page.locator('.story-beat:not(.is-current):not([inert])').count(),0,'Inactive copy cannot trap keyboard focus');
+    assert.equal(await page.locator('.journey-panel[aria-hidden=true]:not([inert])').count(),0,'Inactive copy cannot trap keyboard focus');
     await page.screenshot({path:'qa-artifacts/v10/mobile-story-performance.png'});
-    // Returning to the opening must not leave story transforms rewriting offscreen.
-    await page.evaluate(() => scrollTo({top:0,behavior:'instant'}));
+    // The scene stage must stop writing styles once the reader reaches the full work.
+    await page.locator('#work').scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     const outside = await page.evaluate(() => {
-      const story=document.querySelector('.v10-story');
+      const story=document.querySelector('.scene-journey');
       return new Promise(resolve => {
         let writes=0;const observer=new MutationObserver(records => { writes+=records.length; });
         observer.observe(story,{subtree:true,attributes:true});
-        scrollTo({top:80,behavior:'instant'});
+        scrollBy({top:80,behavior:'instant'});
         setTimeout(()=>{observer.disconnect();resolve(writes)},250);
       });
     });
@@ -79,10 +80,10 @@ async function measure(url, label) {
     await motionToggle.press('Enter');
     await page.waitForFunction(() =>
       document.documentElement.dataset.motion === 'off' &&
-      document.querySelectorAll('.story-beat[aria-hidden="false"]').length === 3
+      document.querySelectorAll('.journey-panel[aria-hidden="false"]').length === 6
     );
     assert.equal(await motionToggle.getAttribute('aria-pressed'),'false','Keyboard toggle reports motion off');
-    assert.equal(await page.locator('.story-beat[aria-hidden="false"]').count(),3);
+    assert.equal(await page.locator('.journey-panel[aria-hidden="false"]').count(),6);
   }
   await context.close();
   console.log('PERFORMANCE_RESULT '+JSON.stringify(result));
