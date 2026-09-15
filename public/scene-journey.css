@@ -48,10 +48,11 @@
 .journey-stage[data-ink=light] .journey-heading,.journey-stage[data-ink=light] .journey-caption{color:#fff}
 .is-scrubbed .journey-panel[aria-hidden=false] .journey-heading,.is-scrubbed .journey-panel[aria-hidden=false] .journey-caption{animation:journey-copy-arrival .28s ease-out}
 .is-scrubbed .journey-panel[aria-hidden=false] .journey-art-inner{animation:journey-art-arrival .32s cubic-bezier(.2,.7,.3,1)}
-@keyframes journey-copy-arrival{from{translate:0 8px}to{translate:0 0}}
-@keyframes journey-art-arrival{from{transform:translate3d(0,10px,0) scale(1.015)}to{transform:none}}
+@keyframes journey-copy-arrival{from{transform:translate3d(0,8px,0)}to{transform:translate3d(0,0,0)}}
+@keyframes journey-art-arrival{from{transform:translate3d(0,10px,0) scale(1.015)}to{transform:translate3d(0,0,0)}}
 .is-scrubbed .journey-art{position:absolute;left:0;top:0;width:360px;height:460px;max-width:none;transform-origin:0 0;will-change:transform,opacity}
-.is-scrubbed .journey-art-inner{height:414px}
+/* Keep the containing block stable when an arrival animation starts or ends. */
+.is-scrubbed .journey-art-inner{height:414px;transform:translate3d(0,0,0)}
 .is-scrubbed .journey-panel[aria-hidden=false] .portrait-frame{pointer-events:auto}
 .is-scrubbed .journey-backgrounds{display:block;position:absolute;inset:0;z-index:-2}
 .journey-background{position:absolute;inset:0;opacity:0}
@@ -118,7 +119,7 @@
 @media print{.scene-home .site-header{position:static}.scene-journey{height:auto!important;padding:0!important}.scene-journey.is-scrubbed .journey-stage{position:static;height:auto;overflow:visible;contain:none}.scene-journey.is-scrubbed .journey-panel{position:relative;display:grid;pointer-events:auto;break-inside:avoid}.is-scrubbed .journey-heading,.is-scrubbed .journey-caption,.is-scrubbed .journey-art{position:static!important;transform:none!important;opacity:1!important;width:auto;height:auto}.journey-backgrounds,.journey-word,.journey-contours,.journey-orbit,.journey-paper,.journey-satellite,.journey-controls,.journey-scroll-note{display:none!important}}
 
 /* Ambient motion belongs to the backdrop; reading and photographs stay still. */
-.is-scrubbed .journey-atmosphere{display:block;position:absolute;inset:0;z-index:-1;overflow:clip}
+.is-scrubbed .journey-atmosphere{display:block;position:absolute;inset:0;z-index:-1;overflow:clip;contain:strict}
 .journey-ambience{position:absolute;inset:-6%;opacity:0;transition:opacity .55s ease;color:#b9c49a}
 .journey-ambience svg{position:absolute;inset:0;width:100%;height:100%;stroke:currentColor;stroke-width:1;opacity:.42}
 .ambient-flow{position:absolute;inset:0;transform-origin:center;animation:ambient-current 18s ease-in-out infinite alternate paused}

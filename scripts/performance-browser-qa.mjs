@@ -7,10 +7,11 @@ const baseline = process.env.PERFORMANCE_BASELINE_URL;
 const browser = await chromium.launch();
 await mkdir('qa-artifacts/v10', {recursive:true});
 
-async function measure(url, label) {
+async function measure(url, label, diagnosticCSS = '') {
   const context = await browser.newContext({viewport:{width:390,height:844}, isMobile:true, hasTouch:true, deviceScaleFactor:2});
   const page = await context.newPage();
   await page.goto(url, {waitUntil:'networkidle'});
+  if(diagnosticCSS)await page.addStyleTag({content:diagnosticCSS});
   const scenes = await page.locator('.scene-journey').count() > 0;
   await page.locator(scenes ? '.scene-journey.is-scrubbed' : '.v10-story.is-cinematic').waitFor();
   const geometry = scenes ? await page.locator('.scene-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:(el.querySelector('.journey-range')||el.querySelector('.journey-stage')).clientHeight*.9,range:4.9})) : await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight,range:1.9}));
@@ -94,7 +95,18 @@ async function measure(url, label) {
 try {
   const results=[];
   if (baseline) results.push(await measure(baseline,'baseline'));
-  results.push(await measure(base,'candidate'));
+  try {
+    results.push(await measure(base,'candidate'));
+  } catch(error) {
+    // Failure-only ablation identifies animation costs without weakening the gate.
+    // These diagnostic pages are never accepted as a passing candidate.
+    for(const [label,css] of [
+      ['diagnostic-no-arrivals','.journey-panel .journey-heading,.journey-panel .journey-caption,.journey-panel .journey-art-inner{animation:none!important}'],
+      ['diagnostic-no-atmosphere','.journey-atmosphere{display:none!important}'],
+      ['diagnostic-no-new-animations','.journey-atmosphere{display:none!important}.journey-panel .journey-heading,.journey-panel .journey-caption,.journey-panel .journey-art-inner{animation:none!important}']
+    ])await measure(base,label,css);
+    throw error;
+  }
   await writeFile('qa-artifacts/v10/performance.json',JSON.stringify(results,null,2));
   console.log('Mobile scroll layout budget, stable copy, chapter controls and offscreen idle passed.');
 } finally { await browser.close(); }
