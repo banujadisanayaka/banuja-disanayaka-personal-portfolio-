@@ -9,7 +9,7 @@ function atmosphere() {
   const land=Array.from({length:12},(_,i)=>`<path d="M-100 ${650+i*27} C100 ${50+i*23} 310 ${720-i*24} 580 ${320+i*13} S1020 ${30+i*36} 1320 ${270+i*29}"/>`).join('');
   const orbit=Array.from({length:6},(_,i)=>`<g transform="rotate(${i*60} 830 390)"><ellipse cx="830" cy="390" rx="360" ry="120"/><circle cx="1190" cy="390" r="6" fill="currentColor"/></g>`).join('');
   const ripples=Array.from({length:9},(_,i)=>`<circle cx="815" cy="465" r="${110+i*45}"/>`).join('');
-  return `<div class="journey-atmosphere" aria-hidden="true">${[waves,grid,rings,land,orbit,ripples].map((art,i)=>`<div class="journey-ambience ambience-${i}"><div class="ambient-light"></div><svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false"><g class="ambient-flow">${art}</g></svg></div>`).join('')}</div>`;
+  return `<div class="journey-atmosphere" aria-hidden="true">${[waves,grid,rings,land,orbit,ripples].map((art,i)=>`<div class="journey-ambience ambience-${i}"><div class="ambient-light"></div><div class="ambient-flow"><svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false">${art}</svg></div></div>`).join('')}</div>`;
 }
 
 export function sceneJourney(picture, gallery, profile, ecosystem) {

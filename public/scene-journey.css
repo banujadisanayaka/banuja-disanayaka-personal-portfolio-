@@ -121,7 +121,7 @@
 .is-scrubbed .journey-atmosphere{display:block;position:absolute;inset:0;z-index:-1;overflow:clip}
 .journey-ambience{position:absolute;inset:-6%;opacity:0;transition:opacity .55s ease;color:#b9c49a}
 .journey-ambience svg{position:absolute;inset:0;width:100%;height:100%;stroke:currentColor;stroke-width:1;opacity:.42}
-.ambient-flow{transform-origin:center;transform-box:view-box;animation:ambient-current 18s ease-in-out infinite alternate paused}
+.ambient-flow{position:absolute;inset:0;transform-origin:center;animation:ambient-current 18s ease-in-out infinite alternate paused}
 .ambient-light{position:absolute;width:85%;height:90%;right:-8%;top:-12%;background:radial-gradient(ellipse,#b8c39425,transparent 67%);animation:ambient-light 16s ease-in-out infinite alternate paused}
 .ambience-1{color:#566b44}.ambience-1 svg{opacity:.22}.ambience-1 .ambient-flow{animation-name:ambient-grid;animation-duration:20s}.ambience-1 .ambient-light{background:radial-gradient(ellipse,#82985730,transparent 66%)}
 .ambience-2{color:#718668}.ambience-2 svg{opacity:.32}.ambience-2 .ambient-flow{animation-name:ambient-lens;animation-duration:26s}.ambience-2 .ambient-light{background:radial-gradient(ellipse,#ffffff80,transparent 66%)}
