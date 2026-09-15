@@ -1,6 +1,17 @@
 // A semantic introduction first; the browser progressively pins and choreographs it.
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+// Draw once; only the visible scene's vector group moves on the compositor.
+function atmosphere() {
+  const waves=Array.from({length:11},(_,i)=>`<path d="M-100 ${140+i*32} Q300 ${-100+i*34} 650 ${290+i*29} T1350 ${310+i*28}"/>`).join('');
+  const grid=Array.from({length:9},(_,i)=>`<path d="M${120+i*125} -80 V880 M-80 ${100+i*95} H1280"/>`).join('');
+  const rings=Array.from({length:7},(_,i)=>`<ellipse cx="835" cy="365" rx="${135+i*47}" ry="${110+i*40}"/>`).join('');
+  const land=Array.from({length:12},(_,i)=>`<path d="M-100 ${650+i*27} C100 ${50+i*23} 310 ${720-i*24} 580 ${320+i*13} S1020 ${30+i*36} 1320 ${270+i*29}"/>`).join('');
+  const orbit=Array.from({length:6},(_,i)=>`<g transform="rotate(${i*60} 830 390)"><ellipse cx="830" cy="390" rx="360" ry="120"/><circle cx="1190" cy="390" r="6" fill="currentColor"/></g>`).join('');
+  const ripples=Array.from({length:9},(_,i)=>`<circle cx="815" cy="465" r="${110+i*45}"/>`).join('');
+  return `<div class="journey-atmosphere" aria-hidden="true">${[waves,grid,rings,land,orbit,ripples].map((art,i)=>`<div class="journey-ambience ambience-${i}"><div class="ambient-light"></div><svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false"><g class="ambient-flow">${art}</g></svg></div>`).join('')}</div>`;
+}
+
 export function sceneJourney(picture, gallery, profile, ecosystem) {
   const forest = gallery.find(g => g.preview.includes('gaze-168481-')) || gallery[0];
   const city = gallery.find(g => g.preview.includes('gaze-177310-')) || gallery[1];
@@ -27,8 +38,10 @@ export function sceneJourney(picture, gallery, profile, ecosystem) {
   ];
   const contours = Array.from({length:22},(_,i)=>`<path d="M -120 ${i*34-180} C 150 ${i*22-65}, 260 ${i*44-60}, 540 ${i*24+120} S 920 ${i*28-60}, 1320 ${i*24+90}"/>`).join('');
   return `<section class="scene-journey" id="opening" aria-label="Banuja’s portfolio in six scenes">
+    <div class="journey-range" aria-hidden="true"></div>
     <div class="journey-stage">
       <div class="journey-backgrounds" aria-hidden="true">${scenes.map(s=>`<div class="journey-background ${s.theme}"></div>`).join('')}</div>
+      ${atmosphere()}
       <svg class="journey-contours" viewBox="0 0 1200 800" fill="none" aria-hidden="true" focusable="false">${contours}</svg>
       <div class="journey-orbit" aria-hidden="true"></div>
       <div class="journey-paper" aria-hidden="true"></div>
