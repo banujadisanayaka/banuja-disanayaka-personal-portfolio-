@@ -4,6 +4,23 @@
 @keyframes v12GrainShift{0%,100%{translate:0 0}25%{translate:-1.2% .8%}50%{translate:.8% -1%}75%{translate:.6% 1.1%}}
 @keyframes v12PhotoBreath{0%,100%{scale:1.012}50%{scale:1.002}}
 @keyframes v12ThreadPulse{0%,100%{opacity:.7}50%{opacity:1}}
+
+/* Compatibility overrides: avoid relying on CSS typed arithmetic for core composition. */
+.v12-world-wash{background:radial-gradient(circle at 68% 28%,color-mix(in srgb,var(--v12-tone) 20%,transparent),transparent 27%),radial-gradient(circle at 18% 78%,color-mix(in srgb,var(--v12-tone-2) 14%,transparent),transparent 31%),linear-gradient(125deg,transparent 18%,#ffffff04 46%,transparent 68%)}
+.v12-world-orbit{transform:rotate(var(--v12-orbit-r,0deg))}
+.v12-world-aperture{transform:rotate(var(--v12-orbit-r,0deg))}
+.v12-transition{opacity:var(--v12-cut,0)}
+.v12-transition-a,.v12-transition-b{transform:none}
+.v12-world-caption i{transform:scaleX(var(--v12-progress,0))}
+.v12-scene>.v12-scene-decor span{opacity:var(--v12-focus,.22)}
+.v12-scene>.v12-scene-decor span:nth-child(3){transform:none}
+html[data-v12="on"] #about .about-image{transform:none}
+html[data-v12="on"] #experience .career-list::before{transform:scaleY(var(--v12-focus,1))}
+html[data-v12="on"] #ecosystem .brand-grid{transform:none}
+.v12-contact-orbit{transform:translate(-50%,-50%) rotate(var(--v12-orbit-r,0deg))}
+#opening.v12-scene{transform:none!important;will-change:auto!important}
+html[data-v12-profile="medium"] .site-header,html[data-v12-profile="lite"] .site-header{backdrop-filter:none!important}
+
 html[data-v12="on"][data-v12-motion="on"] .v12-world-wash{animation:v12WashBreathe 12s ease-in-out infinite}
 html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] .v12-world-orbit{animation:v12OrbitDrift 22s ease-in-out infinite}
 html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] .v12-world-grain{animation:v12GrainShift 1.35s steps(2,end) infinite}
@@ -11,4 +28,6 @@ html[data-v12="on"][data-v12-motion="on"] .v12-world-thread i{animation:v12Threa
 html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] #photography .photo-tile.is-current img{animation:v12PhotoBreath 13s ease-in-out infinite}
 html[data-v12-profile="medium"][data-v12-motion="on"] .v12-world-orbit{animation:v12OrbitDrift 34s ease-in-out infinite}
 html[data-v12-profile="lite"] .v12-world-orbit,html[data-v12-profile="reduced"] .v12-world-orbit{animation:none!important}
+
+@media (max-width:420px){.v12-chapter-nav a{min-width:44px!important;flex:0 0 44px!important}}
 @media (prefers-reduced-motion:reduce){.v12-world-orbit,.v12-world-wash,.v12-world-grain,.v12-world-thread i,#photography .photo-tile img{animation:none!important}}
