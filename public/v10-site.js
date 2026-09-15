@@ -302,3 +302,35 @@
   document.addEventListener('portfolio:content', () => { setupGaze(); invalidateScene(); });
   setupGaze();
 })();
+
+
+// V10.3 chapter transformations
+(() => {
+  'use strict';
+  const html = document.documentElement;
+  const scenes = ['#work','#photography','#about','#perspectives','#contact'].map(selector => document.querySelector(selector)).filter(Boolean);
+  if (!scenes.length || !('IntersectionObserver' in window)) return;
+  html.dataset.sceneTransitions = 'on';
+  const phaseFor = section => {
+    const rect = section.getBoundingClientRect();
+    if (rect.bottom <= innerHeight * .24) return 'past';
+    if (rect.top >= innerHeight * .76) return 'next';
+    return 'active';
+  };
+  const paint = section => {
+    const phase = phaseFor(section);
+    if (section.dataset.scenePhase !== phase) section.dataset.scenePhase = phase;
+  };
+  scenes.forEach((section,index) => {
+    section.classList.add('chapter-scene');
+    section.dataset.sceneIndex = String(index);
+    paint(section);
+  });
+  const observer = new IntersectionObserver(entries => entries.forEach(entry => paint(entry.target)), {rootMargin:'-18% 0px -18% 0px',threshold:[0,.08,.32,.68]});
+  scenes.forEach(section => observer.observe(section));
+  let resizeFrame = 0;
+  addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => scenes.forEach(paint));
+  }, {passive:true});
+})();
