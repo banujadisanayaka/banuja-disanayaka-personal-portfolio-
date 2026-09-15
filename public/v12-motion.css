@@ -34,5 +34,8 @@ html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] #photography 
 html[data-v12-profile="medium"][data-v12-motion="on"] .v12-world-orbit{animation:v12OrbitDrift 34s ease-in-out infinite}
 html[data-v12-profile="lite"] .v12-world-orbit,html[data-v12-profile="reduced"] .v12-world-orbit{animation:none!important}
 
+/* Touch navigation remains comfortably targetable even when a phone is rotated.
+   Width-only breakpoints do not catch an 844px-wide handset in landscape. */
+@media (pointer:coarse){.v12-chapter-nav a{min-height:44px!important}}
 @media (max-width:420px){.v12-chapter-nav a{min-width:44px!important;flex:0 0 44px!important}}
 @media (prefers-reduced-motion:reduce){.v12-world-orbit,.v12-world-wash,.v12-world-grain,.v12-world-thread i,#photography .photo-tile img{animation:none!important}}
