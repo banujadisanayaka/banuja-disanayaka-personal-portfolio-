@@ -34,20 +34,27 @@ html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] #photography 
 html[data-v12-profile="medium"][data-v12-motion="on"] .v12-world-orbit{animation:v12OrbitDrift 34s ease-in-out infinite}
 html[data-v12-profile="lite"] .v12-world-orbit,html[data-v12-profile="reduced"] .v12-world-orbit{animation:none!important}
 
-/* Touch navigation remains comfortably targetable even when a phone is rotated.
-   Width-only breakpoints do not catch an 844px-wide handset in landscape. */
+.v12-chapter-toggle{display:none}
+
+/* Touch navigation remains comfortably targetable even when a phone is rotated. */
 @media (pointer:coarse){.v12-chapter-nav a{min-height:44px!important}}
 @media (max-width:420px){.v12-chapter-nav a{min-width:44px!important;flex:0 0 44px!important}}
 
-/* In very short touch landscapes, the desktop right rail collides with the project
-   and photography controls. A narrow left-edge chapter rail keeps every 44px target
-   available without covering the lower/right action zone used by those interfaces. */
+/* Short touch landscapes use an explicit compact scene menu. The always-visible
+   44px trigger sits inside the left content gutter; the eight-link panel is inert,
+   invisible and non-hit-testable until the visitor asks for it. This prevents the
+   cinematic navigator from stealing taps from Work or The Daily Gaze controls. */
 @media (pointer:coarse) and (orientation:landscape) and (max-height:500px){
-  .v12-chapter-nav{left:max(4px,env(safe-area-inset-left))!important;right:auto!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;display:grid!important;grid-auto-flow:row!important;gap:0!important;padding:3px!important;width:50px!important;max-height:calc(100svh - 10px)!important;overflow-x:hidden!important;overflow-y:auto!important;scrollbar-width:none;background:#0b110ef2!important}
-  .v12-chapter-nav::-webkit-scrollbar{display:none}
+  .v12-chapter-toggle{display:grid;position:fixed;z-index:26;left:max(4px,env(safe-area-inset-left));top:50%;transform:translateY(-50%);place-items:center;width:44px;height:44px;padding:0;border:1px solid #ffffff30;background:#0b110ef2;color:#f2efe4;font:700 9px/1 Arial,sans-serif;letter-spacing:.08em;box-shadow:0 10px 28px #0006}
+  .v12-chapter-toggle[hidden]{display:grid}
+  .v12-chapter-toggle span{pointer-events:none}
+  .v12-chapter-toggle i{position:absolute;right:5px;bottom:5px;width:7px;height:7px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg);transition:transform 180ms ease}
+  .v12-chapter-toggle[aria-expanded="true"] i{transform:rotate(225deg)}
+  .v12-chapter-nav{left:56px!important;right:auto!important;top:50%!important;bottom:auto!important;transform:translate3d(-8px,-50%,0)!important;display:grid!important;grid-template-columns:repeat(4,44px)!important;grid-auto-flow:row!important;gap:3px!important;padding:6px!important;width:auto!important;max-width:calc(100vw - 120px)!important;max-height:calc(100svh - 12px)!important;overflow:visible!important;background:#0b110ef7!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transition:opacity 160ms ease,transform 220ms cubic-bezier(.22,1,.36,1),visibility 0s linear 220ms!important}
+  .v12-chapter-nav[data-open="true"]{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translate3d(0,-50%,0)!important;transition:opacity 160ms ease,transform 220ms cubic-bezier(.22,1,.36,1),visibility 0s!important}
   .v12-chapter-nav a{grid-template-columns:1fr!important;width:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;place-items:center!important}
   .v12-chapter-nav a strong,.v12-chapter-nav a i{display:none!important}
   .v12-chapter-nav a:hover,.v12-chapter-nav a:focus-visible,.v12-chapter-nav a[aria-current]{grid-template-columns:1fr!important}
 }
 
-@media (prefers-reduced-motion:reduce){.v12-world-orbit,.v12-world-wash,.v12-world-grain,.v12-world-thread i,#photography .photo-tile img{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.v12-world-orbit,.v12-world-wash,.v12-world-grain,.v12-world-thread i,#photography .photo-tile img{animation:none!important}.v12-chapter-nav,.v12-chapter-toggle i{transition:none!important}}
