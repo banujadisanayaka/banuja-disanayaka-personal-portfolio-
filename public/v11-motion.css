@@ -1,0 +1,10 @@
+/* V11 ambient motion — transform/opacity only, intentionally inexpensive. */
+@keyframes v11OrbitDrift{0%,100%{translate:0 0;rotate:0deg}50%{translate:-18px 12px;rotate:7deg}}
+@keyframes v11GlintFloat{0%,100%{translate:0 0;opacity:.72}50%{translate:10px -16px;opacity:1}}
+@keyframes v11GridBreathe{0%,100%{opacity:.18}50%{opacity:.3}}
+html[data-v11="on"][data-motion="on"] .v11-ambient-orbit{animation:v11OrbitDrift 18s ease-in-out infinite}
+html[data-v11="on"][data-motion="on"] .v11-ambient-glint{animation:v11GlintFloat 8s ease-in-out infinite}
+html[data-v11="on"][data-motion="on"] .v11-ambient::after{animation:v11GridBreathe 10s ease-in-out infinite}
+html[data-v11-profile="mobile"][data-motion="on"] .v11-ambient-orbit{animation-duration:26s}
+#work.v11-scene>dialog{position:fixed!important;z-index:30}
+@media (prefers-reduced-motion:reduce){.v11-ambient-orbit,.v11-ambient-glint,.v11-ambient::after{animation:none!important}}
