@@ -13,6 +13,7 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
   const coarse = matchMedia('(pointer: coarse)');
+  const shortLandscape = matchMedia('(pointer: coarse) and (orientation: landscape) and (max-height: 500px)');
 
   const addStyle = (href, marker) => {
     if (q(`link[${marker}]`)) return;
@@ -83,9 +84,52 @@
 
   const chapterNav = document.createElement('nav');
   chapterNav.className = 'v12-chapter-nav';
+  chapterNav.id = 'v12-chapter-nav';
   chapterNav.setAttribute('aria-label','Portfolio scenes');
   chapterNav.innerHTML = scenes.map((scene, i) => `<a href="#${scene.id}" data-v12-jump="${scene.id}" aria-label="${String(i+1).padStart(2,'0')}: ${scene.label}"${i===0?' aria-current="location"':''}><span>${String(i+1).padStart(2,'0')}</span><strong>${scene.short}</strong><i></i></a>`).join('');
   body.append(chapterNav);
+
+  const chapterToggle = document.createElement('button');
+  chapterToggle.type = 'button';
+  chapterToggle.className = 'v12-chapter-toggle';
+  chapterToggle.setAttribute('aria-label','Open portfolio scene navigation');
+  chapterToggle.setAttribute('aria-controls',chapterNav.id);
+  chapterToggle.setAttribute('aria-expanded','false');
+  chapterToggle.innerHTML = '<span aria-hidden="true">SC</span><i aria-hidden="true"></i>';
+  body.append(chapterToggle);
+
+  let compactNavOpen = false;
+  const setCompactNavOpen = (open, {restoreFocus=false} = {}) => {
+    compactNavOpen = shortLandscape.matches && !!open;
+    chapterNav.dataset.open = String(compactNavOpen);
+    chapterToggle.setAttribute('aria-expanded',String(compactNavOpen));
+    chapterToggle.setAttribute('aria-label',compactNavOpen ? 'Close portfolio scene navigation' : 'Open portfolio scene navigation');
+    if (shortLandscape.matches) {
+      chapterNav.toggleAttribute('inert',!compactNavOpen);
+      chapterNav.setAttribute('aria-hidden',String(!compactNavOpen));
+    } else {
+      chapterNav.removeAttribute('inert');
+      chapterNav.removeAttribute('aria-hidden');
+    }
+    if (restoreFocus) chapterToggle.focus({preventScroll:true});
+  };
+  const syncCompactNav = () => {
+    html.dataset.v12CompactNav = shortLandscape.matches ? 'true' : 'false';
+    chapterToggle.hidden = !shortLandscape.matches;
+    setCompactNavOpen(false);
+  };
+  chapterToggle.addEventListener('click', () => {
+    setCompactNavOpen(!compactNavOpen);
+    if (compactNavOpen) q('[aria-current="location"]',chapterNav)?.focus({preventScroll:true});
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && compactNavOpen) {
+      event.preventDefault();
+      setCompactNavOpen(false,{restoreFocus:true});
+    }
+  });
+  shortLandscape.addEventListener?.('change',syncCompactNav);
+  syncCompactNav();
 
   const cursor = document.createElement('div');
   cursor.className = 'v12-cursor';
@@ -295,8 +339,8 @@
   const invalidate = () => { geometryDirty = true; schedule(); };
 
   addEventListener('scroll', schedule, {passive:true});
-  addEventListener('resize', () => { tier = profile(); invalidate(); }, {passive:true});
-  addEventListener('orientationchange', invalidate, {passive:true});
+  addEventListener('resize', () => { tier = profile(); syncCompactNav(); invalidate(); }, {passive:true});
+  addEventListener('orientationchange', () => { syncCompactNav(); invalidate(); }, {passive:true});
   document.addEventListener('load', invalidate, {capture:true, passive:true});
   document.fonts?.ready?.then(invalidate);
   if ('ResizeObserver' in window) {
@@ -348,6 +392,7 @@
     const target = document.getElementById(link.dataset.v12Jump);
     if (!target) return;
     event.preventDefault();
+    if (shortLandscape.matches) setCompactNavOpen(false);
     target.scrollIntoView({behavior: reduced.matches ? 'auto' : 'smooth', block:'start'});
     history.replaceState(null,'',`#${target.id}`);
   });
