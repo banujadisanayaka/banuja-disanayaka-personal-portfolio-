@@ -1,0 +1,147 @@
+/* V11 — global cinematic scene layer. Built to sit above V10 without changing content semantics. */
+:root{
+  --v11-gold:#e7ca88;
+  --v11-ink:#f2f1ea;
+  --v11-deep:#09100f;
+  --v11-ease:cubic-bezier(.22,1,.36,1);
+}
+
+html[data-v11="on"]{background:#09100f;scroll-behavior:smooth}
+html[data-v11="on"] body{overflow-x:clip}
+html[data-v11="on"] body>main,
+html[data-v11="on"] .site-header,
+html[data-v11="on"] .site-footer{position:relative;z-index:2}
+
+.v11-ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;contain:strict;background:#09100f;transition:background-color 900ms var(--v11-ease)}
+.v11-ambient::before{content:"";position:absolute;inset:-24%;background:
+  radial-gradient(circle at var(--v11-x,72%) var(--v11-y,24%),color-mix(in srgb,var(--v11-accent,#d7b977) 22%,transparent),transparent 31%),
+  radial-gradient(circle at calc(100% - var(--v11-x,72%)) calc(100% - var(--v11-y,24%)),color-mix(in srgb,var(--v11-accent-2,#6b806d) 17%,transparent),transparent 28%);
+  transform:translate3d(var(--v11-ambient-x,0),var(--v11-ambient-y,0),0) scale(1.08);will-change:transform;transition:background 900ms var(--v11-ease)}
+.v11-ambient::after{content:"";position:absolute;inset:0;opacity:.28;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,transparent,#000 18%,#000 82%,transparent);transform:translate3d(0,var(--v11-grid-y,0),0)}
+.v11-ambient-orbit{position:absolute;width:min(78vw,820px);aspect-ratio:1;right:-24vw;top:6vh;border:1px solid color-mix(in srgb,var(--v11-accent,#d7b977) 28%,transparent);border-radius:50%;opacity:.6;transform:translate3d(var(--v11-orbit-x,0),var(--v11-orbit-y,0),0) rotate(var(--v11-orbit-r,0deg));will-change:transform}
+.v11-ambient-orbit::before,.v11-ambient-orbit::after{content:"";position:absolute;border:1px solid color-mix(in srgb,var(--v11-accent,#d7b977) 18%,transparent);border-radius:50%}
+.v11-ambient-orbit::before{inset:13%;transform:rotate(18deg)}
+.v11-ambient-orbit::after{inset:31%;transform:rotate(-31deg)}
+.v11-ambient-glint{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--v11-accent,#d7b977);box-shadow:0 0 28px color-mix(in srgb,var(--v11-accent,#d7b977) 75%,transparent);left:var(--v11-glint-x,70%);top:var(--v11-glint-y,30%);transition:left 900ms var(--v11-ease),top 900ms var(--v11-ease),background 900ms var(--v11-ease)}
+.v11-ambient-label{position:absolute;left:22px;bottom:24px;display:grid;gap:4px;color:#eef1e9;opacity:.74;font:11px/1.2 var(--sans,sans-serif);letter-spacing:.14em;text-transform:uppercase}
+.v11-ambient-label strong{font-size:12px;font-weight:500;color:var(--v11-accent,#d7b977);letter-spacing:.08em}
+
+/* Every major chapter becomes a scene, while its own layout remains intact. */
+.v11-scene{--v11-shift:0px;--v11-scale:1;--v11-alpha:1;--v11-tilt:0deg;--v11-accent:#d7b977;position:relative;isolation:isolate;overflow:clip}
+.v11-scene::before{content:"";position:absolute;z-index:0;pointer-events:none;inset:-18% -12%;opacity:calc(.08 + var(--v11-focus,.6)*.11);transform:translate3d(calc(var(--v11-shift)*-.22),calc(var(--v11-shift)*.16),0) rotate(var(--v11-tilt));transition:opacity 220ms linear;background:radial-gradient(ellipse at 74% 48%,color-mix(in srgb,var(--v11-accent) 18%,transparent),transparent 46%)}
+.v11-scene>*{position:relative;z-index:1}
+
+/* Move only meaningful scene groups; no per-frame layout properties are touched. */
+.v11-scene .section-heading,
+.v11-scene .work-showcase,
+.v11-scene .gaze-viewer,
+.v11-scene .section-bottom,
+.v11-scene .about-image,
+.v11-scene .about-copy,
+.v11-scene .explorer-controls,
+.v11-scene .perspective-panels,
+.v11-scene .career-list,
+.v11-scene .education,
+.v11-scene .brand-grid,
+.v11-scene.contact-section>div,
+.v11-scene.v10-hero>h1,
+.v11-scene.v10-hero>.hero-copy,
+.v11-scene.v10-hero>.hero-image,
+.v11-scene.v10-hero>.edition-line{
+  transform:translate3d(0,var(--v11-shift),0) scale(var(--v11-scale));
+  opacity:var(--v11-alpha);
+  transform-origin:50% 50%;
+  will-change:transform,opacity;
+}
+
+/* Opening — orbital identity. */
+#opening.v11-scene{--v11-accent:#e7ca88;background:linear-gradient(145deg,#102019 0%,#0b1512 54%,#11100d 100%)}
+#opening.v11-scene::before{inset:-30%;opacity:.32;background:
+  repeating-radial-gradient(ellipse at 79% 46%,transparent 0 72px,#d9c18b16 73px 74px,transparent 75px 108px),
+  radial-gradient(circle at 76% 41%,#d9c18b20,transparent 34%);transform:translate3d(calc(var(--v11-shift)*-.18),calc(var(--v11-shift)*.1),0) rotate(-8deg)}
+#opening .hero-card{backface-visibility:hidden}
+
+/* Observe → Connect → Create remains the deep pinned scene; V11 only enriches its environment. */
+#approach.v11-scene{--v11-accent:#78906f}
+#approach.v11-scene::before{background:linear-gradient(115deg,transparent 20%,#a7bd9d10 20.2% 20.6%,transparent 20.8%),radial-gradient(circle at 82% 36%,#879b7b20,transparent 38%)}
+
+/* Work — technical field/grid. */
+#work.v11-scene{--v11-accent:#cfb576}
+#work.v11-scene::before{inset:0;opacity:.32;background-image:linear-gradient(#cbb77e0b 1px,transparent 1px),linear-gradient(90deg,#cbb77e09 1px,transparent 1px),radial-gradient(circle at 78% 20%,#cbb77e18,transparent 32%);background-size:58px 58px,58px 58px,auto;mask-image:linear-gradient(90deg,transparent,#000 18%,#000)}
+#work.v11-scene::after{content:"";position:absolute;right:4%;top:8%;width:min(38vw,510px);aspect-ratio:1;border:1px solid #d4be8430;border-radius:50%;z-index:0;pointer-events:none;transform:translate3d(0,calc(var(--v11-shift)*-.5),0) rotate(calc(var(--v11-tilt)*2));box-shadow:inset 0 0 0 46px #ffffff03,inset 0 0 0 90px #ffffff02}
+
+/* Daily Gaze — aperture / photographic depth. */
+#photography.v11-scene{--v11-accent:#718069}
+#photography.v11-scene::before{opacity:.28;background:repeating-radial-gradient(circle at 16% 45%,transparent 0 78px,#65755f18 80px 81px,transparent 83px 125px),linear-gradient(110deg,transparent 54%,#53664d0e 54.2% 54.5%,transparent 54.7%)}
+#photography .gaze-viewer{backface-visibility:hidden}
+
+/* Person — warm editorial field. */
+#about.v11-scene{--v11-accent:#d7b67b}
+#about.v11-scene::before{opacity:.28;background:repeating-linear-gradient(112deg,transparent 0 46px,#e1c28a0d 47px 48px,transparent 49px 94px),radial-gradient(circle at 78% 38%,#f1d2981c,transparent 34%)}
+#about .about-image{transform-origin:42% 52%}
+
+/* Perspectives — orbit / multiple lenses. */
+#perspectives.v11-scene{--v11-accent:#aec07f}
+#perspectives.v11-scene::before{inset:-35% -15%;opacity:.3;background:repeating-radial-gradient(ellipse at 76% 42%,transparent 0 110px,#b8c68c14 112px 113px,transparent 115px 170px)}
+
+/* Experience — timeline field. */
+#experience.v11-scene{--v11-accent:#c5a869}
+#experience.v11-scene::before{inset:0;opacity:.3;background:linear-gradient(90deg,transparent 5.8%,#d5bd801c 6%,#d5bd801c 6.15%,transparent 6.3%),linear-gradient(180deg,#d5bd800a,transparent 70%)}
+#experience .career-list li{transition:transform 450ms var(--v11-ease),border-color 450ms var(--v11-ease)}
+#experience[data-v11-active="true"] .career-list li:nth-child(odd){transform:translateX(4px)}
+#experience[data-v11-active="true"] .career-list li:nth-child(even){transform:translateX(-4px)}
+
+/* VELORIA — constellation / brand architecture. */
+#ecosystem.v11-scene{--v11-accent:#dfc382}
+#ecosystem.v11-scene::before{inset:-28%;opacity:.38;background:repeating-radial-gradient(circle at 71% 46%,transparent 0 76px,#e0c78516 77px 78px,transparent 79px 128px),radial-gradient(circle at 71% 46%,#e0c78516,transparent 36%)}
+#ecosystem .brand-grid>div{transition:transform 500ms var(--v11-ease),border-color 500ms var(--v11-ease),background-color 500ms var(--v11-ease)}
+#ecosystem[data-v11-active="true"] .brand-grid>div:nth-child(odd){transform:translateY(-5px)}
+#ecosystem[data-v11-active="true"] .brand-grid>div:nth-child(even){transform:translateY(5px)}
+
+/* Contact — visual closure, almost like a spotlight closing the film. */
+#contact.v11-scene{--v11-accent:#e7ca88}
+#contact.v11-scene::before{inset:-20%;opacity:.42;background:radial-gradient(ellipse at 77% 44%,#dfc27b24,transparent 30%),radial-gradient(circle at 14% 76%,#6d84661b,transparent 26%)}
+#contact.v11-scene::after{content:"";position:absolute;inset:auto -15% -34% 35%;height:62%;border-top:1px solid #e1c78622;border-radius:50%;z-index:0;pointer-events:none;transform:rotate(-6deg)}
+
+/* Entry/exit veil makes adjacent chapters feel connected rather than stacked. */
+.v11-scene-edge{position:absolute;z-index:0;pointer-events:none;left:0;right:0;height:18vh;opacity:var(--v11-edge,.22)}
+.v11-scene-edge.top{top:0;background:linear-gradient(to bottom,color-mix(in srgb,var(--v11-accent) 8%,transparent),transparent)}
+.v11-scene-edge.bottom{bottom:0;background:linear-gradient(to top,color-mix(in srgb,var(--v11-accent) 10%,transparent),transparent)}
+
+/* Performance profile: keep the cinematic feeling while removing the expensive full-screen blur path. */
+html[data-v11-profile="mobile"] .v11-ambient::after{opacity:.16;background-size:56px 56px}
+html[data-v11-profile="mobile"] .v11-ambient-orbit{width:118vw;right:-58vw;opacity:.38}
+html[data-v11-profile="mobile"] .v11-ambient-label{display:none}
+html[data-v11-profile="mobile"] .gaze-viewer.is-ready::before{filter:none!important;opacity:.16!important;transform:scale(1.04)}
+html[data-v11-profile="mobile"] .hero-card{box-shadow:0 18px 34px #0007}
+html[data-v11-profile="mobile"] .story-photo,
+html[data-v11-profile="mobile"] .story-system-sheet{box-shadow:0 18px 38px #0006}
+html[data-v11-profile="mobile"] #work.v11-scene::after{width:72vw;right:-28vw;opacity:.6}
+html[data-v11-profile="mobile"] .v11-scene .section-heading,
+html[data-v11-profile="mobile"] .v11-scene .work-showcase,
+html[data-v11-profile="mobile"] .v11-scene .gaze-viewer,
+html[data-v11-profile="mobile"] .v11-scene .section-bottom,
+html[data-v11-profile="mobile"] .v11-scene .about-image,
+html[data-v11-profile="mobile"] .v11-scene .about-copy,
+html[data-v11-profile="mobile"] .v11-scene .explorer-controls,
+html[data-v11-profile="mobile"] .v11-scene .perspective-panels,
+html[data-v11-profile="mobile"] .v11-scene .career-list,
+html[data-v11-profile="mobile"] .v11-scene .education,
+html[data-v11-profile="mobile"] .v11-scene .brand-grid,
+html[data-v11-profile="mobile"] .v11-scene.contact-section>div,
+html[data-v11-profile="mobile"] .v11-scene.v10-hero>h1,
+html[data-v11-profile="mobile"] .v11-scene.v10-hero>.hero-copy,
+html[data-v11-profile="mobile"] .v11-scene.v10-hero>.hero-image,
+html[data-v11-profile="mobile"] .v11-scene.v10-hero>.edition-line{will-change:auto}
+
+@media (max-width:820px){
+  .v11-scene::before{inset:-8% -28%}
+  #about.v11-scene::before,#perspectives.v11-scene::before,#ecosystem.v11-scene::before{opacity:.2}
+  #experience[data-v11-active="true"] .career-list li:nth-child(n){transform:none}
+  #ecosystem[data-v11-active="true"] .brand-grid>div:nth-child(n){transform:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html[data-v11="on"]{scroll-behavior:auto}
+  .v11-ambient::before,.v11-ambient-orbit,.v11-scene .section-heading,.v11-scene .work-showcase,.v11-scene .gaze-viewer,.v11-scene .section-bottom,.v11-scene .about-image,.v11-scene .about-copy,.v11-scene .explorer-controls,.v11-scene .perspective-panels,.v11-scene .career-list,.v11-scene .education,.v11-scene .brand-grid,.v11-scene.contact-section>div,.v11-scene.v10-hero>h1,.v11-scene.v10-hero>.hero-copy,.v11-scene.v10-hero>.hero-image,.v11-scene.v10-hero>.edition-line{transform:none!important;opacity:1!important;will-change:auto!important}
+}
