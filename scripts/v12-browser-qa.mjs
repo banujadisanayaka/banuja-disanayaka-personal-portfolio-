@@ -62,7 +62,7 @@ try {
       const targets = await sceneLinks.evaluateAll(links => links.map(link => {
         const r = link.getBoundingClientRect(); return {w:r.width,h:r.height};
       }));
-      for (const target of targets) assert.ok(target.w >= 40 && target.h >= 40, `${name}: scene target is comfortable ${JSON.stringify(target)}`);
+      for (const target of targets) assert.ok(target.w >= 44 && target.h >= 44, `${name}: scene target is at least 44×44px ${JSON.stringify(target)}`);
     }
 
     const opening = page.locator('#opening');
