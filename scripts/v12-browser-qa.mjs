@@ -59,10 +59,27 @@ try {
     assert.equal(await currentLinks.count(), 1, `${name}: exactly one current scene marker`);
 
     if (options.hasTouch || options.isMobile) {
-      const targets = await sceneLinks.evaluateAll(links => links.map(link => {
-        const r = link.getBoundingClientRect(); return {w:r.width,h:r.height};
-      }));
-      for (const target of targets) assert.ok(target.w >= 44 && target.h >= 44, `${name}: scene target is at least 44×44px ${JSON.stringify(target)}`);
+      const compactToggle = page.locator('.v12-chapter-toggle:visible');
+      if (await compactToggle.count()) {
+        const toggleBox = await compactToggle.boundingBox();
+        assert.ok(toggleBox.width >= 44 && toggleBox.height >= 44, `${name}: compact scene trigger is at least 44×44px ${JSON.stringify(toggleBox)}`);
+        assert.equal(await page.locator('.v12-chapter-nav').getAttribute('aria-hidden'),'true',`${name}: compact scene panel is inert when closed`);
+        await compactToggle.click();
+        assert.equal(await compactToggle.getAttribute('aria-expanded'),'true',`${name}: compact scene panel opens intentionally`);
+        assert.equal(await page.locator('.v12-chapter-nav').getAttribute('aria-hidden'),'false',`${name}: open compact scene panel is exposed`);
+        const targets = await sceneLinks.evaluateAll(links => links.map(link => {
+          const r = link.getBoundingClientRect(); return {w:r.width,h:r.height,visible:!!(r.width&&r.height)};
+        }));
+        for (const target of targets) assert.ok(target.visible && target.w >= 44 && target.h >= 44, `${name}: open scene target is at least 44×44px ${JSON.stringify(target)}`);
+        await page.keyboard.press('Escape');
+        assert.equal(await compactToggle.getAttribute('aria-expanded'),'false',`${name}: Escape closes compact scene navigation`);
+        assert.equal(await page.locator('.v12-chapter-nav').getAttribute('aria-hidden'),'true',`${name}: closed compact scene panel cannot intercept content`);
+      } else {
+        const targets = await sceneLinks.evaluateAll(links => links.map(link => {
+          const r = link.getBoundingClientRect(); return {w:r.width,h:r.height};
+        }));
+        for (const target of targets) assert.ok(target.w >= 44 && target.h >= 44, `${name}: scene target is at least 44×44px ${JSON.stringify(target)}`);
+      }
     }
 
     const opening = page.locator('#opening');
