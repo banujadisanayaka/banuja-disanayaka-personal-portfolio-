@@ -38,4 +38,17 @@ html[data-v12-profile="lite"] .v12-world-orbit,html[data-v12-profile="reduced"] 
    Width-only breakpoints do not catch an 844px-wide handset in landscape. */
 @media (pointer:coarse){.v12-chapter-nav a{min-height:44px!important}}
 @media (max-width:420px){.v12-chapter-nav a{min-width:44px!important;flex:0 0 44px!important}}
+
+/* Short coarse-pointer landscapes need the chapter rail below the composition,
+   not over the right-hand project/gallery controls. Reuse the compact mobile rail
+   geometry while preserving 44px targets and native horizontal overflow. */
+@media (pointer:coarse) and (orientation:landscape) and (max-height:500px){
+  .v12-chapter-nav{left:50%!important;right:auto!important;top:auto!important;bottom:max(8px,env(safe-area-inset-bottom))!important;transform:translateX(-50%)!important;display:flex!important;gap:1px!important;padding:4px!important;max-width:calc(100vw - 24px)!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none;background:#0b110ef2!important}
+  .v12-chapter-nav::-webkit-scrollbar{display:none}
+  .v12-chapter-nav a{grid-template-columns:1fr!important;min-width:44px!important;min-height:44px!important;padding:0 8px!important;justify-content:center!important;flex:0 0 44px!important}
+  .v12-chapter-nav a strong,.v12-chapter-nav a i{display:none!important}
+  .v12-chapter-nav a:hover,.v12-chapter-nav a:focus-visible,.v12-chapter-nav a[aria-current]{grid-template-columns:1fr!important}
+  html[data-v12="on"] .site-footer{padding-bottom:72px}
+}
+
 @media (prefers-reduced-motion:reduce){.v12-world-orbit,.v12-world-wash,.v12-world-grain,.v12-world-thread i,#photography .photo-tile img{animation:none!important}}
