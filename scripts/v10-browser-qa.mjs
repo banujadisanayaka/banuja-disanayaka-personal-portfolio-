@@ -3,16 +3,17 @@ import {mkdir, readFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 
 const base = process.env.BROWSER_QA_BASE_URL || 'http://127.0.0.1:4173';
+const releaseVersion = '11';
 const browser = await chromium.launch();
 await mkdir('qa-artifacts/v10', {recursive:true});
 const fits = async (page, label) => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, label);
 async function openRelease(page, path) {
   for (let attempt=0; attempt<3; attempt++) {
     await page.goto(base + path, {waitUntil:'networkidle'});
-    if (await page.locator('body').getAttribute('data-version') === '10') return;
+    if (await page.locator('body').getAttribute('data-version') === releaseVersion) return;
     await page.waitForTimeout(500);
   }
-  assert.equal(await page.locator('body').getAttribute('data-version'), '10', path+' serves the V10 release');
+  assert.equal(await page.locator('body').getAttribute('data-version'), releaseVersion, path+' serves the V11 release');
 }
 try {
   for (const scenario of [
