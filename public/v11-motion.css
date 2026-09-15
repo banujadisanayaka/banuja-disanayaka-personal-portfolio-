@@ -6,4 +6,5 @@ html[data-v11="on"][data-motion="on"] .v11-ambient-orbit{animation:v11OrbitDrift
 html[data-v11="on"][data-motion="on"] .v11-ambient-glint{animation:v11GlintFloat 8s ease-in-out infinite}
 html[data-v11="on"][data-motion="on"] .v11-ambient::after{animation:v11GridBreathe 10s ease-in-out infinite}
 html[data-v11-profile="mobile"][data-motion="on"] .v11-ambient-orbit{animation-duration:26s}
+#work.v11-scene>dialog{position:fixed!important;z-index:30}
 @media (prefers-reduced-motion:reduce){.v11-ambient-orbit,.v11-ambient-glint,.v11-ambient::after{animation:none!important}}
