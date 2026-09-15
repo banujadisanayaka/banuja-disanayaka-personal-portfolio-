@@ -13,7 +13,7 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
   const coarse = matchMedia('(pointer: coarse)');
-  const shortLandscape = matchMedia('(pointer: coarse) and (orientation: landscape) and (max-height: 500px)');
+  const isShortLandscape = () => (coarse.matches || navigator.maxTouchPoints > 0) && innerWidth > innerHeight && innerHeight <= 500;
 
   const addStyle = (href, marker) => {
     if (q(`link[${marker}]`)) return;
@@ -100,11 +100,12 @@
 
   let compactNavOpen = false;
   const setCompactNavOpen = (open, {restoreFocus=false} = {}) => {
-    compactNavOpen = shortLandscape.matches && !!open;
+    const compact = isShortLandscape();
+    compactNavOpen = compact && !!open;
     chapterNav.dataset.open = String(compactNavOpen);
     chapterToggle.setAttribute('aria-expanded',String(compactNavOpen));
     chapterToggle.setAttribute('aria-label',compactNavOpen ? 'Close portfolio scene navigation' : 'Open portfolio scene navigation');
-    if (shortLandscape.matches) {
+    if (compact) {
       chapterNav.toggleAttribute('inert',!compactNavOpen);
       chapterNav.setAttribute('aria-hidden',String(!compactNavOpen));
     } else {
@@ -114,8 +115,9 @@
     if (restoreFocus) chapterToggle.focus({preventScroll:true});
   };
   const syncCompactNav = () => {
-    html.dataset.v12CompactNav = shortLandscape.matches ? 'true' : 'false';
-    chapterToggle.hidden = !shortLandscape.matches;
+    const compact = isShortLandscape();
+    html.dataset.v12CompactNav = compact ? 'true' : 'false';
+    chapterToggle.hidden = !compact;
     setCompactNavOpen(false);
   };
   chapterToggle.addEventListener('click', () => {
@@ -128,7 +130,6 @@
       setCompactNavOpen(false,{restoreFocus:true});
     }
   });
-  shortLandscape.addEventListener?.('change',syncCompactNav);
   syncCompactNav();
 
   const cursor = document.createElement('div');
@@ -392,7 +393,7 @@
     const target = document.getElementById(link.dataset.v12Jump);
     if (!target) return;
     event.preventDefault();
-    if (shortLandscape.matches) setCompactNavOpen(false);
+    if (isShortLandscape()) setCompactNavOpen(false);
     target.scrollIntoView({behavior: reduced.matches ? 'auto' : 'smooth', block:'start'});
     history.replaceState(null,'',`#${target.id}`);
   });
