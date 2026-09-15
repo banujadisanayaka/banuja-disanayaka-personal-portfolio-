@@ -107,11 +107,18 @@ try {
       for(const dy of [25,60,110,170])await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-dy,id:1}]});
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       await page.waitForFunction(y=>scrollY>y+20,before);
+      // Native touchEnd can leave a compositor fling running. Let that real
+      // gesture settle before starting a separate, exact-position ink check.
+      await page.evaluate(()=>new Promise((resolve,reject)=>{
+        let previous=scrollY,stable=0;const started=performance.now();
+        function sample(){const next=scrollY;stable=Math.abs(next-previous)<.1?stable+1:0;previous=next;
+          if(stable>=10)resolve();else if(performance.now()-started>5000)reject(new Error('Native touch scroll did not settle'));else requestAnimationFrame(sample);}
+        requestAnimationFrame(sample);
+      }));
     }
     // Turn motion off while a blended palette needs a temporary ink override.
     await page.evaluate(g=>scrollTo({top:g.top+g.step*.5,behavior:'instant'}),geometry);
-    await page.waitForTimeout(800);
-    assert.notEqual(await journey.locator('.journey-stage').getAttribute('data-ink'),'original');
+    await page.waitForFunction(g=>Math.abs(scrollY-g.top-g.step*.5)<1&&document.querySelector('.journey-stage').dataset.ink==='dark',geometry);
     await page.getByRole('button',{name:'Animation effects',exact:true}).press('Enter');
     await page.waitForFunction(()=>!document.querySelector('.scene-journey').classList.contains('is-scrubbed'));
     assert.equal(await journey.count(),0);
