@@ -69,3 +69,12 @@ The V10.2.2 exact preview passed, but its squash-merge push exposed a timing rac
 Repair: wait for both the root `data-motion="off"` state and all three story beats to become accessibility-visible, then assert the toggle’s `aria-pressed="false"` state. This retains the keyboard and reduced-motion coverage while removing scheduler-dependent ordering.
 
 The first PR19 preview also showed one transient edge-readiness response during the landscape scenario after four successful viewport loads. The V10 entry helper now allows three bounded initial navigations and still requires `body[data-version="10"]` before any interaction assertions. It does not retry failed controls, accessibility behavior or performance budgets.
+
+
+## V10.3 graphical chapter transformations
+
+Audit on 15 September 2026: the opening and Observe → Connect → Create sequence already use spatial, visitor-controlled motion, while Work, Daily Gaze, About, Perspectives and Contact still arrive primarily as conventional stacked sections. This leaves the later homepage short of the requested feeling that each chapter is its own graphical screen and transforms into the next.
+
+Repair: give all five later chapters distinct, lightweight graphical identities and observer-driven next/active/past states. The transitions use compositor-friendly opacity and transform changes, perform no continuous scroll reads, add no timers or autoplay, and remain absent when motion is disabled or reduced motion is requested. Mobile keeps the graphical identity without the large desktop transforms. Browser QA now asserts that all five scenes initialize and that anchor navigation activates the intended chapter.
+
+Validation required before release: run the complete static, responsive, accessibility, CMS/security/concurrency and V10 browser gates on the exact commit, including the mobile performance regression budget and offscreen-idle checks. Then verify the exact Netlify production commit and live scene activation, project carousel, Daily Gaze controls and motion preference. Next useful step: if the transformation language is accepted, tune only individual scene art direction from observed user feedback rather than adding more global motion.
