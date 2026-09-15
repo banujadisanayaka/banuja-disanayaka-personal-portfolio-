@@ -21,6 +21,11 @@ html[data-v12="on"] #ecosystem .brand-grid{transform:none}
 #opening.v12-scene{transform:none!important;will-change:auto!important}
 html[data-v12-profile="medium"] .site-header,html[data-v12-profile="lite"] .site-header{backdrop-filter:none!important}
 
+/* Keep the established full-width photo frame. A centered grid container made the
+   intrinsic-width photo tile collapse because its image width depends on the tile. */
+html[data-v12="on"] #photography .featured-photos{display:block;place-items:initial}
+html[data-v12="on"] #photography .featured-photos .photo-tile.is-current{width:100%}
+
 html[data-v12="on"][data-v12-motion="on"] .v12-world-wash{animation:v12WashBreathe 12s ease-in-out infinite}
 html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] .v12-world-orbit{animation:v12OrbitDrift 22s ease-in-out infinite}
 html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] .v12-world-grain{animation:v12GrainShift 1.35s steps(2,end) infinite}
