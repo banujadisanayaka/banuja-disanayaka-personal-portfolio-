@@ -67,10 +67,17 @@ jobs:
             echo "url=https://deploy-preview-${{ github.event.pull_request.number }}--banujadisanayaka.netlify.app" >> "$GITHUB_OUTPUT"
             echo "commit=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
             echo "remote=true" >> "$GITHUB_OUTPUT"
+            echo "environment=preview" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "url=https://banujadisanayaka.netlify.app" >> "$GITHUB_OUTPUT"
+            echo "commit=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            echo "remote=true" >> "$GITHUB_OUTPUT"
+            echo "environment=production" >> "$GITHUB_OUTPUT"
           else
             echo "url=http://127.0.0.1:4173" >> "$GITHUB_OUTPUT"
             echo "commit=${{ github.sha }}" >> "$GITHUB_OUTPUT"
             echo "remote=false" >> "$GITHUB_OUTPUT"
+            echo "environment=local" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Start static preview for branch pushes
@@ -87,18 +94,22 @@ jobs:
           cat /tmp/portfolio-http.log
           exit 1
 
-      - name: Wait for exact Netlify deploy preview
+      - name: Wait for exact Netlify revision
         if: steps.target.outputs.remote == 'true'
         env:
           QA_URL: ${{ steps.target.outputs.url }}
           EXPECTED_COMMIT: ${{ steps.target.outputs.commit }}
+          QA_ENVIRONMENT: ${{ steps.target.outputs.environment }}
         run: |
           for i in {1..60}; do
             BODY="$(curl -fsS "$QA_URL/build-info.json" 2>/dev/null || true)"
-            echo "$BODY" | grep -q "$EXPECTED_COMMIT" && exit 0
+            if echo "$BODY" | grep -q "$EXPECTED_COMMIT"; then
+              echo "Verified $QA_ENVIRONMENT Netlify revision $EXPECTED_COMMIT at $QA_URL"
+              exit 0
+            fi
             sleep 5
           done
-          echo "Timed out waiting for deploy preview commit $EXPECTED_COMMIT"
+          echo "Timed out waiting for $QA_ENVIRONMENT Netlify revision $EXPECTED_COMMIT"
           exit 1
 
       - name: Verify deployed API privacy and auth boundaries
