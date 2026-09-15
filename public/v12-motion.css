@@ -1,0 +1,14 @@
+/* V12 ambient motion — opacity and simple composited transforms only. */
+@keyframes v12WashBreathe{0%,100%{opacity:.92}50%{opacity:1}}
+@keyframes v12OrbitDrift{0%,100%{translate:0 0}50%{translate:-12px 8px}}
+@keyframes v12GrainShift{0%,100%{translate:0 0}25%{translate:-1.2% .8%}50%{translate:.8% -1%}75%{translate:.6% 1.1%}}
+@keyframes v12PhotoBreath{0%,100%{scale:1.012}50%{scale:1.002}}
+@keyframes v12ThreadPulse{0%,100%{opacity:.7}50%{opacity:1}}
+html[data-v12="on"][data-v12-motion="on"] .v12-world-wash{animation:v12WashBreathe 12s ease-in-out infinite}
+html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] .v12-world-orbit{animation:v12OrbitDrift 22s ease-in-out infinite}
+html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] .v12-world-grain{animation:v12GrainShift 1.35s steps(2,end) infinite}
+html[data-v12="on"][data-v12-motion="on"] .v12-world-thread i{animation:v12ThreadPulse 5.5s ease-in-out infinite}
+html[data-v12="on"][data-v12-motion="on"][data-v12-profile="high"] #photography .photo-tile.is-current img{animation:v12PhotoBreath 13s ease-in-out infinite}
+html[data-v12-profile="medium"][data-v12-motion="on"] .v12-world-orbit{animation:v12OrbitDrift 34s ease-in-out infinite}
+html[data-v12-profile="lite"] .v12-world-orbit,html[data-v12-profile="reduced"] .v12-world-orbit{animation:none!important}
+@media (prefers-reduced-motion:reduce){.v12-world-orbit,.v12-world-wash,.v12-world-grain,.v12-world-thread i,#photography .photo-tile img{animation:none!important}}
