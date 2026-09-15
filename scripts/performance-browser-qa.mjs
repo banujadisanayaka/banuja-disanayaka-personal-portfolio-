@@ -9,6 +9,7 @@ await mkdir('qa-artifacts/v10', {recursive:true});
 
 async function measure(url, label, diagnosticCSS = '') {
   const context = await browser.newContext({viewport:{width:390,height:844}, isMobile:true, hasTouch:true, deviceScaleFactor:2});
+  try {
   const page = await context.newPage();
   await page.goto(url, {waitUntil:'networkidle'});
   if(diagnosticCSS)await page.addStyleTag({content:diagnosticCSS});
@@ -87,9 +88,9 @@ async function measure(url, label, diagnosticCSS = '') {
     assert.equal(await motionToggle.getAttribute('aria-pressed'),'false','Keyboard toggle reports motion off');
     assert.equal(await page.locator('.journey-panel[aria-hidden="false"]').count(),6);
   }
-  await context.close();
   console.log('PERFORMANCE_RESULT '+JSON.stringify(result));
   return result;
+  } finally { await context.close(); }
 }
 
 try {

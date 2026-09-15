@@ -1,18 +1,23 @@
 // A semantic introduction first; the browser progressively pins and choreographs it.
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-// Draw once; only the visible scene's vector group moves on the compositor.
-function atmosphere() {
+// Static SVG image resources isolate vector layout from animated HTML layers.
+export function sceneBackgrounds() {
   const waves=Array.from({length:11},(_,i)=>`<path d="M-100 ${140+i*32} Q300 ${-100+i*34} 650 ${290+i*29} T1350 ${310+i*28}"/>`).join('');
   const grid=Array.from({length:9},(_,i)=>`<path d="M${120+i*125} -80 V880 M-80 ${100+i*95} H1280"/>`).join('');
   const rings=Array.from({length:7},(_,i)=>`<ellipse cx="835" cy="365" rx="${135+i*47}" ry="${110+i*40}"/>`).join('');
   const land=Array.from({length:12},(_,i)=>`<path d="M-100 ${650+i*27} C100 ${50+i*23} 310 ${720-i*24} 580 ${320+i*13} S1020 ${30+i*36} 1320 ${270+i*29}"/>`).join('');
   const orbit=Array.from({length:6},(_,i)=>`<g transform="rotate(${i*60} 830 390)"><ellipse cx="830" cy="390" rx="360" ry="120"/><circle cx="1190" cy="390" r="6" fill="currentColor"/></g>`).join('');
   const ripples=Array.from({length:9},(_,i)=>`<circle cx="815" cy="465" r="${110+i*45}"/>`).join('');
-  return `<div class="journey-atmosphere" aria-hidden="true">${[waves,grid,rings,land,orbit,ripples].map((art,i)=>`<div class="journey-ambience ambience-${i}"><div class="ambient-light"></div><div class="ambient-flow"><svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false">${art}</svg></div></div>`).join('')}</div>`;
+  const inks=['#b9c49a','#566b44','#718668','#c3a377','#caba8e','#899363'];
+  return [waves,grid,rings,land,orbit,ripples].map((art,i)=>`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" fill="none" stroke="${inks[i]}" color="${inks[i]}" stroke-width="1">${art}</svg>`);
 }
 
-export function sceneJourney(picture, gallery, profile, ecosystem) {
+function atmosphere(sources) {
+  return `<div class="journey-atmosphere" aria-hidden="true">${sources.map((src,i)=>`<div class="journey-ambience ambience-${i}"><div class="ambient-light"></div><div class="ambient-flow"><img src="${esc(src)}" alt="" width="1200" height="800" decoding="async"></div></div>`).join('')}</div>`;
+}
+
+export function sceneJourney(picture, gallery, profile, ecosystem, backgrounds) {
   const forest = gallery.find(g => g.preview.includes('gaze-168481-')) || gallery[0];
   const city = gallery.find(g => g.preview.includes('gaze-177310-')) || gallery[1];
   const photo = g => `<img data-scene-photo="${esc(g.id)}" src="${esc(g.derivatives?.[0]?.url || g.preview)}" srcset="${g.derivatives.map(d => `${esc(d.url)} ${d.width}w`).join(', ')}" sizes="(max-width:700px) 65vw, 35vw" width="${g.width}" height="${g.height}" alt="${esc(g.alt)}" loading="lazy" decoding="async">`;
@@ -41,7 +46,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem) {
     <div class="journey-range" aria-hidden="true"></div>
     <div class="journey-stage">
       <div class="journey-backgrounds" aria-hidden="true">${scenes.map(s=>`<div class="journey-background ${s.theme}"></div>`).join('')}</div>
-      ${atmosphere()}
+      ${atmosphere(backgrounds)}
       <svg class="journey-contours" viewBox="0 0 1200 800" fill="none" aria-hidden="true" focusable="false">${contours}</svg>
       <div class="journey-orbit" aria-hidden="true"></div>
       <div class="journey-paper" aria-hidden="true"></div>

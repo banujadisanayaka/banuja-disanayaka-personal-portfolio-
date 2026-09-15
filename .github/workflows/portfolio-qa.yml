@@ -123,17 +123,16 @@ jobs:
           grep -qi '^referrer-policy: no-referrer' /tmp/content-headers
           grep -qi '^cross-origin-resource-policy: same-origin' /tmp/content-headers
 
-      - name: Browser accessibility and responsive QA
-        env:
-          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/v10-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
-
-
       - name: Mobile scroll performance regression
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
           PERFORMANCE_BASELINE_URL: ${{ github.event_name == 'pull_request' && 'https://banujadisanayaka.netlify.app/' || '' }}
         run: node scripts/performance-browser-qa.mjs
+
+      - name: Browser accessibility and responsive QA
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
+        run: node scripts/v10-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
 
       - name: Save V10 visual verification
         id: v10_visual_artifact

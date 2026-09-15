@@ -13,6 +13,10 @@ try {
     await page.goto(base+'/',{waitUntil:'networkidle'});
     const journey=page.locator('.scene-journey.is-scrubbed');await journey.waitFor();
     assert.equal(await journey.locator('[data-journey-scene]').count(),6);
+    assert.equal(await journey.locator('.journey-atmosphere img').count(),6);
+    for(const image of await journey.locator('.journey-atmosphere img').all()) {
+      assert.ok(await image.evaluate(el=>el.complete&&el.naturalWidth>0),'Every decorative background resource loads');
+    }
     const geometry=await journey.evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,step:el.querySelector('.journey-range').clientHeight*.9}));
     for(let i=0;i<6;i++) {
       await page.evaluate(({top,step,i})=>scrollTo({top:top+step*i,behavior:'instant'}),{...geometry,i});
@@ -104,11 +108,18 @@ try {
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       await page.waitForFunction(y=>scrollY>y+20,before);
     }
+    // Turn motion off while a blended palette needs a temporary ink override.
+    await page.evaluate(g=>scrollTo({top:g.top+g.step*.5,behavior:'instant'}),geometry);
+    await page.waitForTimeout(800);
+    assert.notEqual(await journey.locator('.journey-stage').getAttribute('data-ink'),'original');
     await page.getByRole('button',{name:'Animation effects',exact:true}).press('Enter');
     await page.waitForFunction(()=>!document.querySelector('.scene-journey').classList.contains('is-scrubbed'));
     assert.equal(await journey.count(),0);
     assert.equal(await page.locator('.journey-panel[aria-hidden=false]').count(),6);
     assert.equal(await page.locator('.journey-panel[inert]').count(),0);
+    for(const panel of await page.locator('.journey-panel').all()) {
+      assert.ok(await panel.evaluate(el=>getComputedStyle(el.querySelector('.journey-heading')).color===getComputedStyle(el).color),'Motion-off restores each panel’s original readable ink');
+    }
     assert.equal(await page.evaluate(()=>document.getAnimations().filter(a=>a.playState==='running').length),0);
     assert.deepEqual(errors,[]);
     await context.close();console.log(`Six scenes, readable mid-transition pauses, opaque art, animated background, toolbar resize, controls and motion-off passed at ${viewport.width}px`);

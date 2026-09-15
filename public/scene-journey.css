@@ -44,8 +44,8 @@
 .is-scrubbed .journey-heading{position:absolute;left:7%;top:22%;width:43%;max-width:640px}
 .is-scrubbed .journey-caption{position:absolute;left:7%;bottom:135px;width:38%}
 .is-scrubbed .journey-panel[aria-hidden=false] .journey-link{pointer-events:auto}
-.journey-stage[data-ink=dark] .journey-heading,.journey-stage[data-ink=dark] .journey-caption{color:#000}
-.journey-stage[data-ink=light] .journey-heading,.journey-stage[data-ink=light] .journey-caption{color:#fff}
+.is-scrubbed .journey-stage[data-ink=dark] .journey-heading,.is-scrubbed .journey-stage[data-ink=dark] .journey-caption{color:#000}
+.is-scrubbed .journey-stage[data-ink=light] .journey-heading,.is-scrubbed .journey-stage[data-ink=light] .journey-caption{color:#fff}
 .is-scrubbed .journey-panel[aria-hidden=false] .journey-heading,.is-scrubbed .journey-panel[aria-hidden=false] .journey-caption{animation:journey-copy-arrival .28s ease-out}
 .is-scrubbed .journey-panel[aria-hidden=false] .journey-art-inner{animation:journey-art-arrival .32s cubic-bezier(.2,.7,.3,1)}
 @keyframes journey-copy-arrival{from{transform:translate3d(0,8px,0)}to{transform:translate3d(0,0,0)}}
@@ -121,13 +121,13 @@
 /* Ambient motion belongs to the backdrop; reading and photographs stay still. */
 .is-scrubbed .journey-atmosphere{display:block;position:absolute;inset:0;z-index:-1;overflow:clip;contain:strict}
 .journey-ambience{position:absolute;inset:-6%;opacity:0;transition:opacity .55s ease;color:#b9c49a}
-.journey-ambience svg{position:absolute;inset:0;width:100%;height:100%;stroke:currentColor;stroke-width:1;opacity:.42}
+.journey-ambience img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42}
 .ambient-flow{position:absolute;inset:0;transform-origin:center;animation:ambient-current 18s ease-in-out infinite alternate paused}
 .ambient-light{position:absolute;width:85%;height:90%;right:-8%;top:-12%;background:radial-gradient(ellipse,#b8c39425,transparent 67%);animation:ambient-light 16s ease-in-out infinite alternate paused}
-.ambience-1{color:#566b44}.ambience-1 svg{opacity:.22}.ambience-1 .ambient-flow{animation-name:ambient-grid;animation-duration:20s}.ambience-1 .ambient-light{background:radial-gradient(ellipse,#82985730,transparent 66%)}
-.ambience-2{color:#718668}.ambience-2 svg{opacity:.32}.ambience-2 .ambient-flow{animation-name:ambient-lens;animation-duration:26s}.ambience-2 .ambient-light{background:radial-gradient(ellipse,#ffffff80,transparent 66%)}
+.ambience-1{color:#566b44}.ambience-1 img{opacity:.22}.ambience-1 .ambient-flow{animation-name:ambient-grid;animation-duration:20s}.ambience-1 .ambient-light{background:radial-gradient(ellipse,#82985730,transparent 66%)}
+.ambience-2{color:#718668}.ambience-2 img{opacity:.32}.ambience-2 .ambient-flow{animation-name:ambient-lens;animation-duration:26s}.ambience-2 .ambient-light{background:radial-gradient(ellipse,#ffffff80,transparent 66%)}
 .ambience-3{color:#c3a377}.ambience-3 .ambient-flow{animation-name:ambient-land;animation-duration:22s}.ambience-3 .ambient-light{background:radial-gradient(ellipse,#dfad7135,transparent 66%)}
-.ambience-4{color:#caba8e}.ambience-4 svg{opacity:.25}.ambience-4 .ambient-flow{animation-name:ambient-orbit;animation-duration:44s;animation-timing-function:linear;animation-direction:normal}.ambience-4 .ambient-light{background:radial-gradient(ellipse,#a8995838,transparent 66%)}
+.ambience-4{color:#caba8e}.ambience-4 img{opacity:.25}.ambience-4 .ambient-flow{animation-name:ambient-orbit;animation-duration:44s;animation-timing-function:linear;animation-direction:normal}.ambience-4 .ambient-light{background:radial-gradient(ellipse,#a8995838,transparent 66%)}
 .ambience-5{color:#899363}.ambience-5 .ambient-flow{animation-name:ambient-ripple;animation-duration:18s}.ambience-5 .ambient-light{background:radial-gradient(ellipse,#ffffff80,transparent 66%)}
 [data-active-scene="0"] .ambience-0,[data-active-scene="1"] .ambience-1,[data-active-scene="2"] .ambience-2,[data-active-scene="3"] .ambience-3,[data-active-scene="4"] .ambience-4,[data-active-scene="5"] .ambience-5{opacity:1}
 [data-ambient=running][data-active-scene="0"] .ambience-0 :is(.ambient-flow,.ambient-light),[data-ambient=running][data-active-scene="1"] .ambience-1 :is(.ambient-flow,.ambient-light),[data-ambient=running][data-active-scene="2"] .ambience-2 :is(.ambient-flow,.ambient-light),[data-ambient=running][data-active-scene="3"] .ambience-3 :is(.ambient-flow,.ambient-light),[data-ambient=running][data-active-scene="4"] .ambience-4 :is(.ambient-flow,.ambient-light),[data-ambient=running][data-active-scene="5"] .ambience-5 :is(.ambient-flow,.ambient-light){animation-play-state:running}
