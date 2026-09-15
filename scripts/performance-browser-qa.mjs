@@ -93,6 +93,31 @@ async function measure(url, label, diagnosticCSS = '') {
   } finally { await context.close(); }
 }
 
+async function traceLayouts() {
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2});
+  try {
+    const page=await context.newPage();
+    await page.goto(base,{waitUntil:'networkidle'});
+    const geometry=await page.locator('.scene-journey').evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,step:el.querySelector('.journey-range').clientHeight*.9}));
+    const cdp=await context.newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+    await cdp.send('Tracing.start',{categories:'devtools.timeline,disabled-by-default-devtools.timeline.invalidationTracking',transferMode:'ReturnAsStream'});
+    await page.evaluate(g=>new Promise(resolve=>{let i=0;function next(){scrollTo({top:g.top+g.step*(.05+4.9*i/119),behavior:'instant'});if(++i<120)requestAnimationFrame(next);else resolve();}requestAnimationFrame(next);}),geometry);
+    const finished=new Promise(resolve=>cdp.once('Tracing.tracingComplete',resolve));
+    await cdp.send('Tracing.end');
+    const {stream}=await finished;let raw='';
+    while(true){const chunk=await cdp.send('IO.read',{handle:stream});raw+=chunk.data;if(chunk.eof)break;}
+    await cdp.send('IO.close',{handle:stream});
+    const events=JSON.parse(raw).traceEvents;
+    const invalidations=events.filter(e=>e.name==='LayoutInvalidationTracking').map(e=>e.args?.data||{});
+    const reasons={};for(const e of invalidations){const key=JSON.stringify({reason:e.reason,nodeId:e.nodeId,stack:e.stackTrace?.slice(0,2)});reasons[key]=(reasons[key]||0)+1;}
+    const nodes={};for(const id of [...new Set(invalidations.map(e=>e.nodeId).filter(Boolean))].slice(0,20)){
+      try{const {node}=await cdp.send('DOM.describeNode',{backendNodeId:id});nodes[id]={name:node.nodeName,attributes:node.attributes};}catch{}
+    }
+    console.log('PERFORMANCE_LAYOUT_TRACE '+JSON.stringify({reasons,nodes,layouts:events.filter(e=>e.name==='Layout').slice(0,20).map(e=>({duration:e.dur,args:e.args}))}));
+  } finally {await context.close();}
+}
+
 try {
   const results=[];
   if (baseline) results.push(await measure(baseline,'baseline'));
@@ -101,11 +126,15 @@ try {
   } catch(error) {
     // Failure-only ablation identifies animation costs without weakening the gate.
     // These diagnostic pages are never accepted as a passing candidate.
-    for(const [label,css] of [
-      ['diagnostic-no-arrivals','.journey-panel .journey-heading,.journey-panel .journey-caption,.journey-panel .journey-art-inner{animation:none!important}'],
-      ['diagnostic-no-atmosphere','.journey-atmosphere{display:none!important}'],
-      ['diagnostic-no-new-animations','.journey-atmosphere{display:none!important}.journey-panel .journey-heading,.journey-panel .journey-caption,.journey-panel .journey-art-inner{animation:none!important}']
-    ])await measure(base,label,css);
+    try {
+      await traceLayouts();
+      for(const [label,css] of [
+        ['diagnostic-no-backdrop-fade','.journey-ambience{transition:none!important}'],
+        ['diagnostic-promoted-backdrop','.ambient-flow,.ambient-light{will-change:transform,opacity}'],
+        ['diagnostic-continuous-clocks','.scene-journey .ambient-flow,.scene-journey .ambient-light{animation-play-state:running!important}'],
+        ['diagnostic-still-backdrop','.ambient-flow,.ambient-light{animation:none!important}']
+      ])await measure(base,label,css);
+    } catch(diagnosticError) {console.log('PERFORMANCE_DIAGNOSTIC_ERROR '+diagnosticError.message);}
     throw error;
   }
   await writeFile('qa-artifacts/v10/performance.json',JSON.stringify(results,null,2));
