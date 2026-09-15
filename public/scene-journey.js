@@ -15,6 +15,7 @@
   const paper = root.querySelector('.journey-paper');
   const satellite = root.querySelector('.journey-satellite');
   const progress = root.querySelector('.journey-progress span');
+  const scenePhotos = [...root.querySelectorAll('[data-scene-photo]')].map(image=>({image,id:image.dataset.scenePhoto}));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
   const clamp = (v,a=0,b=1) => Math.max(a,Math.min(b,v));
@@ -191,10 +192,27 @@
   if ('ResizeObserver' in window) new ResizeObserver(invalidate).observe(stage);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else{lastPaint=-1;schedule();}});
   document.fonts?.ready.then(invalidate);
-  document.addEventListener('portfolio:content',()=>{
+  document.addEventListener('portfolio:content',event=>{
+    const journal=event.detail?.content?.dailyGaze;
+    const safeSource=url=>{
+      if(typeof url!=='string'||!url.trim())return '';
+      try {const u=new URL(url,location.origin);return u.origin===location.origin&&u.protocol===location.protocol&&!u.username&&!u.password&&!/[\\\u0000-\u001f]/.test(url)?u.href:'';}catch{return '';}
+    };
+    if(Array.isArray(journal))scenePhotos.forEach(({image,id},index)=>{
+      const visible=journal.filter(g=>g.visible!==false&&safeSource(g.preview));
+      const g=visible.find(g=>g.id===id)||visible[index%Math.max(1,visible.length)];
+      image.hidden=!g;
+      if(!g){image.removeAttribute('src');image.removeAttribute('srcset');return;}
+      const derivatives=(g.derivatives||[]).filter(d=>Number.isFinite(d.width)&&d.width>0&&safeSource(d.url));
+      image.src=safeSource(derivatives[0]?.url||g.preview);
+      image.srcset=derivatives.map(d=>`${safeSource(d.url)} ${d.width}w`).join(', ');
+      image.alt=g.alt||g.title;image.dataset.scenePhoto=g.id;
+      const caption=image.closest('figure')?.querySelector('figcaption');
+      if(caption)caption.textContent='THE DAILY GAZE / '+String(g.title).toUpperCase();
+    });
     all.forEach(scene=>{
       const targetSection=scene.el.dataset.section&&document.querySelector(scene.el.dataset.section);
-      scene.el.hidden=!!targetSection?.hidden;
+      scene.el.hidden=!!targetSection?.hidden||(scene.id===2&&Array.isArray(journal)&&journal.length===0);
       buttons[scene.id].hidden=scene.el.hidden;
       if(scene.el.hidden)style(backgrounds[scene.id],'opacity','0');
     });

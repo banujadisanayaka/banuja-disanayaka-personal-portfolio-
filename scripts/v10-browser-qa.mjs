@@ -128,6 +128,8 @@ try {
       assert.equal(await page.locator('.featured-photos .photo-tile').count(), 0);
       assert.equal(await page.locator('.gaze-controls').isVisible(), false);
       assert.ok(await page.locator('.gaze-empty').isVisible());
+      assert.equal(await page.locator('[data-journey-scene="2"]').isVisible(),false,'An emptied CMS journal also removes the introductory photo scene');
+      assert.equal(await page.locator('[data-scene-photo][src]').count(),0,'Removed photographs do not remain in the decorative scene layers');
     } else {
       assert.equal(await page.locator('.gaze-viewer').getAttribute('data-selected-photo'), selected);
       assert.equal(await page.locator('.gaze-thumbnail[aria-pressed=true]').count(), 1);
