@@ -43,6 +43,9 @@ try {
     await page.getByRole('link',{name:'Explore selected work',exact:false}).click();
     await page.waitForFunction(() => location.hash === '#work');
     assert.ok(await page.locator('.work-showcase.is-enhanced, .work-showcase').isVisible());
+    assert.equal(await page.locator('.chapter-scene').count(), 5, 'Every main homepage chapter has a graphical scene');
+    assert.equal(await page.locator('html').getAttribute('data-scene-transitions'), 'on');
+    await page.waitForFunction(() => document.querySelector('#work')?.dataset.scenePhase === 'active');
 
     // Every view remains an actual photograph, with the original lightbox and download.
     const viewer = page.getByRole('region',{name:'Featured photographs',exact:true});
