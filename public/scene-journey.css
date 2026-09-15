@@ -55,7 +55,8 @@
 .is-scrubbed .journey-art-inner{height:414px;transform:translate3d(0,0,0)}
 .is-scrubbed .journey-panel[aria-hidden=false] .portrait-frame{pointer-events:auto}
 .is-scrubbed .journey-backgrounds{display:block;position:absolute;inset:0;z-index:-2}
-.journey-background{position:absolute;inset:0;opacity:0}
+/* Opacity must not create/remove stacking contexts at transition endpoints. */
+.journey-background{position:absolute;inset:0;opacity:0;will-change:opacity}
 .journey-background:first-child{opacity:1}
 .journey-background::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 72% 35%,#ffffff12,transparent 67%)}
 .is-scrubbed .journey-contours{display:block;position:absolute;inset:-8%;width:116%;height:116%;stroke:#b5ba8f;stroke-width:.8;opacity:.12;z-index:-1;transform-origin:65% 45%}
@@ -120,10 +121,10 @@
 
 /* Ambient motion belongs to the backdrop; reading and photographs stay still. */
 .is-scrubbed .journey-atmosphere{display:block;position:absolute;inset:0;z-index:-1;overflow:clip;contain:strict}
-.journey-ambience{position:absolute;inset:-6%;opacity:0;transition:opacity .55s ease;color:#b9c49a}
+.journey-ambience{position:absolute;inset:-6%;opacity:0;transition:opacity .55s ease;color:#b9c49a;will-change:opacity}
 .journey-ambience img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42}
-.ambient-flow{position:absolute;inset:0;transform-origin:center;animation:ambient-current 18s ease-in-out infinite alternate paused}
-.ambient-light{position:absolute;width:85%;height:90%;right:-8%;top:-12%;background:radial-gradient(ellipse,#b8c39425,transparent 67%);animation:ambient-light 16s ease-in-out infinite alternate paused}
+.ambient-flow{position:absolute;inset:0;transform-origin:center;will-change:transform;animation:ambient-current 18s ease-in-out infinite alternate paused}
+.ambient-light{position:absolute;width:85%;height:90%;right:-8%;top:-12%;will-change:transform,opacity;background:radial-gradient(ellipse,#b8c39425,transparent 67%);animation:ambient-light 16s ease-in-out infinite alternate paused}
 .ambience-1{color:#566b44}.ambience-1 img{opacity:.22}.ambience-1 .ambient-flow{animation-name:ambient-grid;animation-duration:20s}.ambience-1 .ambient-light{background:radial-gradient(ellipse,#82985730,transparent 66%)}
 .ambience-2{color:#718668}.ambience-2 img{opacity:.32}.ambience-2 .ambient-flow{animation-name:ambient-lens;animation-duration:26s}.ambience-2 .ambient-light{background:radial-gradient(ellipse,#ffffff80,transparent 66%)}
 .ambience-3{color:#c3a377}.ambience-3 .ambient-flow{animation-name:ambient-land;animation-duration:22s}.ambience-3 .ambient-light{background:radial-gradient(ellipse,#dfad7135,transparent 66%)}
