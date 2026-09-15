@@ -41,7 +41,6 @@ jobs:
       - name: CMS atomic concurrency QA
         run: node scripts/cms-concurrency-qa.mjs
 
-
   browser-qa:
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -126,8 +125,7 @@ jobs:
       - name: Browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/v10-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
-
+        run: node scripts/v12-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
 
       - name: Mobile scroll performance regression
         env:
@@ -135,19 +133,21 @@ jobs:
           PERFORMANCE_BASELINE_URL: ${{ github.event_name == 'pull_request' && 'https://banujadisanayaka.netlify.app/' || '' }}
         run: node scripts/performance-browser-qa.mjs
 
-      - name: Save V10 visual verification
-        id: v10_visual_artifact
+      - name: Save V12 visual verification
+        id: v12_visual_artifact
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: v10-visual-qa
-          path: qa-artifacts/v10/
+          name: v12-visual-qa
+          path: |
+            qa-artifacts/v12/
+            qa-artifacts/v10/
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Preserve V10 review images if artifact storage is unavailable
-        if: always() && steps.v10_visual_artifact.outcome == 'failure'
+      - name: Preserve legacy performance review images if artifact storage is unavailable
+        if: always() && steps.v12_visual_artifact.outcome == 'failure'
         run: node scripts/v10-visual-log.mjs
 
       - name: Save project carousel visual verification
@@ -160,6 +160,7 @@ jobs:
           path: qa-artifacts/work/
           if-no-files-found: ignore
           retention-days: 7
+
       - name: Preserve review images in logs if artifact storage is unavailable
         if: always() && steps.work_visual_artifact.outcome == 'failure'
         run: node scripts/work-visual-log.mjs
