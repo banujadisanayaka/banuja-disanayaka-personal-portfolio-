@@ -204,10 +204,16 @@
     }));
     if (rail) rail.hidden = false;
     addEventListener('scroll', requestScene, {passive:true});
-    document.fonts?.ready.then(invalidateScene);
-    if ('ResizeObserver' in window) new ResizeObserver(invalidateScene).observe(document.body);
+    const invalidateForIntrinsicChange = () => {
+      // V12's lite profile supplies intrinsic media dimensions and owns its
+      // mobile scene geometry. Re-reading every chapter for lazy-image decode
+      // only forces layouts; resize and portfolio:content still invalidate.
+      if (html.dataset.v12Profile !== 'lite') invalidateScene();
+    };
+    document.fonts?.ready.then(invalidateForIntrinsicChange);
+    if ('ResizeObserver' in window) new ResizeObserver(invalidateForIntrinsicChange).observe(document.body);
     // Loading below-the-fold media can move an anchor without changing body height.
-    document.addEventListener('load', invalidateScene, {capture:true,passive:true});
+    document.addEventListener('load', invalidateForIntrinsicChange, {capture:true,passive:true});
     configureScene();
   }
 
