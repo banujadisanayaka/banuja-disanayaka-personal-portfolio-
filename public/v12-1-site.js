@@ -16,6 +16,7 @@
   };
 
   addStyle('/v12-1-site.css?v=1211', 'data-v121-style');
+  addStyle('/v12-1-compositions.css?v=1212', 'data-v121-compositions');
   html.dataset.v121 = 'on';
   body.dataset.v121Experience = 'cinematic-system';
 
@@ -224,13 +225,13 @@
   syncMotion();
 
   window.__V121_DIAGNOSTICS__ = Object.freeze({
-    version: '12.1-art-direction-1',
+    version: '12.1-art-direction-2',
     scenes: scenes.length,
     mediaPlanes: mediaSpec.length,
     scrollListener: false,
     geometryReadsOnScroll: false,
     activation: 'IntersectionObserver',
-    motion: 'CSS compositor ambience + live-image scene planes',
+    motion: 'CSS compositor ambience + live-image scene planes + fixed composition planes',
     semanticBase: body.dataset.version || 'unknown'
   });
 })();
