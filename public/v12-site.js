@@ -363,10 +363,16 @@
   addEventListener('scroll', schedule, {passive:true});
   addEventListener('resize', () => { tier = profile(); syncCompactNav(); invalidate(); }, {passive:true});
   addEventListener('orientationchange', () => { syncCompactNav(); invalidate(); }, {passive:true});
-  document.addEventListener('load', invalidate, {capture:true, passive:true});
+  // Intrinsic media sizes keep lite-profile scene geometry stable while lazy
+  // assets decode. Avoid remeasuring every scene for each below-fold load.
+  document.addEventListener('load', () => {
+    if (tier !== 'lite') invalidate();
+  }, {capture:true, passive:true});
   document.fonts?.ready?.then(invalidate);
   if ('ResizeObserver' in window) {
-    const ro = new ResizeObserver(invalidate);
+    const ro = new ResizeObserver(() => {
+      if (tier !== 'lite') invalidate();
+    });
     scenes.forEach(scene => ro.observe(scene.el));
   }
 
