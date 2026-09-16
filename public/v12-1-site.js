@@ -15,7 +15,7 @@
     document.head.append(link);
   };
 
-  addStyle('/v12-1-site.css?v=1210', 'data-v121-style');
+  addStyle('/v12-1-site.css?v=1211', 'data-v121-style');
   html.dataset.v121 = 'on';
   body.dataset.v121Experience = 'cinematic-system';
 
@@ -24,26 +24,26 @@
   const coarse = matchMedia('(pointer: coarse)');
 
   const sceneSpec = [
-    ['#opening', 'identity', 'Identity', 'BANUJA', '#d8bb79', '#6f8169', 76, 24],
-    ['#work', 'work', 'Selected work', 'MAKE', '#cda967', '#8a6654', 72, 30],
-    ['#photography', 'photography', 'The Daily Gaze', 'GAZE', '#9aaa80', '#d5bd7c', 22, 48],
-    ['#about', 'about', 'The person', 'HUMAN', '#d7bf8a', '#865c4c', 76, 40],
-    ['#perspectives', 'perspectives', 'Perspectives', 'THINK', '#acbd83', '#d0a86e', 28, 42],
-    ['#experience', 'experience', 'Journey', 'MOVE', '#c9a96b', '#657a68', 72, 34],
-    ['#ecosystem', 'ecosystem', 'VELORIA', 'EVOLVE', '#dcc17f', '#80584d', 28, 48],
-    ['#contact', 'contact', 'Contact', 'HELLO', '#e0c684', '#71836d', 76, 46]
+    {selector:'#opening', kind:'identity', label:'Identity', word:'BANUJA', tone:'#d8bb79', tone2:'#6f8169', x:76, y:24},
+    {selector:'#work', kind:'work', label:'Selected work', word:'MAKE', tone:'#cda967', tone2:'#8a6654', x:72, y:30},
+    {selector:'#photography', kind:'photography', label:'The Daily Gaze', word:'GAZE', tone:'#9aaa80', tone2:'#d5bd7c', x:22, y:48},
+    {selector:'#about', kind:'about', label:'The person', word:'HUMAN', tone:'#d7bf8a', tone2:'#865c4c', x:76, y:40},
+    {selector:'#perspectives', kind:'perspectives', label:'Perspectives', word:'THINK', tone:'#acbd83', tone2:'#d0a86e', x:28, y:42},
+    {selector:'#experience', kind:'experience', label:'Journey', word:'MOVE', tone:'#c9a96b', tone2:'#657a68', x:72, y:34},
+    {selector:'#ecosystem', kind:'ecosystem', label:'VELORIA', word:'EVOLVE', tone:'#dcc17f', tone2:'#80584d', x:28, y:48},
+    {selector:'#contact', kind:'contact', label:'Contact', word:'HELLO', tone:'#e0c684', tone2:'#71836d', x:76, y:46}
   ];
 
-  const scenes = sceneSpec.map(([selector, kind, label, word, tone, tone2, x, y], index) => {
-    const el = q(selector);
+  const scenes = sceneSpec.map((spec, index) => {
+    const el = q(spec.selector);
     if (!el) return null;
     el.classList.add('v121-chapter');
     el.dataset.v121Index = String(index);
-    el.dataset.v121Kind = kind;
-    el.dataset.v121Label = label;
-    el.style.setProperty('--v121-tone', tone);
-    el.style.setProperty('--v121-tone-2', tone2);
-    return {el, kind, label, word, tone, tone2, x, y, index};
+    el.dataset.v121Kind = spec.kind;
+    el.dataset.v121Label = spec.label;
+    el.style.setProperty('--v121-tone', spec.tone);
+    el.style.setProperty('--v121-tone-2', spec.tone2);
+    return {...spec, el, index};
   }).filter(Boolean);
 
   if (!scenes.length) return;
@@ -53,10 +53,12 @@
   stage.setAttribute('aria-hidden', 'true');
   stage.innerHTML = [
     '<span class="v121-stage__wash"></span>',
+    '<div class="v121-stage__media-deck"></div>',
     '<span class="v121-stage__grain"></span>',
     '<span class="v121-stage__frame"></span>',
     '<span class="v121-stage__beam"></span>',
     '<span class="v121-stage__word"></span>',
+    '<span class="v121-stage__rule"></span>',
     '<span class="v121-stage__meta"><i class="v121-stage__index"></i><b class="v121-stage__label"></b></span>'
   ].join('');
   body.prepend(stage);
@@ -64,6 +66,63 @@
   const stageWord = q('.v121-stage__word', stage);
   const stageIndex = q('.v121-stage__index', stage);
   const stageLabel = q('.v121-stage__label', stage);
+  const mediaDeck = q('.v121-stage__media-deck', stage);
+  const mediaObservers = [];
+
+  const mediaSpec = [
+    {
+      kind:'identity',
+      selector:'#opening .hero-visual img, #opening .portrait img, #opening img',
+      fallback:'/assets/v9/portrait-960.webp',
+      label:'Banuja Disanayaka portrait'
+    },
+    {
+      kind:'photography',
+      selector:'#photography .gaze-feature img, #photography .photo-grid img, #photography img',
+      fallback:'/assets/v9/gaze-168481-4a4cb46cbf2a.webp',
+      label:'The Daily Gaze featured photograph'
+    },
+    {
+      kind:'about',
+      selector:'#about .about-visual img, #about img',
+      fallback:'/assets/v9/about-960.webp',
+      label:'Banuja Disanayaka design portrait'
+    }
+  ];
+
+  const mirrorImage = (source, target, fallback) => {
+    const src = source?.getAttribute('src') || fallback;
+    const srcset = source?.getAttribute('srcset');
+    const sizes = source?.getAttribute('sizes');
+    if (src) target.setAttribute('src', src);
+    if (srcset) target.setAttribute('srcset', srcset); else target.removeAttribute('srcset');
+    if (sizes) target.setAttribute('sizes', sizes); else target.removeAttribute('sizes');
+  };
+
+  mediaSpec.forEach(({kind, selector, fallback, label}) => {
+    const source = q(selector);
+    const figure = document.createElement('figure');
+    figure.className = 'v121-stage__media';
+    figure.dataset.v121Media = kind;
+    figure.innerHTML = '<span class="v121-stage__media-edge"></span>';
+
+    const image = document.createElement('img');
+    image.className = 'v121-stage__image';
+    image.alt = '';
+    image.decoding = 'async';
+    image.draggable = false;
+    image.setAttribute('aria-label', label);
+    mirrorImage(source, image, fallback);
+    figure.prepend(image);
+    mediaDeck.append(figure);
+
+    if (source) {
+      const observer = new MutationObserver(() => mirrorImage(source, image, fallback));
+      observer.observe(source, {attributes:true, attributeFilter:['src','srcset','sizes']});
+      mediaObservers.push(observer);
+    }
+  });
+
   const ratios = new Map(scenes.map(scene => [scene.index, 0]));
   let activeIndex = -1;
   let pointerRaf = 0;
@@ -165,12 +224,13 @@
   syncMotion();
 
   window.__V121_DIAGNOSTICS__ = Object.freeze({
-    version: '12.1-foundation-1',
+    version: '12.1-art-direction-1',
     scenes: scenes.length,
+    mediaPlanes: mediaSpec.length,
     scrollListener: false,
     geometryReadsOnScroll: false,
     activation: 'IntersectionObserver',
-    motion: 'CSS compositor ambience + scene-state transitions',
+    motion: 'CSS compositor ambience + live-image scene planes',
     semanticBase: body.dataset.version || 'unknown'
   });
 })();
