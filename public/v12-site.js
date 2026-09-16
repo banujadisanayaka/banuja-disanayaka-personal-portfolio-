@@ -66,7 +66,7 @@
   let pointerRaf = 0;
   let pointerX = 0;
   let pointerY = 0;
-  let observingScenes = false;
+  let observingScenes = null;
   const isLightweightProfile = () => compact.matches || coarse.matches;
 
   const setActive = index => {
