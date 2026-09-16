@@ -121,10 +121,35 @@ jobs:
           grep -qi '^referrer-policy: no-referrer' /tmp/content-headers
           grep -qi '^cross-origin-resource-policy: same-origin' /tmp/content-headers
 
-      - name: Browser accessibility and responsive QA
+      - name: V10 browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/v10-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs && node scripts/v12-1-browser-qa.mjs
+        run: node scripts/v10-browser-qa.mjs
+
+      - name: Cinematic scene journey QA
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
+        run: node scripts/scene-journey-qa.mjs
+
+      - name: Project work browser QA
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
+        run: node scripts/work-browser-qa.mjs
+
+      - name: Release browser QA
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
+        run: node scripts/release-browser-qa.mjs
+
+      - name: Experience browser QA
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
+        run: node scripts/experience-browser-qa.mjs
+
+      - name: V12.1 browser QA
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
+        run: node scripts/v12-1-browser-qa.mjs
 
       - name: Capture V12.1 cinematic visual review
         env:
