@@ -251,10 +251,20 @@
     const scene = scenes[index];
     if (!scene) return;
     scenes.forEach((item, i) => {
-      item.el.dataset.v12Active = String(i === index);
-      item.el.style.willChange = i === index || Math.abs(i-index) === 1 ? 'transform, opacity' : 'auto';
+      const activeValue = String(i === index);
+      if (item.el.dataset.v12Active !== activeValue) item.el.dataset.v12Active = activeValue;
+      const nextWillChange = tier === 'lite'
+        ? 'auto'
+        : i === index || Math.abs(i-index) === 1 ? 'transform, opacity' : 'auto';
+      if (item.el.style.willChange !== nextWillChange) item.el.style.willChange = nextWillChange;
     });
-    navLinks.forEach((link, i) => i === index ? link.setAttribute('aria-current','location') : link.removeAttribute('aria-current'));
+    navLinks.forEach((link, i) => {
+      if (i === index) {
+        if (link.getAttribute('aria-current') !== 'location') link.setAttribute('aria-current','location');
+      } else if (link.hasAttribute('aria-current')) {
+        link.removeAttribute('aria-current');
+      }
+    });
     html.dataset.v12Scene = String(index);
     html.style.setProperty('--v12-tone', scene.tone);
     html.style.setProperty('--v12-tone-2', scene.tone2);
