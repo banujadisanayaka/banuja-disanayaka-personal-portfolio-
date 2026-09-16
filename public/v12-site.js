@@ -25,7 +25,6 @@
 
   const sceneSpec = [
     ['#opening', 'identity', 'Identity', '#e7ca88', '#6f8568', 76, 22],
-    ['#approach', 'approach', 'Observe · Connect · Create', '#829675', '#d6c48f', 24, 34],
     ['#work', 'work', 'Selected work', '#cfb576', '#637d68', 78, 28],
     ['#photography', 'photography', 'The Daily Gaze', '#75856d', '#c7b57d', 20, 48],
     ['#about', 'about', 'The person', '#d7b67b', '#8d5846', 74, 38],
