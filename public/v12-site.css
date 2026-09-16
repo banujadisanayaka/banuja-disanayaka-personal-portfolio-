@@ -336,3 +336,19 @@ html[data-v12-profile="mobile"] .v12-scene::after {
     display: none;
   }
 }
+
+
+/*
+ * Keep the expensive carousel and photography archive deferred on lightweight
+ * profiles, but lay out the four text-led chapters up front. This preserves
+ * offscreen rendering for the heavy media while avoiding repeated
+ * content-visibility activation layouts during the complete mobile journey.
+ */
+@media (max-width: 900px), (pointer: coarse) {
+  html[data-v12="on"] .about,
+  html[data-v12="on"] .experience,
+  html[data-v12="on"] .ecosystem,
+  html[data-v12="on"] .contact {
+    content-visibility: visible;
+  }
+}
