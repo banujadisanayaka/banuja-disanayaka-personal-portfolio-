@@ -27,7 +27,6 @@ Validation: retain all existing responsive, native touch, reduced-motion, forced
 
 Technical references consulted: https://web.dev/articles/avoid-large-complex-layouts-and-layout-thrashing and https://developers.google.com/search/docs/appearance/structured-data/profile-page.
 
-
 Measured before release (same 390×844 viewport, device scale 2, Chromium, 4× CPU slowdown, 119 sampled frame intervals):
 
 | Measure | V10.1 production | V10.2 preview |
@@ -41,7 +40,6 @@ Measured before release (same 390×844 viewport, device scale 2, Chromium, 4× C
 
 This establishes style invalidation and asynchronous text compensation as the problems measured here; layout count alone would not have caught them. A 500ms style-work ceiling gives the observed candidate substantial CI headroom while rejecting the original regression. These are controlled lab measurements, not a guarantee for every physical device. All existing browser scenarios, nine responsive routes, native gestures, reduced/no-JS/forced-color fallbacks, CMS and security checks passed on 0654e7de9d4ab1c3c8bc62d22fcca3435ed8d88b. Final release also requires the same gates on the final commit.
 
-
 ## V10.2.1 canonical-origin release integrity
 
 Finding on 13 September 2026: Netlify production had been renamed to `banujadisanayaka.netlify.app` and was healthy at main commit `282effe5d4d3afa422848a732b26d48a7a43df85`, but Portfolio QA failed because the structured-data generator used the new origin while the SEO assertion still expected the retired origin. The pull-request preview URL and performance baseline also targeted the retired Netlify project name.
@@ -52,7 +50,6 @@ The first renamed preview confirmed that individual Netlify function routes can 
 
 Validation required before release: release/content/media, SEO, backend security, CMS concurrency, all browser accessibility/responsive/motion/workflow scenarios, mobile performance budgets, Netlify build smoke, exact preview commit, and final published production commit. Next useful audit: verify the retired Netlify hostname redirects cleanly if Netlify continues serving it; canonical metadata must remain on the current hostname regardless.
 
-
 ## V10.2.2 public-name entity continuity
 
 Audit on 13 September 2026: an exact-name search for “Banuja Disanayaka” already returned the new portfolio URL and its intended portfolio description. The public LinkedIn and Instagram profiles for the same name were also visible, while the Person graph only linked GitHub. The retired `banuja-personal-log.netlify.app` hostname returned Netlify `404` responses for the homepage, About, Daily Gaze, a project case study and `robots.txt`; it does not reach the renamed project, so a redirect cannot be implemented inside this repository.
@@ -60,7 +57,6 @@ Audit on 13 September 2026: an exact-name search for “Banuja Disanayaka” alr
 Repair: connect the existing Person entity to Banuja Disanayaka’s verified public GitHub, LinkedIn and Instagram profile URLs through `sameAs`. SEO QA asserts the exact identity set on every public route so CMS or template changes cannot silently remove or alter it. No private identity fields, tracking or unverified claims are added.
 
 Validation required before release: the complete static, SEO, security, CMS concurrency, responsive, accessibility, motion and mobile-performance gates on the exact final commit, followed by Netlify production-commit and live structured-data verification. Next useful step: recheck search indexing after crawlers process the strengthened graph; preserving the retired hostname would require a separately routed redirect host and is intentionally not created by this existing-site iteration.
-
 
 ## V10.2.3 deterministic motion-preference gate
 
@@ -70,7 +66,6 @@ Repair: wait for both the root `data-motion="off"` state and all three story bea
 
 The first PR19 preview also showed one transient edge-readiness response during the landscape scenario after four successful viewport loads. The V10 entry helper now allows three bounded initial navigations and still requires `body[data-version="10"]` before any interaction assertions. It does not retry failed controls, accessibility behavior or performance budgets.
 
-
 ## V10.3 graphical chapter transformations
 
 Audit on 15 September 2026: the opening and Observe → Connect → Create sequence already use spatial, visitor-controlled motion, while Work, Daily Gaze, About, Perspectives and Contact still arrive primarily as conventional stacked sections. This leaves the later homepage short of the requested feeling that each chapter is its own graphical screen and transforms into the next.
@@ -78,7 +73,6 @@ Audit on 15 September 2026: the opening and Observe → Connect → Create seque
 Repair: give all five later chapters distinct, lightweight graphical identities and observer-driven next/active/past states. The transitions use compositor-friendly opacity and transform changes, perform no continuous scroll reads, add no timers or autoplay, and remain absent when motion is disabled or reduced motion is requested. Mobile keeps the graphical identity without the large desktop transforms. Browser QA now asserts that all five scenes initialize and that anchor navigation activates the intended chapter.
 
 Validation required before release: run the complete static, responsive, accessibility, CMS/security/concurrency and V10 browser gates on the exact commit, including the mobile performance regression budget and offscreen-idle checks. Then verify the exact Netlify production commit and live scene activation, project carousel, Daily Gaze controls and motion preference. Next useful step: if the transformation language is accepted, tune only individual scene art direction from observed user feedback rather than adding more global motion.
-
 
 ## V10.4 — approved six-scene scroll journey
 
@@ -90,18 +84,10 @@ Required final release coverage on the exact pull-request preview: scene layout 
 
 Follow-up integration keeps scene photographs aligned with CMS gallery edits, removes them when the journal is emptied, and applies section visibility to the matching scene. The final commit must still pass the same release gates before merging; see PR #21 for its exact verification and deployment record.
 
+## V12.1 clean cinematic rebuild
 
-## V12 performance-first rebuild
+Decision on 16 September 2026: retire the previous V12 runtime and begin V12.1 as a new visual system rather than iterating on the old orbit/grid overlay. The implementation branch is `v12.1-cinematic-rebuild`. The legacy V12 JavaScript, CSS and V12-specific browser/performance scripts are removed from this branch; the V10 content/CMS/security baseline remains the semantic foundation.
 
-Audit on 16 September 2026: the first cinematic exhibition implementation in PR #25 achieved the intended art direction but failed the established throttled-mobile performance gates. Its scroll engine repeatedly invalidated inherited styles across the full homepage and later tracing still exposed forced-layout work above budget. PR #25 was retired unmerged; production and main remained on the stable V11 release.
+V12.1 foundation: one persistent editorial stage changes with eight physical homepage chapters—Identity, Selected Work, The Daily Gaze, About, Perspectives, Journey, VELORIA and Contact. Its visual language uses oversized typography, framing, light planes, warm editorial tones and scene-specific compositions. Activation is IntersectionObserver-driven. V12.1 adds no JavaScript scroll listener and performs no geometry reads during scrolling. Desktop pointer ambience is isolated to one requestAnimationFrame; reduced-motion, mobile/landscape and forced-colour profiles simplify or remove decorative motion.
 
-Repair direction: PR #26 rebuilds V12 from stable main with no V12 JavaScript scroll listener and no V12 geometry reads during scrolling. Eight physical exhibition sections are activated by IntersectionObserver: the opening six-scene journey, Selected Work, The Daily Gaze, About, Perspectives, Experience, VELORIA and Contact. The former standalone #approach section is already folded into the generated opening journey and must not be counted as a ninth section. Desktop enhancement uses CSS view timelines where supported; mobile, reduced-motion and forced-colour profiles stay lightweight and readable.
-
-Release requirement: the draft remains blocked until its exact deploy preview passes responsive and accessibility coverage plus the unchanged mobile performance, content, CMS, authentication, API privacy, security and concurrency gates. Then verify the exact production commit and live journey, projects, gallery, lightbox/download and motion controls before release. The next useful step after the foundation passes is section-by-section visual tuning without reintroducing a JavaScript scroll engine.
-
-
-### V12.0.1 mobile activation follow-up
-
-Post-merge main QA on 16 September 2026 exposed a narrow V12 full-journey regression: 32 layout events against the unchanged budget of 30, while the existing mobile regression gate still passed. PR #27 removes two mobile-only activation mutations whose effects were hidden or overridden in the lightweight profile: per-section active-state attributes and world-label text updates. Desktop section emphasis and labels, mobile world-tone transitions, reduced motion and all content remain unchanged.
-
-On the settled exact PR preview at commit b298acb7840749ea95a3e1055cb4e741bd26dd63, the existing 4×-CPU mobile gate measured 8 layouts, 0 frames over 50ms, 17ms p95 and 0px copy drift. The V12 full-journey gate measured 28 layouts, 194ms of style work, 166ms of script work, 0 frames over 100ms and 50ms p95. All desktop, mobile, landscape, reduced-motion and forced-colour V12 scenarios passed. Re-run the complete suite on the documentation-inclusive final commit before merge, then verify the exact Netlify production commit.
+Release gates: keep every existing release, SEO, backend security, CMS concurrency, V10 responsive/accessibility/workflow and generic 4×-CPU mobile performance test. Add a dedicated V12.1 browser gate covering desktop, mobile, compact landscape, reduced motion and forced colours, and explicitly assert that the retired V12 runtime does not initialize. The pull request remains draft until the exact Netlify deploy preview passes these gates and visual review confirms the scene system meets the requested cinematic benchmark. Do not merge based on structural QA alone.
