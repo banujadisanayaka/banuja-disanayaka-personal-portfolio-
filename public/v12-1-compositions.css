@@ -176,6 +176,13 @@ html[data-v121-profile="mobile"] .v121-stage * {
   transition: none !important;
 }
 
+/* The mirrored photographic planes are desktop art direction. Keeping them out
+   of the lightweight mobile layout prevents large fixed image boxes from entering
+   the strict scroll-performance path while preserving the ambient editorial stage. */
+html[data-v121-profile="mobile"] .v121-stage__media-deck {
+  display: none !important;
+}
+
 html[data-v121-motion="off"] .v121-stage::before,
 html[data-v121-motion="off"] .v121-stage::after {
   transition: none;
