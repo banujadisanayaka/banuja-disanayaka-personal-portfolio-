@@ -66,13 +66,15 @@
   let pointerRaf = 0;
   let pointerX = 0;
   let pointerY = 0;
+  let observingScenes = null;
+  const isLightweightProfile = () => compact.matches || coarse.matches;
 
   const setActive = index => {
     if (index === activeIndex || !scenes[index]) return;
     const previous = scenes[activeIndex];
     const current = scenes[index];
 
-    const lightweightProfile = compact.matches || coarse.matches;
+    const lightweightProfile = isLightweightProfile();
     if (!lightweightProfile) {
       if (previous) previous.el.dataset.v12Active = 'false';
       current.el.dataset.v12Active = 'true';
@@ -114,8 +116,22 @@
     threshold: [0, 0.15, 0.3, 0.5, 0.7]
   });
 
-  scenes.forEach(scene => observer.observe(scene.el));
-  setActive(0);
+  const syncSceneObservation = () => {
+    const shouldObserve = !isLightweightProfile();
+    if (shouldObserve === observingScenes) return;
+
+    observer.disconnect();
+    ratios.forEach((value, index) => ratios.set(index, 0));
+    scenes.forEach(scene => {
+      delete scene.el.dataset.v12Active;
+      if (shouldObserve) observer.observe(scene.el);
+    });
+    observingScenes = shouldObserve;
+    activeIndex = -1;
+    setActive(0);
+  };
+
+  syncSceneObservation();
 
   const syncProfile = () => {
     const profile = reduced.matches ? 'reduced' : (compact.matches || coarse.matches ? 'mobile' : 'desktop');
@@ -142,8 +158,13 @@
     if (!pointerRaf) pointerRaf = requestAnimationFrame(paintPointer);
   }, {passive:true});
 
-  compact.addEventListener?.('change', syncProfile);
-  coarse.addEventListener?.('change', syncProfile);
+  const syncViewportProfile = () => {
+    syncProfile();
+    syncSceneObservation();
+  };
+
+  compact.addEventListener?.('change', syncViewportProfile);
+  coarse.addEventListener?.('change', syncViewportProfile);
   reduced.addEventListener?.('change', () => {
     syncProfile();
     syncMotion();
@@ -171,6 +192,7 @@
     scrollListener: false,
     geometryReadsOnScroll: false,
     activation: 'IntersectionObserver',
+    lightweightActivation: isLightweightProfile() ? 'static ambient' : 'section observer',
     motion: 'CSS view timeline + isolated pointer ambient',
     semanticBase: body.dataset.version || 'unknown'
   });
