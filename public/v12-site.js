@@ -13,7 +13,7 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
   const coarse = matchMedia('(pointer: coarse)');
-  const isShortLandscape = () => (coarse.matches || navigator.maxTouchPoints > 0) && innerWidth > innerHeight && innerHeight <= 500;
+  const isShortLandscape = () => innerWidth > innerHeight && innerHeight <= 500 && innerWidth <= 900;
 
   const addStyle = (href, marker) => {
     if (q(`link[${marker}]`)) return;
