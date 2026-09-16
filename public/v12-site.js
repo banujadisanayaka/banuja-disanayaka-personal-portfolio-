@@ -296,8 +296,12 @@
       if (abs < bestDistance) { bestDistance = abs; best = index; }
 
       const near = inScene || abs < 1.15;
-      scene.el.dataset.v12Near = String(near);
-      if (!near) return;
+      const nearValue = String(near);
+      if (scene.el.dataset.v12Near !== nearValue) scene.el.dataset.v12Near = nearValue;
+      // Small touch devices keep the full art direction and scene navigation,
+      // but the proven opening journey owns continuous scroll choreography.
+      // Avoid inherited custom-property writes across large section subtrees.
+      if (!near || tier === 'lite') return;
 
       const entry = smooth(clamp((local + .10) / .35));
       const exit = smooth(clamp((1.08 - local) / .36));
@@ -316,22 +320,25 @@
     setActive(best);
     const active = scenes[best];
     const local = active?.local ?? .5;
-    const transitionStart = .80;
-    const cut = smooth(clamp((local - transitionStart) / (1 - transitionStart)));
-    html.style.setProperty('--v12-cut', cut.toFixed(4));
-    html.style.setProperty('--v12-progress', ((y / Math.max(1, document.documentElement.scrollHeight - vh))).toFixed(5));
-    html.style.setProperty('--v12-orbit-r', `${(best * 18 + local * 15).toFixed(2)}deg`);
-    html.style.setProperty('--v12-world-x', `${((local - .5) * (tier === 'high' ? -36 : -16)).toFixed(2)}px`);
-    html.style.setProperty('--v12-world-y', `${((local - .5) * (tier === 'high' ? 28 : 10)).toFixed(2)}px`);
-    html.style.setProperty('--v12-thread-y', `${((best + local) / Math.max(1, scenes.length) * 100).toFixed(2)}%`);
-    html.style.setProperty('--v12-scroll-dir', String(direction));
-    html.dataset.v12Scrolled = y > 40 ? 'true' : 'false';
-    siteHeader?.toggleAttribute('data-compact', y > 60);
+    if (tier !== 'lite') {
+      const transitionStart = .80;
+      const cut = smooth(clamp((local - transitionStart) / (1 - transitionStart)));
+      html.style.setProperty('--v12-cut', cut.toFixed(4));
+      html.style.setProperty('--v12-progress', ((y / Math.max(1, document.documentElement.scrollHeight - vh))).toFixed(5));
+      html.style.setProperty('--v12-orbit-r', `${(best * 18 + local * 15).toFixed(2)}deg`);
+      html.style.setProperty('--v12-world-x', `${((local - .5) * (tier === 'high' ? -36 : -16)).toFixed(2)}px`);
+      html.style.setProperty('--v12-world-y', `${((local - .5) * (tier === 'high' ? 28 : 10)).toFixed(2)}px`);
+      html.style.setProperty('--v12-thread-y', `${((best + local) / Math.max(1, scenes.length) * 100).toFixed(2)}%`);
+      html.style.setProperty('--v12-scroll-dir', String(direction));
 
-    px += (ptx - px) * .14;
-    py += (pty - py) * .14;
-    html.style.setProperty('--v12-px', ((px - .5) * 2).toFixed(4));
-    html.style.setProperty('--v12-py', ((py - .5) * 2).toFixed(4));
+      px += (ptx - px) * .14;
+      py += (pty - py) * .14;
+      html.style.setProperty('--v12-px', ((px - .5) * 2).toFixed(4));
+      html.style.setProperty('--v12-py', ((py - .5) * 2).toFixed(4));
+    }
+    const scrolled = String(y > 40);
+    if (html.dataset.v12Scrolled !== scrolled) html.dataset.v12Scrolled = scrolled;
+    if (siteHeader?.hasAttribute('data-compact') !== (y > 60)) siteHeader?.toggleAttribute('data-compact', y > 60);
   };
 
   const schedule = () => {
