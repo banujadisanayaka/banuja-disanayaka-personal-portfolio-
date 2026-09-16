@@ -175,12 +175,17 @@ jobs:
       - name: Save V12.1 visual verification
         id: v121_visual_artifact
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: v12-1-visual-qa
           path: qa-artifacts/v12-1/*.png
           if-no-files-found: error
           retention-days: 7
+
+      - name: Preserve V12.1 review images if artifact storage is unavailable
+        if: always() && steps.v121_visual_artifact.outcome == 'failure'
+        run: node scripts/v12-1-visual-log.mjs
 
       - name: Save V10 visual verification
         id: v10_visual_artifact
