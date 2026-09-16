@@ -8,6 +8,7 @@ async function open(page, path='/') {
   await page.goto(base + path, {waitUntil:'networkidle'});
   await page.locator('html[data-v121="on"]').waitFor();
   await page.waitForFunction(() => document.querySelector('link[data-v121-style]')?.sheet);
+  await page.waitForFunction(() => document.querySelector('link[data-v121-compositions]')?.sheet);
 }
 
 async function waitForMediaOpacity(page, kind, threshold = 0.5) {
@@ -38,11 +39,12 @@ try {
     assert.equal(await page.locator('.v121-chapter[data-v121-kind]').count(), 8);
     assert.equal(await page.locator('.v121-stage__media').count(), 3);
     assert.equal(await page.locator('.v121-stage__image').count(), 3);
+    assert.equal(await page.locator('link[data-v121-compositions]').count(), 1);
     assert.equal(await page.locator('html[data-v12="on"]').count(), 0, 'retired V12 runtime must not initialize');
     assert.equal(await page.locator('.v12-world').count(), 0, 'retired V12 stage must not exist');
 
     const diagnostics = await page.evaluate(() => window.__V121_DIAGNOSTICS__);
-    assert.equal(diagnostics?.version, '12.1-art-direction-1');
+    assert.equal(diagnostics?.version, '12.1-art-direction-2');
     assert.equal(diagnostics?.mediaPlanes, 3);
     assert.equal(diagnostics?.scrollListener, false);
     assert.equal(diagnostics?.geometryReadsOnScroll, false);
@@ -51,8 +53,12 @@ try {
 
     if (scenario.name === 'desktop') {
       assert.equal(await page.locator('html').getAttribute('data-v121-profile'), 'desktop');
+      assert.equal(diagnostics?.lightweightActivation, 'section observer');
       await waitForMediaOpacity(page, 'identity');
       assert.ok((await page.locator('.v121-stage__media[data-v121-media="identity"] img').getAttribute('src'))?.length > 0);
+
+      const identityPlaneOpacity = await page.evaluate(() => getComputedStyle(document.querySelector('.v121-stage'), '::before').opacity);
+      assert.ok(Number(identityPlaneOpacity) > 0, 'desktop composition plane is visible');
 
       await page.locator('#photography').scrollIntoViewIfNeeded();
       await page.waitForFunction(() => document.querySelector('.v121-stage')?.dataset.v121Kind === 'photography');
@@ -71,11 +77,19 @@ try {
 
     if (scenario.name === 'mobile' || scenario.name === 'landscape') {
       assert.equal(await page.locator('html').getAttribute('data-v121-profile'), 'mobile');
+      assert.equal(diagnostics?.lightweightActivation, 'static ambient');
+      const initialKind = await page.locator('.v121-stage').getAttribute('data-v121-kind');
+      await page.locator('#contact').scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
+      assert.equal(await page.locator('.v121-stage').getAttribute('data-v121-kind'), initialKind, `${scenario.name} keeps static ambient world`);
+      assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.v121-stage'), '::before').display), 'none');
+      assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.v121-stage'), '::after').display), 'none');
     }
 
     if (scenario.name === 'reduced') {
       assert.equal(await page.locator('html').getAttribute('data-v121-profile'), 'reduced');
       assert.equal(await page.locator('html').getAttribute('data-v121-motion'), 'off');
+      assert.equal(diagnostics?.lightweightActivation, 'static ambient');
       assert.equal(await page.evaluate(() => document.querySelector('.v121-stage')?.getAnimations({subtree:true}).filter(a => a.playState === 'running').length), 0);
     }
 
