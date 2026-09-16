@@ -26,15 +26,15 @@ try {
     assert.equal(await page.locator('body').getAttribute('data-version'), '10', 'V12 rebuild preserves the stable semantic V10 base while draft');
     assert.equal(await page.locator('body').getAttribute('data-v12-experience'), 'cinematic-rebuild');
     assert.equal(await page.locator('.v12-world').count(), 1);
-    assert.equal(await page.locator('.v12-scene').count(), 9);
-    assert.equal(await page.locator('.v12-scene[data-v12-kind]').count(), 9);
+    assert.equal(await page.locator('.v12-scene').count(), 8);
+    assert.equal(await page.locator('.v12-scene[data-v12-kind]').count(), 8);
 
     const diagnostics = await page.evaluate(() => window.__V12_DIAGNOSTICS__);
     assert.equal(diagnostics?.version, '12-rebuild-2');
     assert.equal(diagnostics?.scrollListener, false);
     assert.equal(diagnostics?.geometryReadsOnScroll, false);
     assert.equal(diagnostics?.activation, 'IntersectionObserver');
-    assert.equal(diagnostics?.scenes, 9);
+    assert.equal(diagnostics?.scenes, 8);
 
     if (scenario.name === 'desktop') {
       assert.equal(await page.locator('html').getAttribute('data-v12-profile'), 'desktop');
