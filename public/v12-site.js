@@ -72,8 +72,11 @@
     const previous = scenes[activeIndex];
     const current = scenes[index];
 
-    if (previous) previous.el.dataset.v12Active = 'false';
-    current.el.dataset.v12Active = 'true';
+    const lightweightProfile = compact.matches || coarse.matches;
+    if (!lightweightProfile) {
+      if (previous) previous.el.dataset.v12Active = 'false';
+      current.el.dataset.v12Active = 'true';
+    }
     activeIndex = index;
 
     world.dataset.v12Scene = String(index);
@@ -82,7 +85,9 @@
     world.style.setProperty('--v12-tone-2', current.tone2);
     world.style.setProperty('--v12-origin-x', `${current.x}%`);
     world.style.setProperty('--v12-origin-y', `${current.y}%`);
-    if (worldLabel) worldLabel.textContent = `${String(index + 1).padStart(2, '0')} · ${current.label}`;
+    if (!lightweightProfile && worldLabel) {
+      worldLabel.textContent = `${String(index + 1).padStart(2, '0')} · ${current.label}`;
+    }
   };
 
   const chooseActive = () => {
