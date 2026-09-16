@@ -15,34 +15,36 @@
     document.head.append(link);
   };
 
-  addStyle('/v12-site.css?v=1200', 'data-v12-style');
+  addStyle('/v12-site.css?v=1201', 'data-v12-style');
   html.dataset.v12 = 'on';
-  body.dataset.version = '12';
+  body.dataset.v12Experience = 'cinematic-rebuild';
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const compact = matchMedia('(max-width: 900px)');
   const coarse = matchMedia('(pointer: coarse)');
 
   const sceneSpec = [
-    ['#opening', 'Identity', '#e7ca88', '#6f8568', 76, 22],
-    ['#approach', 'Observe · Connect · Create', '#829675', '#d6c48f', 24, 34],
-    ['#work', 'Selected work', '#cfb576', '#637d68', 78, 28],
-    ['#photography', 'The Daily Gaze', '#75856d', '#c7b57d', 20, 48],
-    ['#about', 'The person', '#d7b67b', '#8d5846', 74, 38],
-    ['#perspectives', 'Perspectives', '#aec07f', '#d5b67b', 26, 42],
-    ['#experience', 'Journey', '#c5a869', '#5f7868', 74, 32],
-    ['#ecosystem', 'VELORIA', '#dfc382', '#855647', 28, 46],
-    ['#contact', 'Contact', '#e7ca88', '#6d8466', 78, 44]
+    ['#opening', 'identity', 'Identity', '#e7ca88', '#6f8568', 76, 22],
+    ['#approach', 'approach', 'Observe · Connect · Create', '#829675', '#d6c48f', 24, 34],
+    ['#work', 'work', 'Selected work', '#cfb576', '#637d68', 78, 28],
+    ['#photography', 'photography', 'The Daily Gaze', '#75856d', '#c7b57d', 20, 48],
+    ['#about', 'about', 'The person', '#d7b67b', '#8d5846', 74, 38],
+    ['#perspectives', 'perspectives', 'Perspectives', '#aec07f', '#d5b67b', 26, 42],
+    ['#experience', 'experience', 'Journey', '#c5a869', '#5f7868', 74, 32],
+    ['#ecosystem', 'ecosystem', 'VELORIA', '#dfc382', '#855647', 28, 46],
+    ['#contact', 'contact', 'Contact', '#e7ca88', '#6d8466', 78, 44]
   ];
 
-  const scenes = sceneSpec.map(([selector, label, tone, tone2, x, y], index) => {
+  const scenes = sceneSpec.map(([selector, kind, label, tone, tone2, x, y], index) => {
     const el = q(selector);
     if (!el) return null;
     el.classList.add('v12-scene');
     el.dataset.v12Index = String(index);
+    el.dataset.v12Kind = kind;
+    el.dataset.v12Label = label;
     el.style.setProperty('--v12-scene-tone', tone);
     el.style.setProperty('--v12-scene-tone-2', tone2);
-    return {el, label, tone, tone2, x, y, index};
+    return {el, kind, label, tone, tone2, x, y, index};
   }).filter(Boolean);
 
   if (!scenes.length) return;
@@ -76,6 +78,7 @@
     activeIndex = index;
 
     world.dataset.v12Scene = String(index);
+    world.dataset.v12Kind = current.kind;
     world.style.setProperty('--v12-tone', current.tone);
     world.style.setProperty('--v12-tone-2', current.tone2);
     world.style.setProperty('--v12-origin-x', `${current.x}%`);
@@ -143,7 +146,6 @@
   });
   new MutationObserver(syncMotion).observe(html, {attributes:true, attributeFilter:['data-motion']});
 
-  // Keep public identity aligned with the production portfolio domain.
   const publicOrigin = 'https://banujadisanayaka.netlify.app';
   const oldOrigin = 'https://banuja-personal-log.netlify.app';
   const canonicalUrl = publicOrigin + location.pathname;
@@ -159,13 +161,13 @@
   syncProfile();
   syncMotion();
 
-  // Intentionally no scroll listener and no per-frame geometry reads.
   window.__V12_DIAGNOSTICS__ = Object.freeze({
-    version: '12-rebuild-1',
+    version: '12-rebuild-2',
     scenes: scenes.length,
     scrollListener: false,
     geometryReadsOnScroll: false,
     activation: 'IntersectionObserver',
-    motion: 'CSS view timeline + isolated pointer ambient'
+    motion: 'CSS view timeline + isolated pointer ambient',
+    semanticBase: body.dataset.version || 'unknown'
   });
 })();
