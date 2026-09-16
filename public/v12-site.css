@@ -270,7 +270,7 @@ html[data-v12-profile="lite"] .v12-cursor{display:none}
   html[data-v12="on"] .wordmark span{display:none}
   html[data-v12="on"] .wordmark .brand-logo{width:34px;height:34px}
   .v12-chapter-nav{width:calc(100vw - 20px);justify-content:space-between}
-  .v12-chapter-nav a{flex:1;justify-content:center;grid-template-columns:1fr;min-width:36px}.v12-chapter-nav a strong,.v12-chapter-nav a i{display:none}.v12-chapter-nav a:hover,.v12-chapter-nav a:focus-visible,.v12-chapter-nav a[aria-current]{grid-template-columns:1fr}.v12-chapter-nav a[aria-current]{background:var(--v12-tone);color:#121612}.v12-chapter-nav a[aria-current] span{color:#121612}
+  .v12-chapter-nav a{flex:1;justify-content:center;grid-template-columns:1fr;min-width:36px}.v12-chapter-nav a strong,.v12-chapter-nav a i{display:none}.v12-chapter-nav a[aria-current]{background:var(--v12-tone);color:#121612}.v12-chapter-nav a[aria-current] span{color:#121612}
   .v12-hero-signature{display:none}.v12-hero-frame{inset:72px 4% 104px}
   html[data-v12="on"] #work,html[data-v12="on"] #photography,html[data-v12="on"] #about,html[data-v12="on"] #perspectives,html[data-v12="on"] #experience,html[data-v12="on"] #ecosystem,html[data-v12="on"] #contact{padding-left:5%;padding-right:5%}
   html[data-v12="on"] #work .project-grid{--work-step:82vw;min-height:560px!important}
