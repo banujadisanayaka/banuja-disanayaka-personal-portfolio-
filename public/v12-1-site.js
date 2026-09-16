@@ -23,6 +23,7 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const compact = matchMedia('(max-width: 900px)');
   const coarse = matchMedia('(pointer: coarse)');
+  const isLightweightProfile = () => compact.matches || coarse.matches;
 
   const sceneSpec = [
     {selector:'#opening', kind:'identity', label:'Identity', word:'BANUJA', tone:'#d8bb79', tone2:'#6f8169', x:76, y:24},
@@ -126,6 +127,7 @@
 
   const ratios = new Map(scenes.map(scene => [scene.index, 0]));
   let activeIndex = -1;
+  let observingScenes = null;
   let pointerRaf = 0;
   let pointerX = 0;
   let pointerY = 0;
@@ -173,11 +175,23 @@
     threshold: [0, 0.1, 0.25, 0.45, 0.65]
   });
 
-  scenes.forEach(scene => observer.observe(scene.el));
-  setActive(0);
+  const syncSceneObservation = () => {
+    const shouldObserve = !isLightweightProfile();
+    if (shouldObserve === observingScenes) return;
+
+    observer.disconnect();
+    ratios.forEach((value, index) => ratios.set(index, 0));
+    scenes.forEach(scene => {
+      scene.el.removeAttribute('data-v121-active');
+      if (shouldObserve) observer.observe(scene.el);
+    });
+    observingScenes = shouldObserve;
+    activeIndex = -1;
+    setActive(0);
+  };
 
   const syncProfile = () => {
-    const profile = reduced.matches ? 'reduced' : (compact.matches || coarse.matches ? 'mobile' : 'desktop');
+    const profile = reduced.matches ? 'reduced' : (isLightweightProfile() ? 'mobile' : 'desktop');
     if (html.dataset.v121Profile !== profile) html.dataset.v121Profile = profile;
   };
 
@@ -201,8 +215,13 @@
     if (!pointerRaf) pointerRaf = requestAnimationFrame(paintPointer);
   }, {passive:true});
 
-  compact.addEventListener?.('change', syncProfile);
-  coarse.addEventListener?.('change', syncProfile);
+  const syncViewportProfile = () => {
+    syncProfile();
+    syncSceneObservation();
+  };
+
+  compact.addEventListener?.('change', syncViewportProfile);
+  coarse.addEventListener?.('change', syncViewportProfile);
   reduced.addEventListener?.('change', () => {
     syncProfile();
     syncMotion();
@@ -222,6 +241,7 @@
   if (ld?.textContent?.includes(retiredOrigin)) ld.textContent = ld.textContent.replaceAll(retiredOrigin, publicOrigin);
 
   syncProfile();
+  syncSceneObservation();
   syncMotion();
 
   window.__V121_DIAGNOSTICS__ = Object.freeze({
@@ -231,6 +251,7 @@
     scrollListener: false,
     geometryReadsOnScroll: false,
     activation: 'IntersectionObserver',
+    lightweightActivation: isLightweightProfile() ? 'static ambient' : 'section observer',
     motion: 'CSS compositor ambience + live-image scene planes + fixed composition planes',
     semanticBase: body.dataset.version || 'unknown'
   });
