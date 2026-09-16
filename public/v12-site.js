@@ -310,12 +310,14 @@
       if (abs < bestDistance) { bestDistance = abs; best = index; }
 
       const near = inScene || abs < 1.15;
-      const nearValue = String(near);
-      if (scene.el.dataset.v12Near !== nearValue) scene.el.dataset.v12Near = nearValue;
       // Small touch devices keep the full art direction and scene navigation,
       // but the proven opening journey owns continuous scroll choreography.
-      // Avoid inherited custom-property writes across large section subtrees.
-      if (!near || tier === 'lite') return;
+      // Avoid inherited variables and proximity-selector invalidation across
+      // large section subtrees on every chapter boundary.
+      if (tier === 'lite') return;
+      const nearValue = String(near);
+      if (scene.el.dataset.v12Near !== nearValue) scene.el.dataset.v12Near = nearValue;
+      if (!near) return;
 
       const entry = smooth(clamp((local + .10) / .35));
       const exit = smooth(clamp((1.08 - local) / .36));
