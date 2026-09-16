@@ -259,8 +259,12 @@
     html.style.setProperty('--v12-tone', scene.tone);
     html.style.setProperty('--v12-tone-2', scene.tone2);
     html.style.setProperty('--v12-world-bg', scene.bg);
-    captionNo.textContent = String(index + 1).padStart(2,'0');
-    captionLabel.textContent = scene.label;
+    // The caption is hidden on the lite profile; changing its text while
+    // hidden still forces avoidable layout bookkeeping during the journey.
+    if (tier !== 'lite') {
+      captionNo.textContent = String(index + 1).padStart(2,'0');
+      captionLabel.textContent = scene.label;
+    }
   };
 
   const measure = () => {
