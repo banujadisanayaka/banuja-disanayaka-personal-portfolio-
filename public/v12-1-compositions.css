@@ -169,6 +169,33 @@ html[data-v121-profile="reduced"] .v121-stage::after {
   display: none;
 }
 
+/* Lightweight profiles use one neutral ambient world. They intentionally do not
+   retain the Identity chapter label/word while the reader moves through later sections. */
+html[data-v121-profile="mobile"] .v121-stage__word,
+html[data-v121-profile="mobile"] .v121-stage__meta,
+html[data-v121-profile="mobile"] .v121-stage__rule,
+html[data-v121-profile="reduced"] .v121-stage__word,
+html[data-v121-profile="reduced"] .v121-stage__meta,
+html[data-v121-profile="reduced"] .v121-stage__rule {
+  display: none !important;
+}
+
+html[data-v121-profile="mobile"] .v121-stage__wash,
+html[data-v121-profile="reduced"] .v121-stage__wash {
+  background:
+    radial-gradient(ellipse at 72% 22%, rgba(216,187,121,.11) 0 10%, transparent 40%),
+    radial-gradient(ellipse at 18% 78%, rgba(111,129,105,.08) 0 8%, transparent 36%),
+    linear-gradient(145deg, #121712 0%, #0b0f0c 58%, #111611 100%);
+  transform: none !important;
+}
+
+html[data-v121-profile="mobile"] .v121-stage__beam,
+html[data-v121-profile="reduced"] .v121-stage__beam {
+  left: 68%;
+  opacity: .14;
+  transform: translate3d(-50%,0,0) rotate(14deg);
+}
+
 /* Lightweight mobile is intentionally non-animated. The scene stays visually
    present, but no V12.1 transition/animation is allowed to overlap scroll QA. */
 html[data-v121-profile="mobile"] .v121-stage * {
@@ -179,7 +206,8 @@ html[data-v121-profile="mobile"] .v121-stage * {
 /* The mirrored photographic planes are desktop art direction. Keeping them out
    of the lightweight mobile layout prevents large fixed image boxes from entering
    the strict scroll-performance path while preserving the ambient editorial stage. */
-html[data-v121-profile="mobile"] .v121-stage__media-deck {
+html[data-v121-profile="mobile"] .v121-stage__media-deck,
+html[data-v121-profile="reduced"] .v121-stage__media-deck {
   display: none !important;
 }
 
