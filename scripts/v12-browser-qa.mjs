@@ -34,6 +34,10 @@ try {
     assert.equal(diagnostics?.scrollListener, false);
     assert.equal(diagnostics?.geometryReadsOnScroll, false);
     assert.equal(diagnostics?.activation, 'IntersectionObserver');
+    assert.equal(
+      diagnostics?.lightweightActivation,
+      scenario.name === 'desktop' ? 'section observer' : 'static ambient'
+    );
     assert.equal(diagnostics?.scenes, 8);
 
     if (scenario.name === 'desktop') {
@@ -49,6 +53,8 @@ try {
     if (scenario.name === 'mobile' || scenario.name === 'landscape') {
       assert.equal(await page.locator('html').getAttribute('data-v12-profile'), 'mobile');
       assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.v12-world-label')).display), 'none');
+      assert.equal(await page.locator('.v12-scene[data-v12-active]').count(), 0);
+      assert.equal(await page.locator('.v12-world').getAttribute('data-v12-scene'), '0');
     }
 
     if (scenario.name === 'reduced') {
