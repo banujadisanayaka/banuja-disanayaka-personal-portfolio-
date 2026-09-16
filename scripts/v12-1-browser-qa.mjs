@@ -7,6 +7,7 @@ const browser = await chromium.launch();
 async function open(page, path='/') {
   await page.goto(base + path, {waitUntil:'networkidle'});
   await page.locator('html[data-v121="on"]').waitFor();
+  await page.waitForFunction(() => document.querySelector('link[data-v121-style]')?.sheet);
 }
 
 try {
@@ -28,11 +29,14 @@ try {
     assert.equal(await page.locator('.v121-stage').count(), 1);
     assert.equal(await page.locator('.v121-chapter').count(), 8);
     assert.equal(await page.locator('.v121-chapter[data-v121-kind]').count(), 8);
+    assert.equal(await page.locator('.v121-stage__media').count(), 3);
+    assert.equal(await page.locator('.v121-stage__image').count(), 3);
     assert.equal(await page.locator('html[data-v12="on"]').count(), 0, 'retired V12 runtime must not initialize');
     assert.equal(await page.locator('.v12-world').count(), 0, 'retired V12 stage must not exist');
 
     const diagnostics = await page.evaluate(() => window.__V121_DIAGNOSTICS__);
-    assert.equal(diagnostics?.version, '12.1-foundation-1');
+    assert.equal(diagnostics?.version, '12.1-art-direction-1');
+    assert.equal(diagnostics?.mediaPlanes, 3);
     assert.equal(diagnostics?.scrollListener, false);
     assert.equal(diagnostics?.geometryReadsOnScroll, false);
     assert.equal(diagnostics?.activation, 'IntersectionObserver');
@@ -40,9 +44,19 @@ try {
 
     if (scenario.name === 'desktop') {
       assert.equal(await page.locator('html').getAttribute('data-v121-profile'), 'desktop');
+      assert.ok(Number(await page.locator('.v121-stage__media[data-v121-media="identity"]').evaluate(el => getComputedStyle(el).opacity)) > 0.5);
+      assert.ok((await page.locator('.v121-stage__media[data-v121-media="identity"] img').getAttribute('src'))?.length > 0);
+
       await page.locator('#photography').scrollIntoViewIfNeeded();
       await page.waitForFunction(() => document.querySelector('.v121-stage')?.dataset.v121Kind === 'photography');
       assert.equal(await page.locator('.v121-stage__word').textContent(), 'GAZE');
+      assert.ok(Number(await page.locator('.v121-stage__media[data-v121-media="photography"]').evaluate(el => getComputedStyle(el).opacity)) > 0.5);
+
+      await page.locator('#about').scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => document.querySelector('.v121-stage')?.dataset.v121Kind === 'about');
+      assert.equal(await page.locator('.v121-stage__word').textContent(), 'HUMAN');
+      assert.ok(Number(await page.locator('.v121-stage__media[data-v121-media="about"]').evaluate(el => getComputedStyle(el).opacity)) > 0.5);
+
       await page.locator('#contact').scrollIntoViewIfNeeded();
       await page.waitForFunction(() => document.querySelector('.v121-stage')?.dataset.v121Kind === 'contact');
       assert.equal(await page.locator('.v121-stage__word').textContent(), 'HELLO');
