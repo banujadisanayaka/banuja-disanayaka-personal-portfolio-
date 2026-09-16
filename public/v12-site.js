@@ -245,19 +245,27 @@
   let cursorX = -100, cursorY = -100, cursorTargetX = -100, cursorTargetY = -100;
   let pointerFrame = 0;
 
+  const setActiveDataset = (item, active) => {
+    const activeValue = String(active);
+    if (item.el.dataset.v12Active !== activeValue) item.el.dataset.v12Active = activeValue;
+  };
+
   const setActive = index => {
     if (index === activeIndex) return;
+    const previousIndex = activeIndex;
     activeIndex = index;
     const scene = scenes[index];
     if (!scene) return;
-    scenes.forEach((item, i) => {
-      const activeValue = String(i === index);
-      if (item.el.dataset.v12Active !== activeValue) item.el.dataset.v12Active = activeValue;
-      const nextWillChange = tier === 'lite'
-        ? 'auto'
-        : i === index || Math.abs(i-index) === 1 ? 'transform, opacity' : 'auto';
-      if (item.el.style.willChange !== nextWillChange) item.el.style.willChange = nextWillChange;
-    });
+    if (tier === 'lite') {
+      if (previousIndex >= 0 && scenes[previousIndex]) setActiveDataset(scenes[previousIndex], false);
+      setActiveDataset(scene, true);
+    } else {
+      scenes.forEach((item, i) => {
+        setActiveDataset(item, i === index);
+        const nextWillChange = i === index || Math.abs(i-index) === 1 ? 'transform, opacity' : 'auto';
+        if (item.el.style.willChange !== nextWillChange) item.el.style.willChange = nextWillChange;
+      });
+    }
     navLinks.forEach((link, i) => {
       if (i === index) {
         if (link.getAttribute('aria-current') !== 'location') link.setAttribute('aria-current','location');
@@ -265,10 +273,15 @@
         link.removeAttribute('aria-current');
       }
     });
-    html.dataset.v12Scene = String(index);
-    html.style.setProperty('--v12-tone', scene.tone);
-    html.style.setProperty('--v12-tone-2', scene.tone2);
-    html.style.setProperty('--v12-world-bg', scene.bg);
+    const themeTarget = tier === 'lite' ? world : html;
+    if (tier !== 'lite') html.dataset.v12Scene = String(index);
+    themeTarget.style.setProperty('--v12-tone', scene.tone);
+    themeTarget.style.setProperty('--v12-tone-2', scene.tone2);
+    themeTarget.style.setProperty('--v12-world-bg', scene.bg);
+    if (tier === 'lite') {
+      chapterNav.style.setProperty('--v12-tone', scene.tone);
+      chapterNav.style.setProperty('--v12-tone-2', scene.tone2);
+    }
     // The caption is hidden on the lite profile; changing its text while
     // hidden still forces avoidable layout bookkeeping during the journey.
     if (tier !== 'lite') {
@@ -370,7 +383,9 @@
   document.addEventListener('load', () => {
     if (tier !== 'lite') invalidate();
   }, {capture:true, passive:true});
-  document.fonts?.ready?.then(invalidate);
+  document.fonts?.ready?.then(() => {
+    if (tier !== 'lite') invalidate();
+  });
   if ('ResizeObserver' in window) {
     const ro = new ResizeObserver(() => {
       if (tier !== 'lite') invalidate();
