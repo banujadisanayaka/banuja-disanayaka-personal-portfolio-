@@ -10,6 +10,13 @@ async function open(page, path='/') {
   await page.waitForFunction(() => document.querySelector('link[data-v121-style]')?.sheet);
 }
 
+async function waitForMediaOpacity(page, kind, threshold = 0.5) {
+  await page.waitForFunction(({kind, threshold}) => {
+    const media = document.querySelector(`.v121-stage__media[data-v121-media="${kind}"]`);
+    return media && Number(getComputedStyle(media).opacity) > threshold;
+  }, {kind, threshold}, {timeout: 3000});
+}
+
 try {
   for (const scenario of [
     {name:'desktop', options:{viewport:{width:1366,height:900}}},
@@ -44,18 +51,18 @@ try {
 
     if (scenario.name === 'desktop') {
       assert.equal(await page.locator('html').getAttribute('data-v121-profile'), 'desktop');
-      assert.ok(Number(await page.locator('.v121-stage__media[data-v121-media="identity"]').evaluate(el => getComputedStyle(el).opacity)) > 0.5);
+      await waitForMediaOpacity(page, 'identity');
       assert.ok((await page.locator('.v121-stage__media[data-v121-media="identity"] img').getAttribute('src'))?.length > 0);
 
       await page.locator('#photography').scrollIntoViewIfNeeded();
       await page.waitForFunction(() => document.querySelector('.v121-stage')?.dataset.v121Kind === 'photography');
       assert.equal(await page.locator('.v121-stage__word').textContent(), 'GAZE');
-      assert.ok(Number(await page.locator('.v121-stage__media[data-v121-media="photography"]').evaluate(el => getComputedStyle(el).opacity)) > 0.5);
+      await waitForMediaOpacity(page, 'photography');
 
       await page.locator('#about').scrollIntoViewIfNeeded();
       await page.waitForFunction(() => document.querySelector('.v121-stage')?.dataset.v121Kind === 'about');
       assert.equal(await page.locator('.v121-stage__word').textContent(), 'HUMAN');
-      assert.ok(Number(await page.locator('.v121-stage__media[data-v121-media="about"]').evaluate(el => getComputedStyle(el).opacity)) > 0.5);
+      await waitForMediaOpacity(page, 'about');
 
       await page.locator('#contact').scrollIntoViewIfNeeded();
       await page.waitForFunction(() => document.querySelector('.v121-stage')?.dataset.v121Kind === 'contact');
