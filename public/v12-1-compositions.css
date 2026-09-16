@@ -160,13 +160,20 @@
   transform: translate3d(-52%, 33%, 0) scale(1.04, .055);
 }
 
-/* The new planes are intentionally desktop-first. Mobile keeps the already-green
-   lightweight V12.1 stage to protect the strict throttled-scroll budget. */
+/* The new planes are intentionally desktop-first. Mobile keeps a static ambient
+   V12.1 stage so the strict throttled-scroll path has no residual transition work. */
 html[data-v121-profile="mobile"] .v121-stage::before,
 html[data-v121-profile="mobile"] .v121-stage::after,
 html[data-v121-profile="reduced"] .v121-stage::before,
 html[data-v121-profile="reduced"] .v121-stage::after {
   display: none;
+}
+
+/* Lightweight mobile is intentionally non-animated. The scene stays visually
+   present, but no V12.1 transition/animation is allowed to overlap scroll QA. */
+html[data-v121-profile="mobile"] .v121-stage * {
+  animation: none !important;
+  transition: none !important;
 }
 
 html[data-v121-motion="off"] .v121-stage::before,
