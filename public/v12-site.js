@@ -192,6 +192,7 @@
     scrollListener: false,
     geometryReadsOnScroll: false,
     activation: 'IntersectionObserver',
+    lightweightActivation: isLightweightProfile() ? 'static ambient' : 'section observer',
     motion: 'CSS view timeline + isolated pointer ambient',
     semanticBase: body.dataset.version || 'unknown'
   });
