@@ -55,6 +55,22 @@ try {
       assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.v12-world-label')).display), 'none');
       assert.equal(await page.locator('.v12-scene[data-v12-active]').count(), 0);
       assert.equal(await page.locator('.v12-world').getAttribute('data-v12-scene'), '0');
+      const renderingProfiles = await page.evaluate(() => ({
+        work: getComputedStyle(document.querySelector('#work')).contentVisibility,
+        photography: getComputedStyle(document.querySelector('#photography')).contentVisibility,
+        about: getComputedStyle(document.querySelector('#about')).contentVisibility,
+        experience: getComputedStyle(document.querySelector('#experience')).contentVisibility,
+        ecosystem: getComputedStyle(document.querySelector('#ecosystem')).contentVisibility,
+        contact: getComputedStyle(document.querySelector('#contact')).contentVisibility
+      }));
+      assert.deepEqual(renderingProfiles, {
+        work: 'auto',
+        photography: 'auto',
+        about: 'visible',
+        experience: 'visible',
+        ecosystem: 'visible',
+        contact: 'visible'
+      });
     }
 
     if (scenario.name === 'reduced') {
