@@ -13,5 +13,5 @@
 
   loadScript('/v10-site-legacy.js?v=d3e532549626', 'data-v10-legacy')
     .catch(() => {})
-    .finally(() => loadScript('/v12-site.js?v=1201', 'data-v12-engine').catch(() => {}));
+    .finally(() => loadScript('/v12-1-site.js?v=1210', 'data-v121-engine').catch(() => {}));
 })();
