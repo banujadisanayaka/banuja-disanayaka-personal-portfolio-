@@ -65,6 +65,7 @@ try {
     const activeLink = page.locator('.featured-photos .is-current .photo-link');
     await activeLink.click();
     assert.ok(await page.locator('#lightbox').isVisible());
+    assert.ok((await page.locator('#lightbox-image').getAttribute('alt') || '').trim().length > 15, 'Lightbox photograph exposes its descriptive alt text');
     const title = await page.locator('#lightbox-title').textContent();
     await page.keyboard.press('ArrowRight');
     assert.notEqual(await page.locator('#lightbox-title').textContent(), title);
