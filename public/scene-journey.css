@@ -13,16 +13,11 @@
 .journey-heading h1 em{font-size:.85em;line-height:1.08;letter-spacing:-.06em}
 .journey-heading em{font-family:Georgia,'Times New Roman',serif;font-weight:400;letter-spacing:-.06em}
 .journey-kicker{font-size:11px;font-weight:500;line-height:1.5;letter-spacing:.14em;margin:0 0 24px;text-transform:uppercase}
-.is-scrubbed .journey-kicker{display:flex;align-items:center;gap:12px}
-.is-scrubbed .journey-kicker::after{content:'';display:block;width:min(72px,18vw);height:1px;background:currentColor;opacity:.22;transform:scaleX(0);transform-origin:left;transition:transform .46s cubic-bezier(.22,.8,.24,1),opacity .34s ease}
-.is-scrubbed .journey-panel[aria-hidden=false] .journey-kicker::after{opacity:.52;transform:scaleX(1)}
 .journey-caption{grid-column:1;grid-row:2;align-self:start;z-index:5;max-width:390px}
 .journey-caption>p{font-size:clamp(18px,1.8vw,25px);line-height:1.3;letter-spacing:-.02em;max-width:340px}
 .journey-caption>span{display:block;margin-top:12px;font-size:11px;line-height:1.6;letter-spacing:.10em;text-transform:uppercase;max-width:340px}
 .journey-link{display:inline-flex;align-items:center;justify-content:space-between;gap:24px;min-height:46px;margin-top:18px;font-size:14px;font-weight:500;border-bottom:1px solid currentColor;line-height:1.3}
-.journey-link>span{display:inline-block;transition:transform .28s cubic-bezier(.22,.8,.24,1)}
 .journey-link:hover{border-bottom-width:2px}
-.journey-link:hover>span,.journey-link:focus-visible>span{transform:translate3d(5px,0,0)}
 .scene-journey :focus-visible{outline:3px solid currentColor;outline-offset:5px}
 .journey-art{grid-column:2;grid-row:1/3;margin:0;min-width:0;width:100%;max-width:460px;justify-self:center;background:#e9e5d9;color:#28392d;padding:8px;box-shadow:0 18px 34px #0003;border:1px solid #f5f1e080;z-index:3}
 .journey-art-inner{height:420px;overflow:hidden}
@@ -63,21 +58,30 @@
 .journey-satellite img{width:100%;height:100%;object-fit:contain}
 .journey-controls{position:absolute;left:7%;right:7%;bottom:26px;display:flex;align-items:center;gap:24px;z-index:10;color:#f3eedc;font-size:12px}
 .journey-buttons{display:flex;background:#16271fee;border:1px solid #f3eedc44;padding:3px 8px;max-width:100%;border-radius:2px}
-.journey-buttons button{position:relative;min-height:48px;min-width:54px;border:0;background:transparent;color:#c7cebd;display:flex;align-items:center;gap:10px;padding:9px 13px;font-size:11px;line-height:1.3;transition:color .28s ease,background-color .28s ease,transform .34s cubic-bezier(.22,.8,.24,1)}
-.journey-buttons button::after{content:'';position:absolute;left:12px;right:12px;bottom:5px;height:1px;background:currentColor;opacity:.7;transform:scaleX(0);transform-origin:left;transition:transform .36s cubic-bezier(.22,.8,.24,1)}
-.journey-buttons button:hover{transform:translate3d(0,-1px,0)}
+.journey-buttons button{min-height:48px;min-width:54px;border:0;background:transparent;color:#c7cebd;display:flex;align-items:center;gap:10px;padding:9px 13px;font-size:11px;line-height:1.3}
 .journey-buttons button>span:first-child{font-variant-numeric:tabular-nums;font-size:10px}
-.journey-buttons button[aria-pressed=true]{color:#f3eedc;background:#ffffff12;transform:translate3d(0,-1px,0)}
-.journey-buttons button[aria-pressed=true]::after{transform:scaleX(1)}
+.journey-buttons button[aria-pressed=true]{color:#f3eedc;background:#ffffff12}
 .journey-buttons button[aria-pressed=true]>span:first-child{color:#d9e481}
 .journey-skip{padding:10px 15px;min-height:44px;background:#16271fee;border:1px solid #f3eedc44;white-space:nowrap}
 .journey-progress{position:absolute;bottom:-8px;left:0;right:0;height:1px;background:#83937966}
 .journey-progress>span{display:block;width:100%;height:100%;background:#b7bd8a;transform:scaleX(0);transform-origin:left}
-.is-scrubbed .journey-scroll-note{display:block;position:absolute;right:7%;bottom:118px;writing-mode:vertical-rl;font-size:10px;letter-spacing:.13em;color:#97a28e;z-index:2;opacity:.9;transform:translate3d(0,0,0);transition:opacity .42s ease,transform .42s cubic-bezier(.22,.8,.24,1)}
-.is-scrubbed[data-active-scene]:not([data-active-scene="0"]) .journey-scroll-note{opacity:0;transform:translate3d(0,10px,0)}
+.is-scrubbed .journey-scroll-note{display:block;position:absolute;right:7%;bottom:118px;writing-mode:vertical-rl;font-size:10px;letter-spacing:.13em;color:#97a28e;z-index:2}
 .scene-home .site-header{position:absolute;left:0;right:0;top:0;width:100%;color:#f3eedc;background:#17271f;z-index:20}
 .scene-home .scene-nav{display:none}
 .scene-home:not(:has(.is-scrubbed)) .scene-journey{padding-top:86px}
+@media(min-width:701px){
+  .is-scrubbed .journey-kicker{display:flex;align-items:center;gap:12px}
+  .is-scrubbed .journey-kicker::after{content:'';display:block;width:min(72px,18vw);height:1px;background:currentColor;opacity:.22;transform:scaleX(0);transform-origin:left;transition:transform .46s cubic-bezier(.22,.8,.24,1),opacity .34s ease}
+  .is-scrubbed .journey-panel[aria-hidden=false] .journey-kicker::after{opacity:.52;transform:scaleX(1)}
+  .journey-link>span{display:inline-block;transition:transform .28s cubic-bezier(.22,.8,.24,1)}
+  .journey-link:hover>span,.journey-link:focus-visible>span{transform:translate3d(5px,0,0)}
+  .journey-buttons button{position:relative;transition:color .28s ease,background-color .28s ease,transform .34s cubic-bezier(.22,.8,.24,1)}
+  .journey-buttons button::after{content:'';position:absolute;left:12px;right:12px;bottom:5px;height:1px;background:currentColor;opacity:.7;transform:scaleX(0);transform-origin:left;transition:transform .36s cubic-bezier(.22,.8,.24,1)}
+  .journey-buttons button:hover,.journey-buttons button[aria-pressed=true]{transform:translate3d(0,-1px,0)}
+  .journey-buttons button[aria-pressed=true]::after{transform:scaleX(1)}
+  .is-scrubbed .journey-scroll-note{opacity:.9;transform:translate3d(0,0,0);transition:opacity .42s ease,transform .42s cubic-bezier(.22,.8,.24,1)}
+  .is-scrubbed[data-active-scene]:not([data-active-scene="0"]) .journey-scroll-note{opacity:0;transform:translate3d(0,10px,0)}
+}
 @media(min-width:1500px){.is-scrubbed .journey-heading,.is-scrubbed .journey-caption{left:max(7%,calc((100vw - 1400px)/2))}}
 @media(max-width:1000px) and (min-width:701px){.journey-heading h1,.journey-heading h2{font-size:6.4vw}.journey-kicker{font-size:10px;letter-spacing:.08em}.journey-controls{gap:12px}.journey-buttons button{padding:8px 9px;gap:6px}.journey-caption>p{font-size:20px}}
 @media(max-width:700px){
