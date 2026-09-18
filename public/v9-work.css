@@ -31,10 +31,14 @@
 .work-showcase.is-ready .project-copy .eyebrow { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; line-height: 1.5; letter-spacing: .015em; color: rgb(var(--card-rgb)); }
 .work-showcase.is-ready .project-copy .eyebrow>span { color: #a3b3a8; }
 .work-showcase.is-ready .project h3 { margin: 11px 0 9px; font: 400 28px/1.16 var(--serif); letter-spacing: -.025em; color: #f2f0e7; }
-.work-showcase.is-ready .project h3 a { display: block; }
-.work-showcase.is-ready .project h3 a>span { display: none; }
+.work-showcase.is-ready .project h3 a { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.work-showcase.is-ready .project h3 a>span { display: inline-block; flex: 0 0 auto; opacity: 0; transform: translate3d(-6px,0,0); transition: opacity .24s ease, transform .3s cubic-bezier(.2,.75,.2,1); }
+.work-showcase.is-ready .project.is-selected h3 a>span,
+.work-showcase.is-ready .project h3 a:focus-visible>span { opacity: 1; transform: translate3d(0,0,0); }
 .work-showcase.is-ready .project-copy>p:not(.eyebrow) { color: #c1cdc4; font-size: 15px; line-height: 1.55; }
-.work-showcase.is-ready .project-status { display: none; }
+.work-showcase.is-ready .project-status { display: block; min-height: 34px; margin-top: 12px; color: #9eb0a4; font-size: 12px; line-height: 1.45; letter-spacing: .025em; opacity: 0; transform: translate3d(0,4px,0); transition: opacity .24s ease, transform .3s cubic-bezier(.2,.75,.2,1); }
+.work-showcase.is-ready .project.is-selected .project-status { opacity: 1; transform: translate3d(0,0,0); }
+.work-showcase.is-ready .project:focus-within { border-color: rgba(var(--card-rgb), .72); box-shadow: 0 30px 60px #0007, 0 0 0 1px rgba(var(--card-rgb), .18), 0 0 40px rgba(var(--card-rgb), .09), inset 0 1px 0 #ffffff29; }
 .work-open { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: calc(100% - 20px); min-height: 44px; margin: auto 10px 6px; padding: 14px 0 0; border: 0; border-top: 1px solid #ffffff1a; background: transparent; color: rgb(var(--card-rgb)); font: 500 14px/1.4 var(--sans); text-align: left; cursor: pointer; }
 .work-open span { display: grid; place-items: center; border: 1px solid rgba(var(--card-rgb),.4); width: 28px; height: 28px; border-radius: 50%; transition: transform .25s ease; }
 .work-open:hover span { transform: translateX(3px); }
