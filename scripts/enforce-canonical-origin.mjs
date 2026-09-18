@@ -1,7 +1,8 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = new URL('../public/', import.meta.url);
+const ROOT = fileURLToPath(new URL('../public/', import.meta.url));
 const LEGACY_ORIGIN = 'https://banuja-personal-log.netlify.app';
 const CANONICAL_ORIGIN = 'https://banujadisanayaka.netlify.app';
 const TEXT_EXTENSIONS = new Set(['.html', '.json', '.xml', '.txt', '.webmanifest']);
