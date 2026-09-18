@@ -22,6 +22,13 @@ try {
       assert.equal(await panel.getAttribute('aria-hidden'),'false');
       assert.equal(await journey.locator('[data-journey-scene]:not([inert])').count(),1);
       assert.equal(await journey.locator('.journey-buttons button[aria-pressed=true]').count(),1);
+      if(!mobile) {
+        const arrivalCue=await panel.locator('.journey-kicker').evaluate(el=>{const style=getComputedStyle(el,'::after');return {opacity:Number(style.opacity),transform:style.transform}});
+        assert.ok(arrivalCue.opacity>.45,`Scene ${i}: active chapter arrival cue is visible`);
+        assert.notEqual(arrivalCue.transform,'none',`Scene ${i}: chapter arrival cue uses compositor transform`);
+        if(i===0) assert.ok(Number(await journey.locator('.journey-scroll-note').evaluate(el=>getComputedStyle(el).opacity))>.8,'Opening scroll hint is visible');
+        if(i===1) assert.ok(Number(await journey.locator('.journey-scroll-note').evaluate(el=>getComputedStyle(el).opacity))<.05,'Scroll hint leaves after the first chapter');
+      }
       const opacity=await panel.locator('.journey-heading').evaluate(el=>Number(getComputedStyle(el).opacity));
       assert.ok(opacity>.98,`Scene ${i} text settles fully`);
       const [heading,art,caption]=await Promise.all(['.journey-heading','.journey-art','.journey-caption'].map(s=>panel.locator(s).boundingBox()));

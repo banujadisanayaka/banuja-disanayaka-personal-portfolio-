@@ -69,6 +69,19 @@
 .scene-home .site-header{position:absolute;left:0;right:0;top:0;width:100%;color:#f3eedc;background:#17271f;z-index:20}
 .scene-home .scene-nav{display:none}
 .scene-home:not(:has(.is-scrubbed)) .scene-journey{padding-top:86px}
+@media(min-width:701px){
+  .is-scrubbed .journey-kicker{display:flex;align-items:center;gap:12px}
+  .is-scrubbed .journey-kicker::after{content:'';display:block;width:min(72px,18vw);height:1px;background:currentColor;opacity:.22;transform:scaleX(0);transform-origin:left;transition:transform .46s cubic-bezier(.22,.8,.24,1),opacity .34s ease}
+  .is-scrubbed .journey-panel[aria-hidden=false] .journey-kicker::after{opacity:.52;transform:scaleX(1)}
+  .journey-link>span{display:inline-block;transition:transform .28s cubic-bezier(.22,.8,.24,1)}
+  .journey-link:hover>span,.journey-link:focus-visible>span{transform:translate3d(5px,0,0)}
+  .journey-buttons button{position:relative;transition:color .28s ease,background-color .28s ease,transform .34s cubic-bezier(.22,.8,.24,1)}
+  .journey-buttons button::after{content:'';position:absolute;left:12px;right:12px;bottom:5px;height:1px;background:currentColor;opacity:.7;transform:scaleX(0);transform-origin:left;transition:transform .36s cubic-bezier(.22,.8,.24,1)}
+  .journey-buttons button:hover,.journey-buttons button[aria-pressed=true]{transform:translate3d(0,-1px,0)}
+  .journey-buttons button[aria-pressed=true]::after{transform:scaleX(1)}
+  .is-scrubbed .journey-scroll-note{opacity:.9;transform:translate3d(0,0,0);transition:opacity .42s ease,transform .42s cubic-bezier(.22,.8,.24,1)}
+  .is-scrubbed[data-active-scene]:not([data-active-scene="0"]) .journey-scroll-note{opacity:0;transform:translate3d(0,10px,0)}
+}
 @media(min-width:1500px){.is-scrubbed .journey-heading,.is-scrubbed .journey-caption{left:max(7%,calc((100vw - 1400px)/2))}}
 @media(max-width:1000px) and (min-width:701px){.journey-heading h1,.journey-heading h2{font-size:6.4vw}.journey-kicker{font-size:10px;letter-spacing:.08em}.journey-controls{gap:12px}.journey-buttons button{padding:8px 9px;gap:6px}.journey-caption>p{font-size:20px}}
 @media(max-width:700px){
