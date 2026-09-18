@@ -8,6 +8,16 @@ assert.equal(defaults.dailyGaze.length,115);
 assert.equal(new Set(defaults.dailyGaze.map(p=>p.id)).size,115);
 const routes=['public/index.html','public/daily-gaze/index.html','public/resume/index.html','public/about/index.html',...['tfc-orders-tracker','class-tracker','second-brain','banu-2','veloria'].map(p=>`public/work/${p}/index.html`)];
 for(const path of routes){const html=read(path);assert.equal((html.match(/<h1[ >]/g)||[]).length,1,path+' has one main heading');assert.match(html,/<main id="main"/);assert.match(html,/rel="canonical"/);assert.match(html,/name="description"/);assert.doesNotMatch(html,/PORTRAIT ASSET SLOT|drive\.google|thumbnail\?id|scanline|<canvas|AI DESIGNER/i);for(const [,url]of html.matchAll(/(?:href|src)="(\/[^"?#]*)"/g)){const target='public'+url;assert.ok(fs.existsSync(target)||url==='/favicon.svg',`${path} links to missing ${url}`)}}
+for(const path of routes){
+  const html=read(path);
+  const images=[...html.matchAll(/<img\\b[^>]*>/g)].map(match=>match[0]);
+  for(const tag of images){
+    assert.match(tag,/\\balt="[^"]*"/,path+' image missing alt attribute: '+tag);
+    if(/\\balt=""/.test(tag)&&! /id="lightbox-image"/.test(tag)) {
+      assert.match(tag,/\\baria-hidden="true"/,path+' decorative image must be explicitly hidden from assistive tech: '+tag);
+    }
+  }
+}
 for(const photo of defaults.dailyGaze){assert.ok(photo.alt.length>15);assert.ok(photo.width>0&&photo.height>0);assert.ok(photo.derivatives.length>=2);assert.ok(photo.derivatives.every(d=>d.width<=photo.width&&fs.existsSync('public'+d.url)));assert.equal(photo.derivatives.at(-1).url,photo.preview)}
 const raw={profile:{firstName:'Old'},dailyGaze:[],contact:{email:'owner@example.com'}};const before=JSON.stringify(raw);const migrated=withV9Defaults(raw);assert.equal(JSON.stringify(raw),before,'Read migration does not alter stored source');assert.equal(migrated.contact.email,'owner@example.com');assert.equal(migrated.dailyGaze.length,115);
 const edited=structuredClone(defaults);edited.dailyGaze=[];assert.equal(withV9Defaults(edited).dailyGaze.length,0,'V9 removals stay removed');
