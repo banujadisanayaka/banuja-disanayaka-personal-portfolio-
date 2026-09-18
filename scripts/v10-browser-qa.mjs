@@ -8,7 +8,7 @@ await mkdir('qa-artifacts/v10', {recursive:true});
 const fits = async (page, label) => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, label);
 async function openRelease(page, path) {
   let status = 0;
-  for (let attempt=0; attempt<4; attempt++) {
+  for (let attempt=0; attempt<10; attempt++) {
     const response = await page.goto(base + path, {waitUntil:'domcontentloaded'});
     status = response?.status() || 0;
     if (response?.ok()) {
@@ -17,7 +17,10 @@ async function openRelease(page, path) {
         return;
       } catch {}
     }
-    await page.waitForTimeout(750);
+    // Netlify deploy previews can briefly return 404 while an exact deploy
+    // alias converges. Keep the release requirement strict, but give the
+    // already-verified preview a bounded recovery window.
+    await page.waitForTimeout(1500);
   }
   assert.equal(await page.locator('body').getAttribute('data-version'), '10', path+' serves the V10 release (last HTTP '+status+')');
 }
