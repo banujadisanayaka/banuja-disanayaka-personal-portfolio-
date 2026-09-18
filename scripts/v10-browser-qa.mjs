@@ -149,4 +149,58 @@ try {
     await context.close();
   }
   console.log('V10 late CMS reordering preserves photo selection/focus; an empty journal stays usable');
+
+  // Identical CMS archive data should hydrate in place instead of rebuilding 115 photo nodes.
+  {
+    const context = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
+    const page = await context.newPage();
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    const content = JSON.parse(await readFile('public/content-default.json','utf8'));
+    await page.route('**/api/content', async route => { await gate; await route.fulfill({json:{content}}); });
+    await page.goto(base+'/daily-gaze/', {waitUntil:'domcontentloaded'});
+    await page.locator('.archive-grid .photo-tile').first().waitFor();
+    await page.evaluate(() => {
+      const root = document.querySelector('.archive-grid');
+      window.__gazeHydrationProbe = {first:root.firstElementChild, childMutations:0, hydrated:false};
+      const observer = new MutationObserver(records => {
+        for (const record of records) if (record.type === 'childList') window.__gazeHydrationProbe.childMutations += record.addedNodes.length + record.removedNodes.length;
+      });
+      observer.observe(root,{childList:true});
+      document.addEventListener('portfolio:content',() => {
+        window.__gazeHydrationProbe.hydrated = true;
+        observer.disconnect();
+      },{once:true});
+    });
+    release();
+    await page.waitForFunction(() => window.__gazeHydrationProbe?.hydrated === true);
+    assert.equal(await page.locator('.archive-grid .photo-tile').count(),115);
+    assert.equal(await page.evaluate(() => document.querySelector('.archive-grid').firstElementChild === window.__gazeHydrationProbe.first),true,'Identical CMS hydration preserves the first archive node');
+    assert.equal(await page.evaluate(() => window.__gazeHydrationProbe.childMutations),0,'Identical CMS hydration causes zero archive child-list replacement');
+    await context.close();
+  }
+
+  // A future non-downloadable photo must not resolve an empty URL to the site root.
+  {
+    const context = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
+    const page = await context.newPage();
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    const content = JSON.parse(await readFile('public/content-default.json','utf8'));
+    content.dailyGaze[0].downloadable = false;
+    await page.route('**/api/content', async route => { await gate; await route.fulfill({json:{content}}); });
+    await page.goto(base+'/daily-gaze/', {waitUntil:'domcontentloaded'});
+    await page.evaluate(() => {
+      window.__gazeContentReady = false;
+      document.addEventListener('portfolio:content',() => { window.__gazeContentReady = true; },{once:true});
+    });
+    release();
+    await page.waitForFunction(() => window.__gazeContentReady === true);
+    await page.locator('.archive-grid .photo-link').first().click();
+    assert.ok(await page.locator('#lightbox').isVisible());
+    assert.equal(await page.locator('#lightbox-download').isVisible(),false,'Non-downloadable photographs keep the download action hidden');
+    await page.keyboard.press('Escape');
+    await context.close();
+  }
+  console.log('Daily Gaze identical hydration preserves nodes and non-downloadable photos stay protected');
 } finally { await browser.close(); }
