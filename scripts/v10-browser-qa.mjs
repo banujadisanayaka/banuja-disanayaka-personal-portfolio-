@@ -7,12 +7,19 @@ const browser = await chromium.launch();
 await mkdir('qa-artifacts/v10', {recursive:true});
 const fits = async (page, label) => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, label);
 async function openRelease(page, path) {
-  for (let attempt=0; attempt<3; attempt++) {
-    await page.goto(base + path, {waitUntil:'networkidle'});
-    if (await page.locator('body').getAttribute('data-version') === '10') return;
-    await page.waitForTimeout(500);
+  let status = 0;
+  for (let attempt=0; attempt<4; attempt++) {
+    const response = await page.goto(base + path, {waitUntil:'domcontentloaded'});
+    status = response?.status() || 0;
+    if (response?.ok()) {
+      try {
+        await page.locator('body[data-version="10"]').waitFor({state:'attached', timeout:4000});
+        return;
+      } catch {}
+    }
+    await page.waitForTimeout(750);
   }
-  assert.equal(await page.locator('body').getAttribute('data-version'), '10', path+' serves the V10 release');
+  assert.equal(await page.locator('body').getAttribute('data-version'), '10', path+' serves the V10 release (last HTTP '+status+')');
 }
 try {
   for (const scenario of [
