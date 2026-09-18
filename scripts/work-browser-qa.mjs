@@ -43,6 +43,11 @@ try {
       assert.equal(await page.locator('.project[aria-hidden="true"] a:not([tabindex="-1"]), .project[aria-hidden="true"] button:not([tabindex="-1"])').count(), 0, 'Hidden slides leave the tab order');
       await fits(page, '.project.is-selected');
       await fits(page, '.project.is-selected h3');
+      const selectedStatus = page.locator('.project.is-selected .project-status');
+      assert.ok((await selectedStatus.textContent() || '').trim().length > 0, 'Selected project exposes its maturity/status');
+      assert.ok(Number(await selectedStatus.evaluate(el => getComputedStyle(el).opacity)) > .95, 'Selected project status is visibly presented');
+      assert.ok(Number(await page.locator('.project.is-selected h3 a>span').evaluate(el => getComputedStyle(el).opacity)) > .95, 'Selected project exposes a directional open cue');
+      assert.ok(await page.locator('.project[aria-hidden="true"] .project-status').evaluateAll(nodes => nodes.every(el => Number(getComputedStyle(el).opacity) < .05)), 'Inactive project statuses stay visually quiet');
       await fits(page, '.work-dock');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `Page fits with ${projects[i]} selected at ${name}`);
       const coverFits = await page.locator('.project.is-selected .system-map').evaluate(el => el.scrollHeight <= el.clientHeight + 1);
