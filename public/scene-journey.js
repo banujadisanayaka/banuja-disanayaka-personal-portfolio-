@@ -351,10 +351,13 @@
       const idExitScale=Math.max(.34,idScale*.76);
       const ix=mix(idStartX,w*.045,p),iy=mix(idStartY,h*.38,p),is=mix(idScale,idExitScale,p),ir=mix(3,-4,p);
 
-      const workGap=Math.max(80,geometry.workCaptionTop-geometry.workHeadingBottom);
-      const workScale=Math.min((w*.68)/geometry.workAw,Math.min(h*.36,workGap)/geometry.workAh);
+      const workPad=w<=340?18:10;
+      const workTop=geometry.workHeadingBottom+workPad;
+      const workBottom=geometry.workCaptionTop-workPad;
+      const workGap=Math.max(72,workBottom-workTop);
+      const workScale=Math.min((w*.66)/geometry.workAw,Math.min(h*.34,workGap)/geometry.workAh);
       const workEndX=w*.56-geometry.workAw*workScale/2;
-      const workEndY=(geometry.workHeadingBottom+geometry.workCaptionTop)/2-geometry.workAh*workScale/2;
+      const workEndY=(workTop+workBottom)/2-geometry.workAh*workScale/2;
       const workStartScale=Math.max(.30,workScale*.74);
       const wx=mix(w*1.03,workEndX,p),wy=mix(h*.34,workEndY,p),ws=mix(workStartScale,workScale,p),wr=mix(-8,-2,p);
 
