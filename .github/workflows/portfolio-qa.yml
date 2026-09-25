@@ -126,7 +126,7 @@ jobs:
       - name: Browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/v10-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
+        run: node scripts/v10-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/stage2-proof-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
 
 
       - name: Mobile scroll performance regression
@@ -134,6 +134,14 @@ jobs:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
           PERFORMANCE_BASELINE_URL: ${{ github.event_name == 'pull_request' && 'https://banujadisanayaka.netlify.app/' || '' }}
         run: node scripts/performance-browser-qa.mjs
+
+
+      - name: Capture Stage 2 review media
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'stage2-identity-work-proof'
+        continue-on-error: true
+        env:
+          BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
+        run: node scripts/stage2-review-capture.mjs
 
       - name: Save V10 visual verification
         id: v10_visual_artifact

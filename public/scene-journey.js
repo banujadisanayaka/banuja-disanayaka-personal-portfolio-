@@ -222,3 +222,145 @@
   });
   configure();
 })();
+
+
+/* Stage 2 — limited Identity → Work choreography and project selector.
+   This layer only overrides the first transition; the V10.5 scene engine
+   continues to own native scrolling, later scenes and fallback behavior. */
+(() => {
+  'use strict';
+  const root=document.querySelector('.scene-journey');
+  if(!root||!root.querySelector('[data-stage2-proof-layer]'))return;
+  const html=document.documentElement,stage=root.querySelector('.journey-stage');
+  const identity=root.querySelector('[data-journey-scene="0"]');
+  const work=root.querySelector('[data-journey-scene="1"]');
+  const plane=root.querySelector('.stage2-transition-plane');
+  const idMiddle=root.querySelector('.stage2-identity-middle');
+  const idBack=root.querySelector('.stage2-identity-back');
+  const idFront=root.querySelector('.stage2-identity-front');
+  const signal=root.querySelector('.stage2-signal');
+  const dock=work?.querySelector('.journey-project-dock');
+  const chips=dock?[...dock.querySelectorAll('[data-journey-project]')]:[];
+  const workCopy=work?.querySelector('[data-journey-project-copy]');
+  const workNote=work?.querySelector('[data-journey-project-note]');
+  const workOpen=work?.querySelector('[data-journey-project-open]');
+  const identityOpen=identity?.querySelector('.journey-link');
+  const sceneButtons=[...root.querySelectorAll('[data-journey-select]')];
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const forced=matchMedia('(forced-colors: active)');
+  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+  const mix=(a,b,t)=>a+(b-a)*t;
+  const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t)};
+  let geometry=null,raf=0,inView=true,last=-1,selectedProject=0;
+  const set=(name,value)=>root.style.setProperty(name,value);
+  function chooseProject(index,{focus=false}={}){
+    if(!chips.length)return;
+    selectedProject=(index+chips.length)%chips.length;
+    chips.forEach((chip,i)=>{const on=i===selectedProject;chip.classList.toggle('is-selected',on);if(on)chip.setAttribute('aria-current','true');else chip.removeAttribute('aria-current')});
+    const chip=chips[selectedProject];
+    if(workCopy&&chip.dataset.projectSummary)workCopy.textContent=chip.dataset.projectSummary;
+    if(workNote&&chip.dataset.projectNote)workNote.textContent=chip.dataset.projectNote;
+    if(workOpen){workOpen.href=chip.href;workOpen.firstChild.textContent='Open '+(chip.dataset.projectTitle||chip.textContent.trim())+' ';}
+    if(focus)chip.focus({preventScroll:true});
+  }
+  chips.forEach((chip,index)=>{
+    chip.addEventListener('click',event=>{
+      if(!root.classList.contains('is-scrubbed')||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+      event.preventDefault();chooseProject(index);
+    });
+    chip.addEventListener('keydown',event=>{
+      const next=event.key==='ArrowRight'?index+1:event.key==='ArrowLeft'?index-1:event.key==='Home'?0:event.key==='End'?chips.length-1:null;
+      if(next===null)return;
+      event.preventDefault();chooseProject(next,{focus:true});
+      chips[selectedProject].scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
+    });
+  });
+  document.addEventListener('portfolio:content',event=>{
+    const list=event.detail?.content?.projects;
+    if(!Array.isArray(list))return;
+    chips.forEach(chip=>{
+      const current=chip.dataset.projectPath;
+      const cms=list.find(item=>{try{return new URL(item.url,location.origin).pathname===current}catch{return false}});
+      if(!cms)return;
+      const label=chip.querySelector('.journey-project-title');
+      if(label&&cms.title)label.textContent=cms.title;
+      if(cms.title)chip.dataset.projectTitle=cms.title;
+      if(cms.description)chip.dataset.projectSummary=cms.description;
+      if(cms.tags)chip.dataset.projectNote=cms.tags;
+    });
+    chooseProject(selectedProject);
+  });
+  function measure(){
+    const h=stage.clientHeight,w=stage.clientWidth,step=h*.90;
+    geometry={top:root.getBoundingClientRect().top+scrollY,h,w,step,compact:w<=700};
+  }
+  function clearProof(){
+    if(root.dataset.stage2Proof)delete root.dataset.stage2Proof;
+    if(root.dataset.stage2Controls)delete root.dataset.stage2Controls;
+    ['--s2-p','--s2-id-env','--s2-id-front','--s2-id-copy','--s2-id-art','--s2-work-env','--s2-plane-opacity','--s2-work-art','--s2-work-copy','--s2-work-controls','--s2-id-transform','--s2-work-transform','--s2-id-copy-transform','--s2-work-copy-transform','--s2-slab-transform'].forEach(name=>root.style.removeProperty(name));
+    [plane,idMiddle,idBack,idFront,signal].forEach(el=>el?.removeAttribute('style'));
+    if(dock){dock.inert=false;dock.removeAttribute('aria-hidden')}
+    if(identityOpen)identityOpen.removeAttribute('tabindex');
+    if(workOpen)workOpen.removeAttribute('tabindex');
+    last=-1;
+  }
+  function paint(){
+    raf=0;
+    if(!inView||document.hidden)return;
+    const enabled=html.dataset.motion==='on'&&!reduced.matches&&!forced.matches&&root.classList.contains('is-scrubbed')&&innerHeight>600;
+    if(!enabled){clearProof();return}
+    if(!geometry)measure();
+    const raw=(scrollY-geometry.top)/geometry.step;
+    if(raw>1.055||raw<-.08){clearProof();return}
+    const p=clamp(raw,0,1);
+    if(Math.abs(p-last)<.0001)return;
+    last=p;root.dataset.stage2Proof='active';
+    const idCopy=1-smooth(.27,.44,p);
+    const idArt=1-smooth(.39,.62,p);
+    const workEnv=smooth(.10,.72,p);
+    const planeP=smooth(.18,.63,p);
+    const workArt=smooth(.48,.73,p);
+    const workText=smooth(.64,.83,p);
+    const workControls=smooth(.75,.92,p);
+    set('--s2-p',p.toFixed(4));set('--s2-id-env',(1-smooth(.20,.70,p)*.82).toFixed(4));set('--s2-id-front',(1-smooth(.22,.70,p)*.88).toFixed(4));
+    set('--s2-id-copy',idCopy.toFixed(4));set('--s2-id-art',idArt.toFixed(4));set('--s2-work-env',workEnv.toFixed(4));
+    set('--s2-plane-opacity',smooth(.17,.48,p).toFixed(4));set('--s2-work-art',workArt.toFixed(4));set('--s2-work-copy',workText.toFixed(4));set('--s2-work-controls',workControls.toFixed(4));
+    const {w,h,compact}=geometry;
+    if(compact){
+      const ix=mix(w*.20,w*.045,p),iy=mix(h*.31,h*.38,p),is=mix(.74,.54,p),ir=mix(3,-4,p);
+      const wx=mix(w*1.03,w*.22,p),wy=mix(h*.34,h*.325,p),ws=mix(.68,.78,p),wr=mix(-8,-2,p);
+      set('--s2-id-transform',`translate3d(${ix.toFixed(1)}px,${iy.toFixed(1)}px,0) rotateZ(${ir.toFixed(2)}deg) scale(${is.toFixed(4)})`);
+      set('--s2-work-transform',`translate3d(${wx.toFixed(1)}px,${wy.toFixed(1)}px,0) rotateZ(${wr.toFixed(2)}deg) scale(${ws.toFixed(4)})`);
+    }else{
+      const ix=mix(w*.555,w*.34,p),iy=mix(h*.215,h*.30,p),is=mix(1.17,.76,p),ir=mix(6,-4,p),iry=mix(-10,-18,p);
+      const wx=mix(w*1.02,w*.56,p),wy=mix(h*.17,h*.21,p),ws=mix(.88,1.28,p),wr=mix(-11,-5,p),wry=mix(13,7,p);
+      set('--s2-id-transform',`translate3d(${ix.toFixed(1)}px,${iy.toFixed(1)}px,0) perspective(1200px) rotateY(${iry.toFixed(2)}deg) rotateZ(${ir.toFixed(2)}deg) scale(${is.toFixed(4)})`);
+      set('--s2-work-transform',`translate3d(${wx.toFixed(1)}px,${wy.toFixed(1)}px,0) perspective(1200px) rotateY(${wry.toFixed(2)}deg) rotateZ(${wr.toFixed(2)}deg) scale(${ws.toFixed(4)})`);
+    }
+    set('--s2-id-copy-transform',`translate3d(${(-18*smooth(.20,.46,p)).toFixed(1)}px,${(-22*smooth(.20,.46,p)).toFixed(1)}px,0)`);
+    set('--s2-work-copy-transform',`translate3d(${(24*(1-workText)).toFixed(1)}px,0,0)`);
+    set('--s2-slab-transform',`translate3d(${(34*(1-workText)).toFixed(1)}px,0,0)`);
+    if(plane)plane.style.transform=`translate3d(${((1-planeP)*112-6).toFixed(2)}%,0,0) skewX(-4deg)`;
+    if(idMiddle)idMiddle.style.transform=`perspective(760px) rotateX(64deg) translate3d(${(-p*2.5).toFixed(2)}%,${(p*3).toFixed(2)}%,0) scale(${(1.45+p*.10).toFixed(3)})`;
+    if(idBack)idBack.style.transform=`translate3d(${(-p*3.5).toFixed(2)}%,${(p*1.6).toFixed(2)}%,0) scale(${(1+p*.06).toFixed(3)})`;
+    if(idFront)idFront.style.transform=`translate3d(${(-p*2.2).toFixed(2)}%,0,0)`;
+    if(signal){signal.style.opacity=(.96-.12*smooth(.1,.9,p)).toFixed(3);signal.style.transform=`translate3d(${(-p*1.6).toFixed(2)}%,0,0)`}
+    const controlsReady=workControls>.82;
+    root.dataset.stage2Controls=controlsReady?'on':'off';
+    if(dock){dock.inert=!controlsReady;dock.setAttribute('aria-hidden',String(workControls<.08))}
+    if(identityOpen)identityOpen.tabIndex=idCopy>.38?0:-1;
+    if(workOpen)workOpen.tabIndex=workText>.70?0:-1;
+    if(!controlsReady&&dock?.contains(document.activeElement))sceneButtons[1]?.focus({preventScroll:true});
+    if(idCopy<.15&&identity?.contains(document.activeElement)&&document.activeElement===identityOpen)sceneButtons[0]?.focus({preventScroll:true});
+  }
+  function schedule(){if(!raf&&inView&&!document.hidden)raf=requestAnimationFrame(paint)}
+  function invalidate(){geometry=null;last=-1;schedule()}
+  addEventListener('scroll',schedule,{passive:true});
+  addEventListener('resize',invalidate,{passive:true});
+  new MutationObserver(invalidate).observe(html,{attributes:true,attributeFilter:['data-motion']});
+  if('ResizeObserver'in window)new ResizeObserver(invalidate).observe(stage);
+  if('IntersectionObserver'in window)new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;if(inView)schedule();else{cancelAnimationFrame(raf);raf=0}}).observe(stage);
+  reduced.addEventListener('change',invalidate);forced.addEventListener('change',invalidate);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0}else schedule()});
+  chooseProject(0);invalidate();
+})();
