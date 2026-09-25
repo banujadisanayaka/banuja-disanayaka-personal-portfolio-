@@ -328,7 +328,7 @@
     const {w,h,compact}=geometry;
     if(compact){
       const ix=mix(w*.20,w*.045,p),iy=mix(h*.31,h*.38,p),is=mix(.74,.54,p),ir=mix(3,-4,p);
-      const wx=mix(w*1.03,w*.22,p),wy=mix(h*.34,h*.27,p),ws=mix(.68,.74,p),wr=mix(-8,-2,p);
+      const wx=mix(w*1.03,w*.22,p),wy=mix(h*.34,h*.325,p),ws=mix(.66,.68,p),wr=mix(-8,-2,p);
       set('--s2-id-transform',`translate3d(${ix.toFixed(1)}px,${iy.toFixed(1)}px,0) rotateZ(${ir.toFixed(2)}deg) scale(${is.toFixed(4)})`);
       set('--s2-work-transform',`translate3d(${wx.toFixed(1)}px,${wy.toFixed(1)}px,0) rotateZ(${wr.toFixed(2)}deg) scale(${ws.toFixed(4)})`);
     }else{
