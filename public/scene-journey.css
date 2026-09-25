@@ -127,6 +127,7 @@
 .journey-project-chip.is-selected,.journey-project-chip[aria-current=true]{background:#efc56c;border-color:#efc56c;color:#173127}
 .journey-project-chip.is-selected>span:first-child,.journey-project-chip[aria-current=true]>span:first-child{color:#173127}
 .journey-project-chip:focus-visible{outline:3px solid #f8fbf5;outline-offset:3px;box-shadow:0 0 0 5px #4eaa98}
+.is-scrubbed .journey-panel[aria-hidden=false] .journey-project-dock,.is-scrubbed .journey-panel[aria-hidden=false] .journey-project-chip{pointer-events:auto}
 
 .stage2-identity-back,.stage2-identity-middle,.stage2-identity-front,.stage2-transition-plane,.stage2-signal{display:none;pointer-events:none}
 .scene-journey.is-scrubbed .journey-work-environment{position:absolute;inset:0;display:block;z-index:0;pointer-events:none;opacity:0;overflow:hidden;background:
