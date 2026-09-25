@@ -246,13 +246,36 @@
   const workOpen=work?.querySelector('[data-journey-project-open]');
   const identityOpen=identity?.querySelector('.journey-link');
   const sceneButtons=[...root.querySelectorAll('[data-journey-select]')];
+  const idHeading=identity?.querySelector('.journey-heading');
+  const idCaption=identity?.querySelector('.journey-caption');
+  const idArtEl=identity?.querySelector('.journey-art');
+  const workHeading=work?.querySelector('.journey-heading');
+  const workCaption=work?.querySelector('.journey-caption');
+  const workArtEl=work?.querySelector('.journey-art');
+  const workEnv=work?.querySelector('.journey-work-environment');
+  const workSlab=work?.querySelector('.journey-work-copy-slab');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const forced=matchMedia('(forced-colors: active)');
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
   const mix=(a,b,t)=>a+(b-a)*t;
   const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t)};
   let geometry=null,raf=0,inView=true,last=-1,selectedProject=0;
-  const set=(name,value)=>root.style.setProperty(name,value);
+  const stage2State=Object.create(null);root.__stage2ProofState=stage2State;
+  const varTargets=new Map([
+    ['--s2-id-env',[idBack,idMiddle]],['--s2-id-front',[idFront]],
+    ['--s2-id-copy',[idHeading,idCaption]],['--s2-id-art',[idArtEl]],
+    ['--s2-work-env',[workEnv]],['--s2-plane-opacity',[plane]],
+    ['--s2-work-art',[workArtEl]],['--s2-work-copy',[workHeading,workCaption,workSlab]],
+    ['--s2-work-controls',[dock]],['--s2-id-transform',[idArtEl]],
+    ['--s2-work-transform',[workArtEl]],['--s2-id-copy-transform',[idHeading,idCaption]],
+    ['--s2-work-copy-transform',[workHeading,workCaption]],['--s2-slab-transform',[workSlab]]
+  ]);
+  const varCache=new Map();
+  const set=(name,value)=>{
+    stage2State[name]=value;
+    const targets=varTargets.get(name);if(!targets)return;
+    targets.forEach((el,index)=>{if(!el)return;const key=name+':'+index;if(varCache.get(key)===value)return;varCache.set(key,value);el.style.setProperty(name,value)});
+  };
   function chooseProject(index,{focus=false}={}){
     if(!chips.length)return;
     selectedProject=(index+chips.length)%chips.length;
@@ -292,26 +315,21 @@
   });
   function measure(){
     const h=stage.clientHeight,w=stage.clientWidth,step=h*.90;
-    const idHeading=identity?.querySelector('.journey-heading');
-    const idCaption=identity?.querySelector('.journey-caption');
-    const idArt=identity?.querySelector('.journey-art');
-    const workHeading=work?.querySelector('.journey-heading');
-    const workCaption=work?.querySelector('.journey-caption');
-    const workArt=work?.querySelector('.journey-art');
     geometry={
       top:root.getBoundingClientRect().top+scrollY,h,w,step,compact:w<=700,
       idHeadingBottom:(idHeading?.offsetTop||0)+(idHeading?.offsetHeight||0),
       idCaptionTop:idCaption?.offsetTop||h*.78,
-      idAw:idArt?.offsetWidth||300,idAh:idArt?.offsetHeight||370,
+      idAw:idArtEl?.offsetWidth||300,idAh:idArtEl?.offsetHeight||370,
       workHeadingBottom:(workHeading?.offsetTop||0)+(workHeading?.offsetHeight||0),
       workCaptionTop:workCaption?.offsetTop||h*.70,
-      workAw:workArt?.offsetWidth||300,workAh:workArt?.offsetHeight||370
+      workAw:workArtEl?.offsetWidth||300,workAh:workArtEl?.offsetHeight||370
     };
   }
   function clearProof(){
     if(root.dataset.stage2Proof)delete root.dataset.stage2Proof;
     if(root.dataset.stage2Controls)delete root.dataset.stage2Controls;
-    ['--s2-p','--s2-id-env','--s2-id-front','--s2-id-copy','--s2-id-art','--s2-work-env','--s2-plane-opacity','--s2-work-art','--s2-work-copy','--s2-work-controls','--s2-id-transform','--s2-work-transform','--s2-id-copy-transform','--s2-work-copy-transform','--s2-slab-transform'].forEach(name=>root.style.removeProperty(name));
+    for(const [name,targets] of varTargets){targets.forEach(el=>el?.style.removeProperty(name));delete stage2State[name]}
+    varCache.clear();root.style.removeProperty('--s2-p');
     [plane,idMiddle,idBack,idFront,signal].forEach(el=>el?.removeAttribute('style'));
     if(dock){dock.inert=false;dock.removeAttribute('aria-hidden')}
     if(identityOpen)identityOpen.removeAttribute('tabindex');
@@ -329,16 +347,16 @@
     const p=clamp(raw,0,1);
     if(Math.abs(p-last)<.0001)return;
     last=p;root.dataset.stage2Proof='active';
-    const idCopy=1-smooth(.27,.44,p);
-    const idArt=1-smooth(.39,.62,p);
+    const idCopy=1-smooth(.28,.42,p);
+    const idArt=1-smooth(.34,.47,p);
     const workEnv=smooth(.10,.72,p);
     const planeP=smooth(.18,.63,p);
-    const workArt=smooth(.48,.73,p);
-    const workText=smooth(.64,.83,p);
-    const workControls=smooth(.75,.92,p);
-    set('--s2-p',p.toFixed(4));set('--s2-id-env',(1-smooth(.20,.70,p)*.82).toFixed(4));set('--s2-id-front',(1-smooth(.22,.70,p)*.88).toFixed(4));
+    const workArt=smooth(.51,.70,p);
+    const workText=smooth(.62,.82,p);
+    const workControls=smooth(.68,.90,p);
+    stage2State['--s2-p']=p.toFixed(4);set('--s2-id-env',(1-smooth(.20,.70,p)*.82).toFixed(4));set('--s2-id-front',(1-smooth(.22,.70,p)*.88).toFixed(4));
     set('--s2-id-copy',idCopy.toFixed(4));set('--s2-id-art',idArt.toFixed(4));set('--s2-work-env',workEnv.toFixed(4));
-    set('--s2-plane-opacity',smooth(.17,.48,p).toFixed(4));set('--s2-work-art',workArt.toFixed(4));set('--s2-work-copy',workText.toFixed(4));set('--s2-work-controls',workControls.toFixed(4));
+    set('--s2-plane-opacity',smooth(.14,.40,p).toFixed(4));set('--s2-work-art',workArt.toFixed(4));set('--s2-work-copy',workText.toFixed(4));set('--s2-work-controls',workControls.toFixed(4));
     const {w,h,compact}=geometry;
     if(compact){
       // Fit both visual objects inside the live reading corridors rather than

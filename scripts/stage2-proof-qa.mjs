@@ -15,14 +15,16 @@ try{
       await page.evaluate(({g,p})=>scrollTo({top:g.top+g.step*p,behavior:'instant'}),{g,p});
       await page.waitForTimeout(650);
       const state=await root.evaluate(el=>({
-        id:Number(getComputedStyle(el).getPropertyValue('--s2-id-copy'))||0,
-        work:Number(getComputedStyle(el).getPropertyValue('--s2-work-copy'))||0,
-        controls:Number(getComputedStyle(el).getPropertyValue('--s2-work-controls'))||0,
+        id:Number(el.__stage2ProofState?.['--s2-id-copy'])||0,
+        idArt:Number(el.__stage2ProofState?.['--s2-id-art'])||0,
+        work:Number(el.__stage2ProofState?.['--s2-work-copy'])||0,
+        workArt:Number(el.__stage2ProofState?.['--s2-work-art'])||0,
+        controls:Number(el.__stage2ProofState?.['--s2-work-controls'])||0,
         proof:el.dataset.stage2Proof||''
       }));
       assert.equal(state.proof,'active',`Stage 2 proof owns pose ${p}`);
       if(p===.25){assert.ok(state.id>.8,'Identity remains readable at 25%');assert.ok(state.work<.05,'Work copy does not collide at 25%')}
-      if(p===.5){assert.ok(state.id<.05&&state.work<.05,'Midpoint has no translucent copy collision')}
+      if(p===.5){assert.ok(state.id<.05&&state.work<.05,'Midpoint has no translucent copy collision');assert.ok(state.idArt<.05&&state.workArt<.05,'Midpoint has no ghosted portrait/workflow overlap')}
       if(p===.75){assert.ok(state.id<.02&&state.work>.45,'Work owns the reading layer by 75%')}
       if(p===1){assert.ok(state.work>.98&&state.controls>.98,'Work rests with readable copy and usable controls')}
     }
