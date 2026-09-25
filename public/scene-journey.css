@@ -142,7 +142,7 @@
 .scene-journey.is-scrubbed .journey-work-rail.rail-a{top:16%}.scene-journey.is-scrubbed .journey-work-rail.rail-b{top:22%}.scene-journey.is-scrubbed .journey-work-rail.rail-c{top:28%}
 .scene-journey.is-scrubbed .journey-work-foreground{position:absolute;left:-4%;right:-4%;bottom:-1%;height:22%;background:linear-gradient(174deg,#07140f00 0 15%,#030907 15% 100%);border-top:1px solid #52705e66}
 .journey-work-copy-slab{display:none}
-.scene-journey.is-scrubbed [data-journey-scene="1"] .journey-work-copy-slab{display:block;position:absolute;left:5.6%;top:16%;width:39%;height:58%;z-index:4;background:#e7ebdd;border:1px solid #fff9;box-shadow:0 28px 60px #0005;border-radius:26px;opacity:0;pointer-events:none}
+.scene-journey.is-scrubbed [data-journey-scene="1"] .journey-work-copy-slab{display:block;position:absolute;left:5.6%;top:16%;width:39%;height:66%;z-index:4;background:#e7ebdd;border:1px solid #fff9;box-shadow:0 28px 60px #0005;border-radius:26px;opacity:0;pointer-events:none}
 .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-heading,
 .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-caption{color:#173127}
 .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-art{z-index:6}
@@ -192,7 +192,7 @@
   .scene-journey.is-scrubbed[data-stage2-proof="active"] .stage2-transition-plane{left:8%;width:108%;clip-path:polygon(10% 0,100% 0,100% 100%,0 100%)}
   .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-work-copy-slab{left:5%;top:11.2%;width:90%;height:20%;border-radius:18px}
   .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-heading{top:108px;left:8%;width:84%}
-  .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-caption{left:7%;bottom:174px;width:86%;max-width:none}
+  .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-caption{left:7%;bottom:174px;width:86%;max-width:none;color:#eef1e9}
   .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-caption>p{font-size:14px;line-height:1.45;max-width:34ch}
   .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-caption>span{font-size:9px}
   .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-project-dock{left:5%;right:5%;bottom:90px;padding:3px 0;gap:6px}

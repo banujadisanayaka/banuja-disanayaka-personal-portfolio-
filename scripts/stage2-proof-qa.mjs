@@ -28,6 +28,14 @@ try{
       if(p===.75){assert.ok(state.id<.02&&state.work>.45,'Work owns the reading layer by 75%')}
       if(p===1){assert.ok(state.work>.98&&state.controls>.98,'Work rests with readable copy and usable controls')}
     }
+    if(viewport.width>700){
+      const slab=await page.locator('[data-journey-scene="1"] .journey-work-copy-slab').boundingBox();
+      const caption=await page.locator('[data-journey-scene="1"] .journey-caption').boundingBox();
+      assert.ok(caption.y+caption.height<=slab.y+slab.height+2,'Desktop Work reading copy remains on its pale slab');
+    }else{
+      const workCaptionColor=await page.locator('[data-journey-scene="1"] .journey-caption').evaluate(el=>getComputedStyle(el).color);
+      assert.equal(workCaptionColor,'rgb(238, 241, 233)','Mobile Work reading copy contrasts with the dark environment');
+    }
     if(viewport.width<=700){
       await page.evaluate(g=>scrollTo({top:g.top,behavior:'instant'}),g);await page.waitForTimeout(500);
       const lineY=await page.locator('path.stage2-signal-mobile').evaluate(el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom}});
