@@ -292,7 +292,21 @@
   });
   function measure(){
     const h=stage.clientHeight,w=stage.clientWidth,step=h*.90;
-    geometry={top:root.getBoundingClientRect().top+scrollY,h,w,step,compact:w<=700};
+    const idHeading=identity?.querySelector('.journey-heading');
+    const idCaption=identity?.querySelector('.journey-caption');
+    const idArt=identity?.querySelector('.journey-art');
+    const workHeading=work?.querySelector('.journey-heading');
+    const workCaption=work?.querySelector('.journey-caption');
+    const workArt=work?.querySelector('.journey-art');
+    geometry={
+      top:root.getBoundingClientRect().top+scrollY,h,w,step,compact:w<=700,
+      idHeadingBottom:(idHeading?.offsetTop||0)+(idHeading?.offsetHeight||0),
+      idCaptionTop:idCaption?.offsetTop||h*.78,
+      idAw:idArt?.offsetWidth||300,idAh:idArt?.offsetHeight||370,
+      workHeadingBottom:(workHeading?.offsetTop||0)+(workHeading?.offsetHeight||0),
+      workCaptionTop:workCaption?.offsetTop||h*.70,
+      workAw:workArt?.offsetWidth||300,workAh:workArt?.offsetHeight||370
+    };
   }
   function clearProof(){
     if(root.dataset.stage2Proof)delete root.dataset.stage2Proof;
@@ -327,8 +341,23 @@
     set('--s2-plane-opacity',smooth(.17,.48,p).toFixed(4));set('--s2-work-art',workArt.toFixed(4));set('--s2-work-copy',workText.toFixed(4));set('--s2-work-controls',workControls.toFixed(4));
     const {w,h,compact}=geometry;
     if(compact){
-      const ix=mix(w*.20,w*.045,p),iy=mix(h*.31,h*.38,p),is=mix(.74,.54,p),ir=mix(3,-4,p);
-      const wx=mix(w*1.03,w*.22,p),wy=mix(h*.34,h*.325,p),ws=mix(.66,.68,p),wr=mix(-8,-2,p);
+      // Fit both visual objects inside the live reading corridors rather than
+      // assuming a fixed 390×844 canvas. This preserves the 320px fallback
+      // and browser-UI/safe-area variations while keeping the same choreography.
+      const idGap=Math.max(80,geometry.idCaptionTop-geometry.idHeadingBottom);
+      const idScale=Math.min((w*.51)/geometry.idAw,Math.min(h*.36,idGap)/geometry.idAh);
+      const idStartX=w*.60-geometry.idAw*idScale/2;
+      const idStartY=(geometry.idHeadingBottom+geometry.idCaptionTop)/2-geometry.idAh*idScale/2;
+      const idExitScale=Math.max(.34,idScale*.76);
+      const ix=mix(idStartX,w*.045,p),iy=mix(idStartY,h*.38,p),is=mix(idScale,idExitScale,p),ir=mix(3,-4,p);
+
+      const workGap=Math.max(80,geometry.workCaptionTop-geometry.workHeadingBottom);
+      const workScale=Math.min((w*.68)/geometry.workAw,Math.min(h*.36,workGap)/geometry.workAh);
+      const workEndX=w*.56-geometry.workAw*workScale/2;
+      const workEndY=(geometry.workHeadingBottom+geometry.workCaptionTop)/2-geometry.workAh*workScale/2;
+      const workStartScale=Math.max(.30,workScale*.74);
+      const wx=mix(w*1.03,workEndX,p),wy=mix(h*.34,workEndY,p),ws=mix(workStartScale,workScale,p),wr=mix(-8,-2,p);
+
       set('--s2-id-transform',`translate3d(${ix.toFixed(1)}px,${iy.toFixed(1)}px,0) rotateZ(${ir.toFixed(2)}deg) scale(${is.toFixed(4)})`);
       set('--s2-work-transform',`translate3d(${wx.toFixed(1)}px,${wy.toFixed(1)}px,0) rotateZ(${wr.toFixed(2)}deg) scale(${ws.toFixed(4)})`);
     }else{
