@@ -28,7 +28,7 @@ try{
     }
     if(viewport.width<=700){
       await page.evaluate(g=>scrollTo({top:g.top,behavior:'instant'}),g);await page.waitForTimeout(500);
-      const lineY=await page.locator('.stage2-signal-mobile').evaluate(el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom}});
+      const lineY=await page.locator('path.stage2-signal-mobile').evaluate(el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom}});
       const name=await page.locator('[data-journey-scene="0"] .journey-heading h1').boundingBox();
       assert.ok(lineY.top>=name.y+name.height+18,`Mobile signal clears the name block at ${viewport.width}px`);
       const navLabels=await page.locator('.journey-buttons button>span:last-child').evaluateAll(els=>els.map(el=>({text:el.textContent.trim(),display:getComputedStyle(el).display})));
