@@ -373,11 +373,11 @@
     const {width:w,height:h,compact}=geometry;
     let idCopy,idArtWeight,workEnvWeight,planeOpacity,workArtWeight,workText,workControls,idTransform,workTransform,bg0,bg1;
     if(p<1){
-      idCopy=1-smooth(.16,.33,p);
+      idCopy=1-smooth(.20,.36,p);
       idArtWeight=1-smooth(.24,.41,p);
       workEnvWeight=smooth(.08,.48,p);
       planeOpacity=smooth(.14,.34,p)*(1-smooth(.72,.94,p));
-      workArtWeight=smooth(.26,.42,p);
+      workArtWeight=smooth(.30,.44,p);
       workText=smooth(.54,.74,p);
       workControls=smooth(.70,.88,p);
       bg0=1-smooth(.12,.70,p);
