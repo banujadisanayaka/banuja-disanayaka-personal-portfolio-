@@ -49,7 +49,10 @@ try {
     for(const fraction of [.22,.36,.64,.78]) {
       await page.evaluate(({g,f})=>scrollTo({top:g.top+g.step*f,behavior:'instant'}),{g:geometry,f:fraction});
       await page.waitForTimeout(800);
-      transforms.push(await journey.locator('.journey-art').evaluateAll(els=>els.map(el=>el.style.transform).join('|')));
+      transforms.push(await journey.locator('[data-journey-scene="0"] .journey-art,[data-journey-scene="1"] .journey-art').evaluateAll(els=>els.map(el=>{
+        const box=el.getBoundingClientRect(),style=getComputedStyle(el);
+        return [style.transform,style.opacity,box.x.toFixed(2),box.y.toFixed(2),box.width.toFixed(2),box.height.toFixed(2)].join(',');
+      }).join('|')));
     }
     assert.equal(new Set(transforms).size,4,'The shared composition transforms continuously between scenes');
     const choose=journey.locator('[data-journey-select="0"]');await choose.press('Enter');
