@@ -144,7 +144,7 @@
 .environment-5{background:linear-gradient(180deg,transparent 0 69%,#d7d5c469 69%)}
 .environment-5 span{left:51%;right:0;top:69%;height:1px;background:#b49352}
 .environment-5 i{right:12%;top:17%;width:29%;height:50%;border:1px solid #b8b9a88c;border-radius:50%}
-.is-scrubbed .journey-signal{display:block;position:absolute;right:3%;top:14%;bottom:23%;width:1px;background:#d8b465;z-index:7;transform-origin:center}
+.is-scrubbed .journey-signal{display:block;position:absolute;right:3%;top:14%;bottom:23%;width:1px;background:#d8b465;z-index:2;transform-origin:center}
 .journey-signal::before,.journey-signal::after{content:'';position:absolute;left:-3px;width:7px;height:7px;border-radius:50%;background:#d8b465}
 .journey-signal::before{top:0}.journey-signal::after{bottom:0}
 .journey-signal span{position:absolute;right:0;top:0;width:24px;height:1px;background:#d8b465}
