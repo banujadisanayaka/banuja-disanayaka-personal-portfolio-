@@ -377,8 +377,8 @@
       idArtWeight=1-smooth(.24,.41,p);
       workEnvWeight=smooth(.08,.48,p);
       planeOpacity=smooth(.14,.34,p)*(1-smooth(.72,.94,p));
-      workArtWeight=smooth(.38,.50,p);
-      workText=smooth(.56,.76,p);
+      workArtWeight=smooth(.26,.42,p);
+      workText=smooth(.54,.74,p);
       workControls=smooth(.70,.88,p);
       bg0=1-smooth(.12,.70,p);
       bg1=smooth(.10,.68,p);

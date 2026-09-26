@@ -45,8 +45,8 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       <svg class="stage2-signal" data-stage2-proof-layer viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <path class="stage2-signal-desktop" d="M60 382 C245 332 430 414 615 370 L615 118 L946 118"/>
         <circle class="stage2-signal-desktop" cx="615" cy="370" r="6"/>
-        <path class="stage2-signal-mobile" d="M42 342 C238 302 604 388 902 350 L902 116 L122 116"/>
-        <circle class="stage2-signal-mobile" cx="902" cy="350" r="7"/>
+        <path class="stage2-signal-mobile" d="M42 342 C238 302 604 388 940 350 L940 258 L992 258"/>
+        <circle class="stage2-signal-mobile" cx="940" cy="350" r="7"/>
       </svg>
       ${scenes.map((s,i)=>`<article class="journey-panel ${s.theme}" data-journey-scene="${i}"${s.section?` data-section="${s.section}"`:''} aria-labelledby="journey-title-${i}">
         ${i===1?'<div class="journey-work-environment" aria-hidden="true"><span class="journey-work-rail rail-a"></span><span class="journey-work-rail rail-b"></span><span class="journey-work-rail rail-c"></span><span class="journey-work-foreground"></span></div><span class="journey-work-copy-slab" aria-hidden="true"></span>':''}

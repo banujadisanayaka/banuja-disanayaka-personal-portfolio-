@@ -36,7 +36,15 @@ try{
 
     for(const p of [0,.25,.5,.75,1]){await go(page,g,p);const s=await state(root);
       if(p===.25){assert.ok(s.id>.55,'Identity remains readable at 25%');assert.ok(s.work<.05,'Work copy does not collide at 25%')}
-      if(p===.5){assert.ok(s.idArt<.08,'Portrait is occluded by midpoint');assert.ok(s.workArt>.75,'Work structure is recognizable at midpoint')}
+      if(p===.5){
+        const visual=await root.evaluate(el=>{
+          const id=el.querySelector('[data-journey-scene="0"] .journey-art'),work=el.querySelector('[data-journey-scene="1"] .journey-art');
+          const ib=id.getBoundingClientRect(),wb=work.getBoundingClientRect();
+          return {idOpacity:Number(getComputedStyle(id).opacity),workOpacity:Number(getComputedStyle(work).opacity),workArea:wb.width*wb.height,idArea:ib.width*ib.height};
+        });
+        assert.ok(visual.idOpacity<.08,'Portrait is occluded by midpoint');
+        assert.ok(visual.workOpacity>.75&&visual.workArea>18000,'A visible Work structure occupies the midpoint');
+      }
       if(p===.75){assert.ok(s.id<.02&&s.work>.65,'Work owns the reading layer by 75%')}
       if(p===1){assert.ok(s.work>.98&&s.controls>.98,'Work rests with readable copy and usable controls')}
     }
