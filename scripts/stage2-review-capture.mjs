@@ -23,13 +23,18 @@ async function captureRun({name,viewport,videoSize,isMobile=false,deviceScaleFac
   await page.evaluate(({g})=>scrollTo({top:g.top+g.step*1.08,behavior:'instant'}),{g});await page.waitForTimeout(600);
   await page.screenshot({path:`${out}/${name}-work-gaze-join.jpg`,type:'jpeg',quality:88,animations:'disabled'});
   await page.evaluate(g=>scrollTo({top:g.top,behavior:'instant'}),g);await page.waitForTimeout(350);
-  await scrub(page,g,0,1.28,2200);await page.waitForTimeout(450);await scrub(page,g,1.28,0,2200);await page.waitForTimeout(450);
+  await scrub(page,g,0,5,6500);await page.waitForTimeout(450);await scrub(page,g,5,0,6500);await page.waitForTimeout(450);
+  for(let i=0;i<6;i++){
+    await page.evaluate(({g,i})=>scrollTo({top:g.top+g.step*i,behavior:'instant'}),{g,i});await page.waitForTimeout(700);
+    await page.screenshot({path:`${out}/${name}-scene-${i}.jpg`,type:'jpeg',quality:85,animations:'disabled'});
+  }
   const video=page.video();await context.close();if(video)await video.saveAs(`${out}/${name}-forward-reverse.webm`);
 }
 try{
   await captureRun({name:'desktop',viewport:{width:1366,height:900},videoSize:{width:960,height:632}});
   await captureRun({name:'mobile',viewport:{width:390,height:844},videoSize:{width:390,height:844},isMobile:true,deviceScaleFactor:2});
   const names=['desktop-identity.jpg','desktop-midpoint.jpg','desktop-work-gaze-join.jpg','desktop-forward-reverse.webm','mobile-identity.jpg','mobile-midpoint.jpg','mobile-work-gaze-join.jpg','mobile-forward-reverse.webm'];
+  names.push(...['desktop','mobile'].flatMap(size=>Array.from({length:6},(_,i)=>`${size}-scene-${i}.jpg`)));
   for(const name of names){
     const b64=(await readFile(out+'/'+name)).toString('base64');
     console.log(`STAGE2_MEDIA_BEGIN|${name}|${b64.length}`);

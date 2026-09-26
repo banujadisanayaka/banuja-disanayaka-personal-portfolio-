@@ -1,7 +1,7 @@
 // A semantic introduction first; the browser progressively pins and choreographs it.
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-export function sceneJourney(picture, gallery, profile, ecosystem, projects = []) {
+export function sceneJourney(picture, gallery, profile, ecosystem, projects = [], career = []) {
   const forest = gallery.find(g => g.preview.includes('gaze-168481-')) || gallery[0];
   const city = gallery.find(g => g.preview.includes('gaze-177310-')) || gallery[1];
   const photo = g => `<img data-scene-photo="${esc(g.id)}" src="${esc(g.derivatives?.[0]?.url || g.preview)}" srcset="${g.derivatives.map(d => `${esc(d.url)} ${d.width}w`).join(', ')}" sizes="(max-width:700px) 65vw, 35vw" width="${g.width}" height="${g.height}" alt="${esc(g.alt)}" loading="lazy" decoding="async">`;
@@ -10,6 +10,8 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
   const primaryWork=workProjects[0]||{title:'Selected work',category:'Operations → product',kicker:'A working system.',flow:['Project context','Core workflow','Implementation','Outcome']};
   const primaryFlow=(primaryWork.flow||[]).slice(0,4);
   const workArt=`<div class="journey-system"><div class="journey-sheet-top"><span class="journey-system-category">${esc(primaryWork.category)}</span><span class="journey-system-index">01</span></div><span class="journey-system-label">Project map</span><p class="journey-sheet-title">${esc(primaryWork.title)}</p><ol>${primaryFlow.map((step,i)=>`<li><span>0${i+1}</span><b class="journey-flow-label">${esc(step)}</b></li>`).join('')}</ol><small class="journey-system-footer">${esc(primaryWork.kicker)}</small></div>`;
+  const route = [...career].reverse().filter((_, i, list) => i === 0 || i === 2 || i === list.length-1);
+  const routeArt = `<div class="journey-route"><p class="route-label">EXPERIENCE / A CONTINUING LINE</p><ol>${route.map((item,i)=>`<li><span class="route-number">0${i+1}</span><div><small>${esc(item.year)}</small><strong>${esc(item.title)}</strong><span>${esc(item.company)}</span></div></li>`).join('')}</ol></div>`;
   const scenes = [
     {name:'Identity',word:'PERSPECTIVE',theme:'moss',kicker:'01 / AN INDEPENDENT MIND',
       heading:`<h1><span data-text="profile.firstName">${esc(profile.firstName)}</span><em data-text="profile.lastName">${esc(profile.lastName)}</em></h1>`,
@@ -22,10 +24,10 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       heading:'<h2>The Daily<br><em>Gaze.</em></h2>',copy:'A closer look at the everyday.',note:'ORIGINAL PHOTOGRAPHY',href:'/daily-gaze/',action:'Enter the photographic journal',art:photo(forest),label:'THE DAILY GAZE / INTO THE MIST'},
     {name:'Journey',word:'BECOMING',theme:'clay',kicker:'04 / THE PERSON BEHIND THE WORK',section:'#about',
       heading:'<h2>A life of<br><em>looking closer.</em></h2>',copy:'Sri Lanka · Kuala Lumpur',note:'DESIGN / OPERATIONS / DIGITAL PRODUCTS',href:'/about/',action:'Read my full story',
-      art:picture('about','Banuja beside a display of his graphic design and artwork.'),label:'DESIGN & EXPERIENCE'},
+      art:routeArt,label:'DESIGN → OPERATIONS → PRODUCT'},
     {name:'VELORIA',word:'VELORIA',theme:'charcoal',kicker:'05 / A SHARED CREATIVE VISION',section:'#ecosystem',
       heading:'<h2>Many voices.<br><em>One vision.</em></h2>',copy:'Room for ideas to become something.',note:'VELORIA / SIX CONNECTED DIVISIONS',href:'/work/veloria/',action:'Explore the brand architecture',
-      art:`<div class="journey-ecosystem"><div class="journey-brand">VELORIA<span>Evolve Beyond.</span></div><div class="journey-brands">${ecosystem.map(e=>`<span>${esc(e.name)}</span>`).join('')}</div></div>`,label:'EVOLVE BEYOND'},
+      art:`<div class="journey-ecosystem"><p class="constellation-center">One shared<br><em>vision.</em></p><div class="journey-brands">${ecosystem.map((e,i)=>`<div class="constellation-node node-${i}"><span>0${i+1}</span><strong>${esc(e.name)}</strong><small>${esc(e.description)}</small></div>`).join('')}</div></div>`,label:'VELORIA / SIX CONNECTED DIVISIONS'},
     {name:'Contact',word:'WHAT COMES NEXT',theme:'cream',kicker:'06 / YOUR NEXT IDEA',section:'#contact',
       heading:'<h2>Let’s make<br>something <em>matter.</em></h2>',copy:'A conversation is a good beginning.',note:'BANUJA DISANAYAKA',href:'#contact',action:'Let’s talk',
       art:picture('personal','Banuja in an orange polo shirt at a celebration.'),label:'A PERSON, BEFORE A PORTFOLIO'}
@@ -34,27 +36,16 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
   return `<section class="scene-journey" id="opening" aria-label="Banuja’s portfolio in six scenes">
     <div class="journey-stage">
       <div class="journey-backgrounds" aria-hidden="true">${scenes.map(s=>`<div class="journey-background ${s.theme}"></div>`).join('')}</div>
-      <svg class="journey-contours" viewBox="0 0 1200 800" fill="none" aria-hidden="true" focusable="false">${contours}</svg>
-      <div class="journey-orbit" aria-hidden="true"></div>
-      <div class="journey-paper" aria-hidden="true"></div>
-      <div class="journey-satellite" aria-hidden="true">${photo(city)}</div>
-      <div class="stage2-identity-back" data-stage2-proof-layer aria-hidden="true"></div>
-      <div class="stage2-identity-middle" data-stage2-proof-layer aria-hidden="true"></div>
-      <div class="stage2-identity-front" data-stage2-proof-layer aria-hidden="true"></div>
-      <div class="stage2-transition-plane" data-stage2-proof-layer aria-hidden="true"></div>
-      <svg class="stage2-signal" data-stage2-proof-layer viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <path class="stage2-signal-desktop" d="M60 382 C245 332 430 414 615 370 L615 118 L946 118"/>
-        <circle class="stage2-signal-desktop" cx="615" cy="370" r="6"/>
-        <path class="stage2-signal-mobile" d="M42 342 C238 302 604 388 940 350 L940 258 L992 258"/>
-        <circle class="stage2-signal-mobile" cx="940" cy="350" r="7"/>
-      </svg>
+      <div class="journey-signal" aria-hidden="true"><span></span><i></i></div>
       ${scenes.map((s,i)=>`<article class="journey-panel ${s.theme}" data-journey-scene="${i}"${s.section?` data-section="${s.section}"`:''} aria-labelledby="journey-title-${i}">
-        ${i===1?'<div class="journey-work-environment" aria-hidden="true"><span class="journey-work-rail rail-a"></span><span class="journey-work-rail rail-b"></span><span class="journey-work-rail rail-c"></span><span class="journey-work-foreground"></span></div><span class="journey-work-copy-slab" aria-hidden="true"></span>':''}
+        <div class="journey-environment environment-${i}" aria-hidden="true"><span></span><i></i><b></b></div>
         <span class="journey-word" aria-hidden="true">${s.word}</span>
         <div class="journey-heading" id="journey-title-${i}"><p class="journey-kicker">${s.kicker}</p>${s.heading}</div>
         <figure class="journey-art"><div class="journey-art-inner">${s.art}</div><figcaption>${s.label}</figcaption></figure>
         <div class="journey-caption"><p${i===1?' data-journey-project-copy':''}>${i===1&&workProjects[0]?esc(workProjects[0].description):s.copy}</p><span${i===0?' data-text="profile.location"':''}${i===1?' data-journey-project-note':''}>${i===1&&workProjects[0]?esc(workProjects[0].category):s.note}</span><a class="journey-link"${i===1?' data-journey-project-open':''} href="${i===1&&workProjects[0]?`/work/${esc(workProjects[0].slug)}/`:s.href}">${i===1&&workProjects[0]?`Open ${esc(workProjects[0].title)}`:s.action} <span aria-hidden="true">↗</span></a></div>
         ${i===1?projectDock:''}
+        ${i===2?`<div class="journey-photo-picker" hidden role="group" aria-label="Choose an opening photograph"><button type="button" data-opening-photo="0" aria-pressed="true" aria-label="View ${esc(forest.title)}">01 / Nature</button><button type="button" data-opening-photo="1" aria-pressed="false" aria-label="View ${esc(city.title)}">02 / City</button></div><template data-opening-photo-template>${photo(city)}</template>`:''}
+        ${i===5?'<a class="journey-resume" href="/resume/">View résumé ↗</a>':''}
       </article>`).join('')}
       <nav class="journey-controls" aria-label="Scene navigation" hidden>
         <div class="journey-buttons">${scenes.map((s,i)=>`<button type="button" data-journey-select="${i}" aria-label="Scene ${i+1}: ${s.name}" aria-pressed="${i===0}"><span>0${i+1}</span><span>${s.name}</span></button>`).join('')}</div>

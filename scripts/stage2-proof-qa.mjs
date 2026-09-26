@@ -16,16 +16,12 @@ async function state(root){
     controls:Number(el.__stage2ProofState?.['--s2-work-controls'])||0
   }));
 }
-async function assertSignalClear(page,selector){
-  const collisions=await page.locator(selector).evaluate((path)=>{
-    const heading=document.querySelector('[data-journey-scene="0"] .journey-heading').getBoundingClientRect();
-    const caption=document.querySelector('[data-journey-scene="0"] .journey-caption').getBoundingClientRect();
-    const ctm=path.getScreenCTM(),length=path.getTotalLength(),bad=[];
-    const inside=(x,y,r)=>x>=r.left-8&&x<=r.right+8&&y>=r.top-8&&y<=r.bottom+8;
-    for(let i=0;i<=80;i++){const q=path.getPointAtLength(length*i/80),p=new DOMPoint(q.x,q.y).matrixTransform(ctm);if(inside(p.x,p.y,heading)||inside(p.x,p.y,caption))bad.push([p.x,p.y])}
-    return bad;
+async function assertSignalClear(page){
+  const collisions=await page.locator('.journey-signal').evaluate(signal=>{
+    const line=signal.getBoundingClientRect();
+    return [...document.querySelectorAll('.journey-heading,.journey-caption')].filter(el=>Number(getComputedStyle(el).opacity)>.08).filter(el=>{const r=el.getBoundingClientRect();return line.left<r.right+4&&line.right>r.left-4&&line.top<r.bottom+4&&line.bottom>r.top-4}).length;
   });
-  assert.equal(collisions.length,0,'Signal path stays clear of Identity heading and caption');
+  assert.equal(collisions,0,'Signal stays in the margin outside all visible reading regions');
 }
 try{
   for(const viewport of [{width:1366,height:900},{width:390,height:844},{width:320,height:700}]){
@@ -51,7 +47,7 @@ try{
     }
 
     await go(page,g,0);
-    await assertSignalClear(page,viewport.width<=700?'path.stage2-signal-mobile':'path.stage2-signal-desktop');
+    await assertSignalClear(page);
 
     // The old 1.055 clearProof seam must be continuous in both directions.
     const settle=async p=>{
@@ -77,6 +73,12 @@ try{
     const maxJump=fastTrace.slice(1).reduce((max,row,i)=>Math.max(max,...row.map((v,j)=>Math.abs(v-fastTrace[i][j]))),0);
     assert.ok(maxJump<18,`Fast Work→Gaze seam crossing has no one-frame geometry snap (max ${maxJump.toFixed(2)}px)`);
 
+    for(let scene=1;scene<5;scene++){
+      await go(page,g,scene+.5,700);
+      const visible=await root.locator('.journey-art').evaluateAll(els=>els.map(el=>Number(getComputedStyle(el).opacity)));
+      assert.ok(visible[scene]<.08&&visible[scene+1]>.9,`Transition ${scene}→${scene+1}: incoming scene replaces the outgoing photo without a ghosted overlay`);
+      await assertSignalClear(page);
+    }
     // Focus cannot remain inside a dock after it becomes invisible.
     await go(page,g,1);
     const second=page.locator('.journey-project-chip').nth(1);await second.focus();assert.equal(await second.evaluate(el=>document.activeElement===el),true);
@@ -115,8 +117,8 @@ try{
     console.log(`Stage 2 corrected acceptance checks passed at ${viewport.width}×${viewport.height}`);
   }
 
-  for(const mode of ['reduced','no-js','landscape']){
-    const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:{width:390,height:844},reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js'});
+  for(const mode of ['reduced','no-js','landscape','forced']){
+    const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:{width:390,height:844},reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js',forcedColors:mode==='forced'?'active':'none'});
     const page=await context.newPage();await page.goto(base+'/',{waitUntil:'networkidle'});
     assert.equal(await page.locator('.scene-journey.is-scrubbed').count(),0,`${mode} uses the readable fallback`);
     assert.ok(await page.locator('[data-journey-scene="0"] h1').isVisible());
