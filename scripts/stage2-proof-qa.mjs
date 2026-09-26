@@ -43,7 +43,8 @@ try{
           return {idOpacity:Number(getComputedStyle(id).opacity),workOpacity:Number(getComputedStyle(work).opacity),workArea:wb.width*wb.height,idArea:ib.width*ib.height};
         });
         assert.ok(visual.idOpacity<.08,'Portrait is occluded by midpoint');
-        assert.ok(visual.workOpacity>.75&&visual.workArea>18000,'A visible Work structure occupies the midpoint');
+        const minimumArea=viewport.width*viewport.height*.04;
+        assert.ok(visual.workOpacity>.75&&visual.workArea>minimumArea,`A visible Work structure occupies at least 4% of the midpoint viewport (area ${visual.workArea.toFixed(0)} > ${minimumArea.toFixed(0)})`);
       }
       if(p===.75){assert.ok(s.id<.02&&s.work>.65,'Work owns the reading layer by 75%')}
       if(p===1){assert.ok(s.work>.98&&s.controls>.98,'Work rests with readable copy and usable controls')}
