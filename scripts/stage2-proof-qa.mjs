@@ -98,7 +98,7 @@ try{
     if(viewport.width<=700){
       const nav=page.locator('.journey-buttons');const nb=await nav.boundingBox();
       assert.ok(nb.width<=viewport.width,'Scene navigation fits the mobile viewport');
-      for(const label of ['Identity','Work','Gaze','Journey','VELORIA','Contact'])assert.ok(await page.getByRole('button',{name:new RegExp(label)}).isVisible(),`${label} scene access is visible`);
+      for(const [i,label] of ['Identity','Work','Gaze','Journey','VELORIA','Contact'].entries())assert.ok(await page.getByRole('button',{name:`Scene ${i+1}: ${label}`,exact:true}).isVisible(),`${label} scene access is visible`);
       const motion=page.getByRole('button',{name:'Animation effects',exact:true}),mb=await motion.boundingBox(),db=await page.locator('.journey-project-dock').boundingBox();
       assert.ok(mb.height>=44,'Motion control retains 44px touch height');
       assert.ok(mb.y+mb.height<=db.y-4||db.y+db.height<=mb.y-4,'Motion control does not overlap project selector');
