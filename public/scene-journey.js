@@ -45,8 +45,15 @@
     const step = height * .90;
     const headingBottom = Math.max(...scenes.map(s=>s.heading.offsetTop+s.heading.offsetHeight))+22;
     const captionTop = Math.min(...scenes.map(s=>s.caption.offsetTop))-20;
+    const identity=all[0], work=all[1];
     geometry = {top:root.getBoundingClientRect().top+scrollY,height,width,step,headingBottom,captionTop,
-      artWidth:scenes[0]?.art.offsetWidth || 360,artHeight:scenes[0]?.art.offsetHeight || 460,compact:width<=700};
+      artWidth:scenes[0]?.art.offsetWidth || 360,artHeight:scenes[0]?.art.offsetHeight || 460,compact:width<=700,
+      idHeadingBottom:(identity?.heading.offsetTop||0)+(identity?.heading.offsetHeight||0),
+      idCaptionTop:identity?.caption.offsetTop||height*.78,
+      idAw:identity?.art.offsetWidth||360,idAh:identity?.art.offsetHeight||460,
+      workHeadingBottom:(work?.heading.offsetTop||0)+(work?.heading.offsetHeight||0),
+      workCaptionTop:work?.caption.offsetTop||height*.72,
+      workAw:work?.art.offsetWidth||360,workAh:work?.art.offsetHeight||460};
     root.style.height = `${height+step*Math.max(0,scenes.length-1)}px`;
     dirty = false;
   }
@@ -71,31 +78,43 @@
     const first = poses[scenes[a].id][compact?1:0], next = poses[scenes[b].id][compact?1:0];
     const pose = first.map((v,i) => mix(v,next[i],t));
     const sweep = Math.sin(Math.PI*t);
-    const fw = w*pose[2]*(1+sweep*.10);
-    const fh = compact ? Math.min(h*pose[3],Math.max(80,geometry.captionTop-geometry.headingBottom)) : h*pose[3]*(1+sweep*.06);
-    const scale = Math.min(fw/aw,fh/ah);
-    const centerY = compact ? (geometry.headingBottom+geometry.captionTop)/2 : h*pose[1];
-    const x = w*pose[0]-aw*scale/2, y = centerY-ah*scale/2;
-    const rotation = pose[4]-sweep*(compact?3:8);
-    const transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) perspective(1200px) rotateY(${pose[5].toFixed(2)}deg) rotateZ(${rotation.toFixed(2)}deg) scale(${scale.toFixed(5)})`;
+    const frameForPose=(candidate,localSweep=0)=>{
+      const fw=w*candidate[2]*(1+localSweep*.10);
+      const fh=compact ? Math.min(h*candidate[3],Math.max(80,geometry.captionTop-geometry.headingBottom)) : h*candidate[3]*(1+localSweep*.06);
+      const scale=Math.min(fw/aw,fh/ah);
+      const centerY=compact ? (geometry.headingBottom+geometry.captionTop)/2 : h*candidate[1];
+      return {x:w*candidate[0]-aw*scale/2,y:centerY-ah*scale/2,scale,rotation:candidate[4]-localSweep*(compact?3:8),ry:candidate[5]};
+    };
+    const frame=frameForPose(pose,sweep);
+    const {x,y,scale,rotation}=frame;
+    const transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) perspective(1200px) rotateY(${frame.ry.toFixed(2)}deg) rotateZ(${rotation.toFixed(2)}deg) scale(${scale.toFixed(5)})`;
+    const genericStates=[];
     scenes.forEach((scene,i) => {
       const outgoing = i===a, incoming = i===b;
       const weight = scenes.length===1 ? 1 : outgoing ? 1-swap : incoming ? swap : 0;
       const textWeight = scenes.length===1 ? 1 : outgoing ? 1-ease(clamp(t/.46)) : incoming ? ease(clamp((t-.54)/.46)) : 0;
+      const backgroundOpacity=scenes.length===1?1:outgoing?1:incoming?t:0;
+      const shift=outgoing ? -t*36 : (1-t)*36;
+      genericStates[scene.id]={weight,textWeight,backgroundOpacity,transform,shift,wordOpacity:textWeight*.055};
+      const stage2Owns=typeof root.__stage2Paint==='function'&&(scene.id===0||scene.id===1);
+      if(stage2Owns)return;
       style(scene.art,'opacity',weight.toFixed(4));
       style(scene.heading,'opacity',textWeight.toFixed(4));
       style(scene.caption,'opacity',textWeight.toFixed(4));
-      style(backgrounds[scene.id],'opacity',(scenes.length===1?1:outgoing?1:incoming?t:0).toFixed(4));
+      style(backgrounds[scene.id],'opacity',backgroundOpacity.toFixed(4));
       style(scene.word,'opacity',(textWeight*.055).toFixed(4));
       if (weight>0) style(scene.art,'transform',transform);
       if (textWeight>0) {
-        const shift = outgoing ? -t*36 : (1-t)*36;
         style(scene.heading,'transform',`translate3d(0,${shift.toFixed(2)}px,0)`);
         style(scene.caption,'transform',`translate3d(0,${(shift*.45).toFixed(2)}px,0)`);
         style(scene.word,'transform',`translate3d(${(-p*16).toFixed(2)}px,0,0)`);
       }
       expose(scene,i===current && textWeight>.08);
     });
+    if(typeof root.__stage2Paint==='function'){
+      root.__stage2Paint({p,geometry,states:genericStates,current,
+        restFrames:{identity:frameForPose(poses[0][compact?1:0],0),work:frameForPose(poses[1][compact?1:0],0)}});
+    }
     const frameX = x-5, frameY = y-5;
     style(paper,'transform',`translate3d(${frameX.toFixed(2)}px,${frameY.toFixed(2)}px,0) rotate(${rotation.toFixed(2)}deg) scale(${((aw*scale+10)/100).toFixed(4)},${((ah*scale+10)/100).toFixed(4)})`);
     style(contour,'transform',`translate3d(${(-p*3).toFixed(3)}%,${(Math.sin(p)*5).toFixed(3)}%,0) rotate(${(p*9).toFixed(3)}deg) scale(${(1+sweep*.08).toFixed(4)})`);
@@ -157,6 +176,7 @@
       schedule();
     } else {
       root.style.removeProperty('height');
+      root.__stage2Reset?.();
       all.forEach(scene=>{
         expose(scene,true);
         [scene.art,scene.heading,scene.caption,scene.word].forEach(el=>{el.removeAttribute('style');cache.delete(el);});
@@ -220,20 +240,21 @@
     value=clamp(value,0,scenes.length-1);target=value;velocity=0;selected=-1;
     invalidate();
   });
+  root.__journeyInvalidate=invalidate;
   configure();
 })();
 
 
-/* Stage 2 — limited Identity → Work choreography and project selector.
-   This layer only overrides the first transition; the V10.5 scene engine
-   continues to own native scrolling, later scenes and fallback behavior. */
+/* Stage 2 — limited Identity → Work renderer.
+   It shares the main engine's damped progress, geometry and single frame scheduler.
+   The later four scenes remain on the inherited V10.5 renderer. */
 (() => {
   'use strict';
   const root=document.querySelector('.scene-journey');
   if(!root||!root.querySelector('[data-stage2-proof-layer]'))return;
-  const html=document.documentElement,stage=root.querySelector('.journey-stage');
   const identity=root.querySelector('[data-journey-scene="0"]');
   const work=root.querySelector('[data-journey-scene="1"]');
+  const backgrounds=[...root.querySelectorAll('.journey-background')];
   const plane=root.querySelector('.stage2-transition-plane');
   const idMiddle=root.querySelector('.stage2-identity-middle');
   const idBack=root.querySelector('.stage2-identity-back');
@@ -241,49 +262,82 @@
   const signal=root.querySelector('.stage2-signal');
   const dock=work?.querySelector('.journey-project-dock');
   const chips=dock?[...dock.querySelectorAll('[data-journey-project]')]:[];
-  const workCopy=work?.querySelector('[data-journey-project-copy]');
-  const workNote=work?.querySelector('[data-journey-project-note]');
-  const workOpen=work?.querySelector('[data-journey-project-open]');
-  const identityOpen=identity?.querySelector('.journey-link');
   const sceneButtons=[...root.querySelectorAll('[data-journey-select]')];
   const idHeading=identity?.querySelector('.journey-heading');
   const idCaption=identity?.querySelector('.journey-caption');
-  const idArtEl=identity?.querySelector('.journey-art');
+  const idArt=identity?.querySelector('.journey-art');
+  const idOpen=identity?.querySelector('.journey-link');
   const workHeading=work?.querySelector('.journey-heading');
   const workCaption=work?.querySelector('.journey-caption');
-  const workArtEl=work?.querySelector('.journey-art');
+  const workArt=work?.querySelector('.journey-art');
+  const workOpen=work?.querySelector('[data-journey-project-open]');
   const workEnv=work?.querySelector('.journey-work-environment');
   const workSlab=work?.querySelector('.journey-work-copy-slab');
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const forced=matchMedia('(forced-colors: active)');
+  const workCopy=work?.querySelector('[data-journey-project-copy]');
+  const workNote=work?.querySelector('[data-journey-project-note]');
+  const systemCategory=work?.querySelector('.journey-system-category');
+  const systemIndex=work?.querySelector('.journey-system-index');
+  const systemTitle=work?.querySelector('.journey-sheet-title');
+  const systemSteps=work?[...work.querySelectorAll('.journey-system li')]:[];
+  const systemFooter=work?.querySelector('.journey-system-footer');
+  const systemCaption=work?.querySelector('.journey-art figcaption');
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
   const mix=(a,b,t)=>a+(b-a)*t;
   const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t)};
-  let geometry=null,raf=0,inView=true,last=-1,selectedProject=0;
-  const stage2State=Object.create(null);root.__stage2ProofState=stage2State;
+  const state=Object.create(null);root.__stage2ProofState=state;
+  let selectedProject=0;
   const varTargets=new Map([
     ['--s2-id-env',[idBack,idMiddle]],['--s2-id-front',[idFront]],
-    ['--s2-id-copy',[idHeading,idCaption]],['--s2-id-art',[idArtEl]],
+    ['--s2-id-copy',[idHeading,idCaption]],['--s2-id-art',[idArt]],
     ['--s2-work-env',[workEnv]],['--s2-plane-opacity',[plane]],
-    ['--s2-work-art',[workArtEl]],['--s2-work-copy',[workHeading,workCaption,workSlab]],
-    ['--s2-work-controls',[dock]],['--s2-id-transform',[idArtEl]],
-    ['--s2-work-transform',[workArtEl]],['--s2-id-copy-transform',[idHeading,idCaption]],
+    ['--s2-work-art',[workArt]],['--s2-work-copy',[workHeading,workCaption,workSlab]],
+    ['--s2-work-controls',[dock]],['--s2-id-transform',[idArt]],
+    ['--s2-work-transform',[workArt]],['--s2-id-copy-transform',[idHeading,idCaption]],
     ['--s2-work-copy-transform',[workHeading,workCaption]],['--s2-slab-transform',[workSlab]]
   ]);
   const varCache=new Map();
   const set=(name,value)=>{
-    stage2State[name]=value;
+    state[name]=value;
     const targets=varTargets.get(name);if(!targets)return;
     targets.forEach((el,index)=>{if(!el)return;const key=name+':'+index;if(varCache.get(key)===value)return;varCache.set(key,value);el.style.setProperty(name,value)});
   };
+  const frameTransform=frame=>`translate3d(${frame.x.toFixed(2)}px,${frame.y.toFixed(2)}px,0) perspective(1200px) rotateY(${frame.ry.toFixed(2)}deg) rotateZ(${frame.rotation.toFixed(2)}deg) scale(${frame.scale.toFixed(5)})`;
+  const frameMix=(a,b,t)=>({x:mix(a.x,b.x,t),y:mix(a.y,b.y,t),scale:mix(a.scale,b.scale,t),rotation:mix(a.rotation,b.rotation,t),ry:mix(a.ry,b.ry,t)});
+  function setSceneActive(el,on,fallback){
+    if(!el)return;
+    if(!on&&el.contains(document.activeElement))fallback?.focus({preventScroll:true});
+    el.inert=!on;
+    el.setAttribute('aria-hidden',String(!on));
+  }
+  function setDock(interactive,visible,fallback){
+    if(!dock)return;
+    if(!interactive&&dock.contains(document.activeElement))fallback?.focus({preventScroll:true});
+    dock.inert=!interactive;
+    dock.setAttribute('aria-hidden',String(!visible));
+  }
   function chooseProject(index,{focus=false}={}){
     if(!chips.length)return;
     selectedProject=(index+chips.length)%chips.length;
     chips.forEach((chip,i)=>{const on=i===selectedProject;chip.classList.toggle('is-selected',on);if(on)chip.setAttribute('aria-current','true');else chip.removeAttribute('aria-current')});
     const chip=chips[selectedProject];
+    const title=chip.dataset.projectTitle||chip.querySelector('.journey-project-title')?.textContent?.trim()||'Project';
+    const category=chip.dataset.projectCategory||chip.dataset.projectNote||'Selected work';
+    const flow=(chip.dataset.projectFlow||'').split('|').map(x=>x.trim()).filter(Boolean);
     if(workCopy&&chip.dataset.projectSummary)workCopy.textContent=chip.dataset.projectSummary;
-    if(workNote&&chip.dataset.projectNote)workNote.textContent=chip.dataset.projectNote;
-    if(workOpen){workOpen.href=chip.href;workOpen.firstChild.textContent='Open '+(chip.dataset.projectTitle||chip.textContent.trim())+' ';}
+    if(workNote)workNote.textContent=category;
+    if(workOpen){workOpen.href=chip.href;workOpen.firstChild.textContent='Open '+title+' ';}
+    if(systemCategory)systemCategory.textContent=category;
+    if(systemIndex)systemIndex.textContent=String(selectedProject+1).padStart(2,'0');
+    if(systemTitle)systemTitle.textContent=title;
+    systemSteps.forEach((row,i)=>{
+      const number=row.querySelector('span');
+      if(number)number.textContent=String(i+1).padStart(2,'0');
+      const label=row.querySelector('.journey-flow-label');
+      if(label)label.textContent=flow[i]||'Case study detail';
+      row.hidden=i>=flow.length;
+    });
+    if(systemFooter)systemFooter.textContent=chip.dataset.projectKicker||category;
+    if(systemCaption)systemCaption.textContent='PROJECT MAP / '+title.toUpperCase();
     if(focus)chip.focus({preventScroll:true});
   }
   chips.forEach((chip,index)=>{
@@ -309,108 +363,84 @@
       if(label&&cms.title)label.textContent=cms.title;
       if(cms.title)chip.dataset.projectTitle=cms.title;
       if(cms.description)chip.dataset.projectSummary=cms.description;
-      if(cms.tags)chip.dataset.projectNote=cms.tags;
+      if(cms.tags)chip.dataset.projectCategory=cms.tags;
     });
     chooseProject(selectedProject);
   });
-  function measure(){
-    const h=stage.clientHeight,w=stage.clientWidth,step=h*.90;
-    geometry={
-      top:root.getBoundingClientRect().top+scrollY,h,w,step,compact:w<=700,
-      idHeadingBottom:(idHeading?.offsetTop||0)+(idHeading?.offsetHeight||0),
-      idCaptionTop:idCaption?.offsetTop||h*.78,
-      idAw:idArtEl?.offsetWidth||300,idAh:idArtEl?.offsetHeight||370,
-      workHeadingBottom:(workHeading?.offsetTop||0)+(workHeading?.offsetHeight||0),
-      workCaptionTop:workCaption?.offsetTop||h*.70,
-      workAw:workArtEl?.offsetWidth||300,workAh:workArtEl?.offsetHeight||370
-    };
-  }
-  function clearProof(){
-    if(root.dataset.stage2Proof)delete root.dataset.stage2Proof;
-    if(root.dataset.stage2Controls)delete root.dataset.stage2Controls;
-    for(const [name,targets] of varTargets){targets.forEach(el=>el?.style.removeProperty(name));delete stage2State[name]}
-    varCache.clear();root.style.removeProperty('--s2-p');
+  root.dataset.stage2Proof='active';
+  root.__stage2Paint=({p,geometry,states,restFrames,current})=>{
+    if(!root.classList.contains('is-scrubbed'))return;
+    const {width:w,height:h,compact}=geometry;
+    let idCopy,idArtWeight,workEnvWeight,planeOpacity,workArtWeight,workText,workControls,idTransform,workTransform,bg0,bg1;
+    if(p<1){
+      idCopy=1-smooth(.16,.33,p);
+      idArtWeight=1-smooth(.24,.41,p);
+      workEnvWeight=smooth(.08,.48,p);
+      planeOpacity=smooth(.14,.34,p)*(1-smooth(.72,.94,p));
+      workArtWeight=smooth(.38,.50,p);
+      workText=smooth(.56,.76,p);
+      workControls=smooth(.70,.88,p);
+      bg0=1-smooth(.12,.70,p);
+      bg1=smooth(.10,.68,p);
+      const idStart=restFrames.identity;
+      const idEnd={x:idStart.x-(compact?w*.16:w*.20),y:idStart.y+(compact?h*.045:h*.07),scale:idStart.scale*(compact?.76:.70),rotation:-4,ry:compact?0:-18};
+      const workEnd=restFrames.work;
+      const workStart={x:compact?w*.98:w*1.03,y:workEnd.y-(compact?h*.03:h*.05),scale:workEnd.scale*(compact?.78:.72),rotation:-9,ry:compact?0:13};
+      idTransform=frameTransform(frameMix(idStart,idEnd,smooth(.08,.52,p)));
+      workTransform=frameTransform(frameMix(workStart,workEnd,smooth(.26,.82,p)));
+    }else{
+      const idState=states[0]||{weight:0,textWeight:0,backgroundOpacity:0,transform:frameTransform(restFrames.identity)};
+      const workState=states[1]||{weight:0,textWeight:0,backgroundOpacity:0,transform:frameTransform(restFrames.work)};
+      idCopy=idState.textWeight;idArtWeight=idState.weight;bg0=idState.backgroundOpacity;
+      workArtWeight=workState.weight;workText=workState.textWeight;workEnvWeight=workState.weight;bg1=workState.backgroundOpacity;
+      planeOpacity=0;
+      workControls=p<=1.16?1:1-smooth(1.16,1.42,p);
+      idTransform=idState.transform||frameTransform(restFrames.identity);
+      workTransform=workState.transform||frameTransform(restFrames.work);
+    }
+    set('--s2-id-env',Math.max(bg0,idArtWeight*.35).toFixed(4));
+    set('--s2-id-front',Math.max(bg0*.88,0).toFixed(4));
+    set('--s2-id-copy',idCopy.toFixed(4));
+    set('--s2-id-art',idArtWeight.toFixed(4));
+    set('--s2-work-env',workEnvWeight.toFixed(4));
+    set('--s2-plane-opacity',planeOpacity.toFixed(4));
+    set('--s2-work-art',workArtWeight.toFixed(4));
+    set('--s2-work-copy',workText.toFixed(4));
+    set('--s2-work-controls',workControls.toFixed(4));
+    set('--s2-id-transform',idTransform);
+    set('--s2-work-transform',workTransform);
+    set('--s2-id-copy-transform',`translate3d(${(-18*smooth(.14,.40,p)).toFixed(1)}px,${(-20*smooth(.14,.40,p)).toFixed(1)}px,0)`);
+    set('--s2-work-copy-transform',`translate3d(${(22*(1-workText)).toFixed(1)}px,0,0)`);
+    set('--s2-slab-transform',`translate3d(${(28*(1-workText)).toFixed(1)}px,0,0)`);
+    if(backgrounds[0])backgrounds[0].style.opacity=bg0.toFixed(4);
+    if(backgrounds[1])backgrounds[1].style.opacity=bg1.toFixed(4);
+    if(plane)plane.style.transform=`translate3d(${((1-smooth(.14,.62,Math.min(p,1)))*108-4).toFixed(2)}%,0,0) skewX(-4deg)`;
+    if(idMiddle)idMiddle.style.transform=`perspective(760px) rotateX(64deg) translate3d(${(-Math.min(p,1)*2.5).toFixed(2)}%,${(Math.min(p,1)*3).toFixed(2)}%,0) scale(${(1.45+Math.min(p,1)*.10).toFixed(3)})`;
+    if(idBack)idBack.style.transform=`translate3d(${(-Math.min(p,1)*3.5).toFixed(2)}%,${(Math.min(p,1)*1.6).toFixed(2)}%,0) scale(${(1+Math.min(p,1)*.06).toFixed(3)})`;
+    if(idFront)idFront.style.transform=`translate3d(${(-Math.min(p,1)*2.2).toFixed(2)}%,0,0)`;
+    if(signal){
+      const signalOut=p<1?.94:.94*(1-smooth(1,1.34,p));
+      signal.style.opacity=signalOut.toFixed(3);
+      signal.style.transform=`translate3d(${(-Math.min(p,1)*1.2).toFixed(2)}%,0,0)`;
+    }
+    const accessScene=p<.45?0:p<1.50?1:current;
+    setSceneActive(identity,accessScene===0,sceneButtons[0]);
+    setSceneActive(work,accessScene===1,sceneButtons[Math.min(2,Math.max(1,current))]);
+    const controlsVisible=workControls>.08&&accessScene===1;
+    const controlsInteractive=workControls>.58&&accessScene===1;
+    setDock(controlsInteractive,controlsVisible,sceneButtons[Math.min(2,Math.max(1,current))]);
+    if(idOpen)idOpen.tabIndex=accessScene===0&&idCopy>.35?0:-1;
+    if(workOpen)workOpen.tabIndex=accessScene===1&&workText>.62?0:-1;
+    state['--s2-p']=p.toFixed(4);
+  };
+  root.__stage2Reset=()=>{
+    varCache.clear();
+    for(const [name,targets] of varTargets){targets.forEach(el=>el?.style.removeProperty(name));delete state[name]}
     [plane,idMiddle,idBack,idFront,signal].forEach(el=>el?.removeAttribute('style'));
     if(dock){dock.inert=false;dock.removeAttribute('aria-hidden')}
-    if(identityOpen)identityOpen.removeAttribute('tabindex');
+    if(idOpen)idOpen.removeAttribute('tabindex');
     if(workOpen)workOpen.removeAttribute('tabindex');
-    last=-1;
-  }
-  function paint(){
-    raf=0;
-    if(!inView||document.hidden)return;
-    const enabled=html.dataset.motion==='on'&&!reduced.matches&&!forced.matches&&root.classList.contains('is-scrubbed')&&innerHeight>600;
-    if(!enabled){clearProof();return}
-    if(!geometry)measure();
-    const raw=(scrollY-geometry.top)/geometry.step;
-    if(raw>1.055||raw<-.08){clearProof();return}
-    const p=clamp(raw,0,1);
-    if(Math.abs(p-last)<.0001)return;
-    last=p;root.dataset.stage2Proof='active';
-    const idCopy=1-smooth(.28,.42,p);
-    const idArt=1-smooth(.34,.47,p);
-    const workEnv=smooth(.10,.72,p);
-    const planeP=smooth(.18,.63,p);
-    const workArt=smooth(.51,.70,p);
-    const workText=smooth(.62,.82,p);
-    const workControls=smooth(.68,.90,p);
-    stage2State['--s2-p']=p.toFixed(4);set('--s2-id-env',(1-smooth(.20,.70,p)*.82).toFixed(4));set('--s2-id-front',(1-smooth(.22,.70,p)*.88).toFixed(4));
-    set('--s2-id-copy',idCopy.toFixed(4));set('--s2-id-art',idArt.toFixed(4));set('--s2-work-env',workEnv.toFixed(4));
-    set('--s2-plane-opacity',smooth(.14,.40,p).toFixed(4));set('--s2-work-art',workArt.toFixed(4));set('--s2-work-copy',workText.toFixed(4));set('--s2-work-controls',workControls.toFixed(4));
-    const {w,h,compact}=geometry;
-    if(compact){
-      // Fit both visual objects inside the live reading corridors rather than
-      // assuming a fixed 390×844 canvas. This preserves the 320px fallback
-      // and browser-UI/safe-area variations while keeping the same choreography.
-      const idGap=Math.max(80,geometry.idCaptionTop-geometry.idHeadingBottom);
-      const idScale=Math.min((w*.51)/geometry.idAw,Math.min(h*.36,idGap)/geometry.idAh);
-      const idStartX=w*.60-geometry.idAw*idScale/2;
-      const idStartY=(geometry.idHeadingBottom+geometry.idCaptionTop)/2-geometry.idAh*idScale/2;
-      const idExitScale=Math.max(.34,idScale*.76);
-      const ix=mix(idStartX,w*.045,p),iy=mix(idStartY,h*.38,p),is=mix(idScale,idExitScale,p),ir=mix(3,-4,p);
-
-      const workPad=w<=340?18:10;
-      const workTop=geometry.workHeadingBottom+workPad;
-      const workBottom=geometry.workCaptionTop-workPad;
-      const workGap=Math.max(72,workBottom-workTop);
-      const workScale=Math.min((w*.66)/geometry.workAw,Math.min(h*.34,workGap)/geometry.workAh);
-      const workEndX=w*.56-geometry.workAw*workScale/2;
-      const workEndY=(workTop+workBottom)/2-geometry.workAh*workScale/2;
-      const workStartScale=Math.max(.30,workScale*.74);
-      const wx=mix(w*1.03,workEndX,p),wy=mix(h*.34,workEndY,p),ws=mix(workStartScale,workScale,p),wr=mix(-8,-2,p);
-
-      set('--s2-id-transform',`translate3d(${ix.toFixed(1)}px,${iy.toFixed(1)}px,0) rotateZ(${ir.toFixed(2)}deg) scale(${is.toFixed(4)})`);
-      set('--s2-work-transform',`translate3d(${wx.toFixed(1)}px,${wy.toFixed(1)}px,0) rotateZ(${wr.toFixed(2)}deg) scale(${ws.toFixed(4)})`);
-    }else{
-      const ix=mix(w*.555,w*.34,p),iy=mix(h*.215,h*.30,p),is=mix(1.17,.76,p),ir=mix(6,-4,p),iry=mix(-10,-18,p);
-      const wx=mix(w*1.02,w*.56,p),wy=mix(h*.17,h*.21,p),ws=mix(.88,1.28,p),wr=mix(-11,-5,p),wry=mix(13,7,p);
-      set('--s2-id-transform',`translate3d(${ix.toFixed(1)}px,${iy.toFixed(1)}px,0) perspective(1200px) rotateY(${iry.toFixed(2)}deg) rotateZ(${ir.toFixed(2)}deg) scale(${is.toFixed(4)})`);
-      set('--s2-work-transform',`translate3d(${wx.toFixed(1)}px,${wy.toFixed(1)}px,0) perspective(1200px) rotateY(${wry.toFixed(2)}deg) rotateZ(${wr.toFixed(2)}deg) scale(${ws.toFixed(4)})`);
-    }
-    set('--s2-id-copy-transform',`translate3d(${(-18*smooth(.20,.46,p)).toFixed(1)}px,${(-22*smooth(.20,.46,p)).toFixed(1)}px,0)`);
-    set('--s2-work-copy-transform',`translate3d(${(24*(1-workText)).toFixed(1)}px,0,0)`);
-    set('--s2-slab-transform',`translate3d(${(34*(1-workText)).toFixed(1)}px,0,0)`);
-    if(plane)plane.style.transform=`translate3d(${((1-planeP)*112-6).toFixed(2)}%,0,0) skewX(-4deg)`;
-    if(idMiddle)idMiddle.style.transform=`perspective(760px) rotateX(64deg) translate3d(${(-p*2.5).toFixed(2)}%,${(p*3).toFixed(2)}%,0) scale(${(1.45+p*.10).toFixed(3)})`;
-    if(idBack)idBack.style.transform=`translate3d(${(-p*3.5).toFixed(2)}%,${(p*1.6).toFixed(2)}%,0) scale(${(1+p*.06).toFixed(3)})`;
-    if(idFront)idFront.style.transform=`translate3d(${(-p*2.2).toFixed(2)}%,0,0)`;
-    if(signal){signal.style.opacity=(.96-.12*smooth(.1,.9,p)).toFixed(3);signal.style.transform=`translate3d(${(-p*1.6).toFixed(2)}%,0,0)`}
-    const controlsReady=workControls>.82;
-    root.dataset.stage2Controls=controlsReady?'on':'off';
-    if(dock){dock.inert=!controlsReady;dock.setAttribute('aria-hidden',String(workControls<.08))}
-    if(identityOpen)identityOpen.tabIndex=idCopy>.38?0:-1;
-    if(workOpen)workOpen.tabIndex=workText>.70?0:-1;
-    if(!controlsReady&&dock?.contains(document.activeElement))sceneButtons[1]?.focus({preventScroll:true});
-    if(idCopy<.15&&identity?.contains(document.activeElement)&&document.activeElement===identityOpen)sceneButtons[0]?.focus({preventScroll:true});
-  }
-  function schedule(){if(!raf&&inView&&!document.hidden)raf=requestAnimationFrame(paint)}
-  function invalidate(){geometry=null;last=-1;schedule()}
-  addEventListener('scroll',schedule,{passive:true});
-  addEventListener('resize',invalidate,{passive:true});
-  new MutationObserver(invalidate).observe(html,{attributes:true,attributeFilter:['data-motion']});
-  if('ResizeObserver'in window)new ResizeObserver(invalidate).observe(stage);
-  if('IntersectionObserver'in window)new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;if(inView)schedule();else{cancelAnimationFrame(raf);raf=0}}).observe(stage);
-  reduced.addEventListener('change',invalidate);forced.addEventListener('change',invalidate);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0}else schedule()});
-  chooseProject(0);invalidate();
+  };
+  chooseProject(0);
+  root.__journeyInvalidate?.();
 })();

@@ -6,7 +6,10 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
   const city = gallery.find(g => g.preview.includes('gaze-177310-')) || gallery[1];
   const photo = g => `<img data-scene-photo="${esc(g.id)}" src="${esc(g.derivatives?.[0]?.url || g.preview)}" srcset="${g.derivatives.map(d => `${esc(d.url)} ${d.width}w`).join(', ')}" sizes="(max-width:700px) 65vw, 35vw" width="${g.width}" height="${g.height}" alt="${esc(g.alt)}" loading="lazy" decoding="async">`;
   const workProjects = Array.isArray(projects) ? projects.slice(0, 5) : [];
-  const projectDock = workProjects.length ? `<div class="journey-project-dock" role="group" aria-label="Selected work projects">${workProjects.map((p,i)=>`<a class="journey-project-chip${i===0?' is-selected':''}" href="/work/${esc(p.slug)}/" data-journey-project="${i}" data-project-path="/work/${esc(p.slug)}/" data-project-title="${esc(p.title)}" data-project-summary="${esc(p.description)}" data-project-note="${esc(p.category)}" ${i===0?'aria-current="true"':''}><span>0${i+1}</span><span class="journey-project-title">${esc(p.title)}</span></a>`).join('')}</div>` : '';
+  const projectDock = workProjects.length ? `<div class="journey-project-dock" role="group" aria-label="Selected work projects">${workProjects.map((p,i)=>`<a class="journey-project-chip${i===0?' is-selected':''}" href="/work/${esc(p.slug)}/" data-journey-project="${i}" data-project-path="/work/${esc(p.slug)}/" data-project-title="${esc(p.title)}" data-project-summary="${esc(p.description)}" data-project-category="${esc(p.category)}" data-project-kicker="${esc(p.kicker)}" data-project-flow="${esc((p.flow||[]).join('|'))}" ${i===0?'aria-current="true"':''}><span>0${i+1}</span><span class="journey-project-title">${esc(p.title)}</span></a>`).join('')}</div>` : '';
+  const primaryWork=workProjects[0]||{title:'Selected work',category:'Operations → product',kicker:'A working system.',flow:['Project context','Core workflow','Implementation','Outcome']};
+  const primaryFlow=(primaryWork.flow||[]).slice(0,4);
+  const workArt=`<div class="journey-system"><div class="journey-sheet-top"><span class="journey-system-category">${esc(primaryWork.category)}</span><span class="journey-system-index">01</span></div><span class="journey-system-label">Project map</span><p class="journey-sheet-title">${esc(primaryWork.title)}</p><ol>${primaryFlow.map((step,i)=>`<li><span>0${i+1}</span><b class="journey-flow-label">${esc(step)}</b></li>`).join('')}</ol><small class="journey-system-footer">${esc(primaryWork.kicker)}</small></div>`;
   const scenes = [
     {name:'Identity',word:'PERSPECTIVE',theme:'moss',kicker:'01 / AN INDEPENDENT MIND',
       heading:`<h1><span data-text="profile.firstName">${esc(profile.firstName)}</span><em data-text="profile.lastName">${esc(profile.lastName)}</em></h1>`,
@@ -14,7 +17,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       art:`<div class="portrait-frame" data-depth>${picture('portrait','Banuja Disanayaka in a navy suit, standing in a studio.','',true)}</div>`,label:'THE PERSON / BANUJA DISANAYAKA'},
     {name:'Work',word:'MAKE IT WORK',theme:'workproof',kicker:'02 / SELECTED WORK',section:'#work',
       heading:'<h2>Ideas,<br>made <em>useful.</em></h2>',copy:'From everyday work to a working system.',note:'TFC ORDERS TRACKER',href:'/work/tfc-orders-tracker/',action:'Inside the project',
-      art:'<div class="journey-system"><div class="journey-sheet-top"><span>TFC / ORDER FLOW</span><span>01</span></div><span class="journey-system-label">Workflow illustration</span><p class="journey-sheet-title">A clear<br><em>next step.</em></p><ol><li><span>01</span>Incoming orders</li><li><span>02</span>Production planning</li><li><span>03</span>Kitchen &amp; fulfilment</li><li><span>04</span>Stock feedback</li></ol><small>OPERATIONS → PRODUCT</small></div>',label:'A WORKING SYSTEM'},
+      art:workArt,label:`PROJECT MAP / ${esc(primaryWork.title).toUpperCase()}`},
     {name:'Gaze',word:'LOOK CLOSER',theme:'sage',kicker:'03 / THROUGH MY LENS',section:'#photography',
       heading:'<h2>The Daily<br><em>Gaze.</em></h2>',copy:'A closer look at the everyday.',note:'ORIGINAL PHOTOGRAPHY',href:'/daily-gaze/',action:'Enter the photographic journal',art:photo(forest),label:'THE DAILY GAZE / INTO THE MIST'},
     {name:'Journey',word:'BECOMING',theme:'clay',kicker:'04 / THE PERSON BEHIND THE WORK',section:'#about',
@@ -40,10 +43,10 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       <div class="stage2-identity-front" data-stage2-proof-layer aria-hidden="true"></div>
       <div class="stage2-transition-plane" data-stage2-proof-layer aria-hidden="true"></div>
       <svg class="stage2-signal" data-stage2-proof-layer viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <path class="stage2-signal-desktop" d="M65 520 C220 455 410 565 600 500 L600 145 L945 145"/>
-        <circle class="stage2-signal-desktop" cx="600" cy="500" r="6"/>
-        <path class="stage2-signal-mobile" d="M45 510 C230 455 610 585 900 520 L900 260 L120 260"/>
-        <circle class="stage2-signal-mobile" cx="900" cy="520" r="7"/>
+        <path class="stage2-signal-desktop" d="M60 382 C245 332 430 414 615 370 L615 118 L946 118"/>
+        <circle class="stage2-signal-desktop" cx="615" cy="370" r="6"/>
+        <path class="stage2-signal-mobile" d="M42 342 C238 302 604 388 902 350 L902 116 L122 116"/>
+        <circle class="stage2-signal-mobile" cx="902" cy="350" r="7"/>
       </svg>
       ${scenes.map((s,i)=>`<article class="journey-panel ${s.theme}" data-journey-scene="${i}"${s.section?` data-section="${s.section}"`:''} aria-labelledby="journey-title-${i}">
         ${i===1?'<div class="journey-work-environment" aria-hidden="true"><span class="journey-work-rail rail-a"></span><span class="journey-work-rail rail-b"></span><span class="journey-work-rail rail-c"></span><span class="journey-work-foreground"></span></div><span class="journey-work-copy-slab" aria-hidden="true"></span>':''}
