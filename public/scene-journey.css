@@ -281,3 +281,8 @@
 @media(prefers-reduced-motion:reduce){.scene-journey *{transition:none!important;scroll-behavior:auto!important}}
 @media(forced-colors:active){.journey-environment,.journey-signal{display:none!important}.journey-project-chip,.journey-photo-picker button,.journey-route,.journey-ecosystem,.constellation-node{background:Canvas;color:CanvasText;border-color:CanvasText}}
 @media print{.journey-environment,.journey-signal,.journey-project-dock,.journey-photo-picker{display:none!important}.journey-resume{position:static!important;opacity:1!important}}
+/* Keep the constellation hub clear of the two side labels. */
+.constellation-center{left:30%;right:30%;z-index:1}
+.constellation-node.node-2,.constellation-node.node-3{width:28%}
+.environment-3 span{left:56%;top:12%;width:36%;height:67%;transform:skewX(-12deg)}
+@media(max-width:700px){.environment-3 span{left:10%;top:29%;width:80%;height:35%;transform:skewX(-12deg)}.environment-3 i{inset:29% 0 35%;opacity:.45}}

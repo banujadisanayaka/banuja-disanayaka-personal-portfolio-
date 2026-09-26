@@ -209,7 +209,7 @@
     if(Array.isArray(journal)){
       const visible=journal.filter(g=>g.visible!==false&&safeSource(g.preview));
       photoOptions.forEach((img,i)=>{if(!img)return;const item=visible.find(g=>g.id===img.dataset.scenePhoto)||visible[i];photoButtons[i].hidden=!item;if(!item)return;const derivatives=(item.derivatives||[]).filter(d=>Number.isFinite(d.width)&&d.width>0&&safeSource(d.url));img.src=safeSource(derivatives[0]?.url||item.preview);img.srcset=derivatives.map(d=>`${safeSource(d.url)} ${d.width}w`).join(', ');img.alt=item.alt||item.title;img.dataset.scenePhoto=item.id;photoButtons[i].setAttribute('aria-label','View '+item.title)});
-      if(visible.length)choosePhoto(0);
+      if(visible.length){gazeImage.hidden=false;choosePhoto(0)}else{gazeImage.hidden=true;gazeImage.removeAttribute('src');gazeImage.removeAttribute('srcset')}
     }
     all.forEach(s=>{const section=s.el.dataset.section&&document.querySelector(s.el.dataset.section);s.el.hidden=!!section?.hidden||(s.id===2&&Array.isArray(journal)&&!journal.some(g=>g.visible!==false&&safeSource(g.preview)));buttons[s.id].hidden=s.el.hidden;if(s.el.hidden){access(s.el,false,buttons[0]);style(backgrounds[s.id],'opacity','0')}});
     scenes=all.filter(s=>!s.el.hidden);value=clamp(value,0,scenes.length-1);target=value;selected=-1;invalidate();
