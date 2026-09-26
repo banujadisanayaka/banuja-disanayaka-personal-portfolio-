@@ -53,12 +53,28 @@ try{
     await assertSignalClear(page,viewport.width<=700?'path.stage2-signal-mobile':'path.stage2-signal-desktop');
 
     // The old 1.055 clearProof seam must be continuous in both directions.
+    const settle=async p=>{
+      await page.evaluate(({g,p})=>scrollTo({top:g.top+g.step*p,behavior:'instant'}),{g,p});
+      await page.waitForFunction(p=>Math.abs((Number(document.querySelector('.scene-journey').__stage2ProofState?.['--s2-p'])||0)-p)<.002,p,{timeout:1800});
+    };
+    await settle(.98);
     const seam=[];
-    for(const p of [1.00,1.03,1.05,1.06,1.08,1.12]){await go(page,g,p,260);const box=await page.locator('[data-journey-scene="1"] .journey-art').boundingBox();const dock=page.locator('.journey-project-dock');seam.push({p,box,opacity:+await dock.evaluate(el=>getComputedStyle(el).opacity),inert:await dock.getAttribute('inert')});}
+    for(const p of [1.00,1.03,1.05,1.06,1.08,1.12]){await settle(p);const box=await page.locator('[data-journey-scene="1"] .journey-art').boundingBox();const dock=page.locator('.journey-project-dock');seam.push({p,box,opacity:+await dock.evaluate(el=>getComputedStyle(el).opacity),inert:await dock.getAttribute('inert')});}
     for(let i=1;i<seam.length;i++){const a=seam[i-1].box,b=seam[i].box;assert.ok(Math.abs(a.width-b.width)<26&&Math.abs(a.height-b.height)<32&&Math.abs(a.x-b.x)<20&&Math.abs(a.y-b.y)<20,`Work geometry remains continuous near seam ${seam[i-1].p}→${seam[i].p}`)}
     assert.ok(seam.find(x=>x.p===1.06).opacity>.85,'Project selector remains visible after previous seam');
     assert.equal(seam.find(x=>x.p===1.06).inert,null,'Visible project selector remains interactive after previous seam');
-    for(const p of [1.12,1.08,1.06,1.05,1.03,1.00])await go(page,g,p,180);
+    for(const p of [1.12,1.08,1.06,1.05,1.03,1.00])await settle(p);
+    // A fast crossing is sampled frame-by-frame so a one-frame geometry snap cannot hide behind settling.
+    const fastTrace=await page.evaluate(({g})=>new Promise(resolve=>{
+      scrollTo({top:g.top+g.step*.98,behavior:'instant'});
+      setTimeout(()=>{
+        const samples=[],start=performance.now();scrollTo({top:g.top+g.step*1.10,behavior:'instant'});
+        const frame=now=>{const r=document.querySelector('[data-journey-scene="1"] .journey-art').getBoundingClientRect();samples.push([r.x,r.y,r.width,r.height]);if(now-start<520)requestAnimationFrame(frame);else resolve(samples)};
+        requestAnimationFrame(frame);
+      },420);
+    }),{g});
+    const maxJump=fastTrace.slice(1).reduce((max,row,i)=>Math.max(max,...row.map((v,j)=>Math.abs(v-fastTrace[i][j]))),0);
+    assert.ok(maxJump<18,`Fast Work→Gaze seam crossing has no one-frame geometry snap (max ${maxJump.toFixed(2)}px)`);
 
     // Focus cannot remain inside a dock after it becomes invisible.
     await go(page,g,1);
