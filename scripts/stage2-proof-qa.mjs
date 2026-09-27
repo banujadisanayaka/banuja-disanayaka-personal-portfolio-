@@ -112,6 +112,41 @@ try{
     await go(page,g,.18,80);await go(page,g,.82,80);await go(page,g,.46,120);await go(page,g,.70,120);await go(page,g,.54,420);
     await page.getByRole('button',{name:'Scene 2: Work',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.scene-journey').dataset.activeScene==='1');
     await page.getByRole('button',{name:'Scene 3: Gaze',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.scene-journey').dataset.activeScene==='2');
+    // Released native input must finish a scene, including a short swipe that
+    // previously left Work faded. Fractional probes above remain geometry checks.
+    const atScene=async index=>{
+      await page.waitForFunction(({g,index})=>Math.abs(scrollY-(g.top+g.step*index))<2&&Math.abs(document.querySelector('.scene-journey').__stage2ProofState['--s2-p']-index)<.003,{g,index},{timeout:4000});
+    };
+    await atScene(2);await go(page,g,0);
+    await page.mouse.move(viewport.width/2,viewport.height/2);
+    await page.mouse.wheel(0,160);await atScene(1);
+    assert.ok((await state(root)).work>.99,'Released short scroll finishes Work with readable copy');
+    await page.mouse.wheel(0,-160);await atScene(0);
+    await page.evaluate(()=>document.activeElement?.blur());
+    await page.keyboard.press('PageDown');await atScene(1);
+    await page.keyboard.press('PageUp');await atScene(0);
+    if(viewport.width<=700){
+      const cdp=await context.newCDPSession(page);
+      const x=Math.round(viewport.width/2),y=Math.round(viewport.height*.65);
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+      for(let n=1;n<=6;n++){
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-n*22}]});
+        await page.waitForTimeout(45);
+      }
+      await page.waitForTimeout(250);
+      const held=await page.evaluate(()=>scrollY);
+      assert.ok(held>20&&held<g.step*.7,'Held touch stays under native control before release');
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await atScene(1);
+      await cdp.detach();
+      const navBox=await page.locator('.journey-controls').boundingBox(),motionBox=await page.locator('.motion-toggle').boundingBox();
+      assert.ok(motionBox.y+motionBox.height<=navBox.y-4,'Motion button clears scene navigation');
+    }
+    // A new reverse gesture can interrupt completion without trapping the user.
+    await go(page,g,1);await page.mouse.wheel(0,160);await page.waitForTimeout(240);
+    await page.mouse.wheel(0,-80);await atScene(1);
+    await go(page,g,5);await page.mouse.wheel(0,viewport.height);
+    await page.waitForTimeout(800);
+    assert.ok(await page.evaluate(()=>scrollY)>g.top+g.step*5+100,'Native scrolling freely exits Contact');
     assert.deepEqual(errors,[]);
     await context.close();
     console.log(`Stage 2 corrected acceptance checks passed at ${viewport.width}×${viewport.height}`);

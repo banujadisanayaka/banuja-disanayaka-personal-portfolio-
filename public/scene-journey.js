@@ -162,6 +162,47 @@
     const settled=Math.abs(value-target)<.0003;if(settled)value=target;
     paint(value);if(!settled)schedule();else lastTime=0;
   }
+  // Native input drives the animation; after release, finish at a readable scene.
+  // Programmatic anchor/focus scrolling is left alone. No wheel/touch cancellation.
+  let settleTimer=0,gesture=null,touchHeld=false,snapping=false,previousY=scrollY;
+  function cancelSettle(){clearTimeout(settleTimer);gesture=null;snapping=false}
+  function intent(){
+    if(!enabled||!geometry)return;
+    if(snapping){scrollTo({top:scrollY,behavior:'instant'});snapping=false}
+    if(!gesture)gesture={start:scrollY,direction:0};
+    previousY=scrollY;clearTimeout(settleTimer);
+  }
+  function settle(){
+    clearTimeout(settleTimer);
+    if(touchHeld)return;
+    if(snapping){snapping=false;return}
+    const input=gesture;gesture=null;
+    if(!input||!enabled||!inView||document.hidden||!input.direction)return;
+    if(dirty)measure();
+    const p=(scrollY-geometry.top)/geometry.step,last=scenes.length-1;
+    // Let native scrolling leave either end; never pull archive visitors back in.
+    if(p<0||p>last)return;
+    const next=Math.abs(scrollY-input.start)<24?Math.round(p):input.direction>0?Math.ceil(p-.08):Math.floor(p+.08);
+    const destination=geometry.top+clamp(next,0,last)*geometry.step;
+    if(Math.abs(destination-scrollY)<1)return;
+    snapping=true;scrollTo({top:destination,behavior:'smooth'});schedule();
+  }
+  function onScroll(){
+    const delta=scrollY-previousY;previousY=scrollY;
+    if(gesture&&Math.abs(delta)>.5)gesture.direction=Math.sign(delta);
+    if(gesture||snapping){clearTimeout(settleTimer);settleTimer=setTimeout(settle,180)}
+    schedule();
+  }
+  addEventListener('wheel',event=>{if(Math.abs(event.deltaY)>Math.abs(event.deltaX)&&!event.ctrlKey)intent()},{passive:true});
+  addEventListener('touchstart',()=>{touchHeld=true;intent()},{passive:true});
+  const release=()=>{touchHeld=false;if(gesture){clearTimeout(settleTimer);settleTimer=setTimeout(settle,180)}};
+  addEventListener('touchend',release,{passive:true});addEventListener('touchcancel',release,{passive:true});
+  addEventListener('keydown',event=>{
+    if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select,button,a,[contenteditable]'))return;
+    if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key))intent();
+  });
+  // A scrollbar drag also settles on release, while ordinary clicks keep focus behavior.
+  addEventListener('pointerdown',event=>{if(event.clientX>=document.documentElement.clientWidth)intent()},{passive:true});
   function configure(){
     const next=html.dataset.motion==='on'&&!reduced.matches&&!forced.matches&&innerHeight>600;
     if(next===enabled&&initialized){invalidate();return}
@@ -169,7 +210,7 @@
     const below=scrollY>=oldTop+oldHeight,visible=scrollY+innerHeight>oldTop&&!below;
     let index=Math.max(0,scenes.findIndex(s=>s.id===selected));
     if(!enabled&&initialized&&next&&visible){const point=scrollY+innerHeight*.35;scenes.forEach((s,i)=>{if(s.el.getBoundingClientRect().top+scrollY<=point)index=i})}
-    stop();enabled=next;root.classList.toggle('is-scrubbed',enabled);controls.hidden=!enabled;
+    cancelSettle();stop();enabled=next;root.classList.toggle('is-scrubbed',enabled);controls.hidden=!enabled;
     if(enabled){
       measure();value=target=initialized?index:clamp((scrollY-geometry.top)/geometry.step,0,scenes.length-1);lastPaint=-1;paint(value);
       if(initialized&&visible)scrollTo({top:geometry.top+geometry.step*index,behavior:'instant'});schedule();
@@ -181,12 +222,12 @@
     if(initialized&&below)scrollBy({top:root.offsetHeight-oldHeight,behavior:'instant'});
     initialized=true;
   }
-  function select(id){const i=scenes.findIndex(s=>s.id===id);if(i<0||!enabled)return;if(dirty)measure();scrollTo({top:geometry.top+geometry.step*i,behavior:'smooth'});schedule()}
+  function select(id){const i=scenes.findIndex(s=>s.id===id);if(i<0||!enabled)return;cancelSettle();if(dirty)measure();scrollTo({top:geometry.top+geometry.step*i,behavior:'smooth'});schedule()}
   buttons.forEach((button,id)=>{
     button.addEventListener('click',()=>select(id));
     button.addEventListener('keydown',event=>{const i=scenes.findIndex(s=>s.id===id),last=scenes.length-1;const n=event.key==='ArrowRight'?(i+1)%scenes.length:event.key==='ArrowLeft'?(i+last)%scenes.length:event.key==='Home'?0:event.key==='End'?last:null;if(n===null)return;event.preventDefault();buttons[scenes[n].id].focus({preventScroll:true});select(scenes[n].id)})
   });
-  addEventListener('scroll',schedule,{passive:true});
+  addEventListener('scroll',onScroll,{passive:true});
   // Mobile browser chrome changes height while scrolling. Re-measure only when the stable stage changes.
   new ResizeObserver(invalidate).observe(stage);
   let lastWidth=innerWidth,lastShort=innerHeight<=600;
@@ -194,7 +235,7 @@
   reduced.addEventListener('change',configure);forced.addEventListener('change',configure);
   new MutationObserver(configure).observe(html,{attributes:true,attributeFilter:['data-motion']});
   new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;if(inView){lastTime=0;schedule()}else stop()}).observe(stage);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else{lastPaint=-1;schedule()}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelSettle();stop()}else{lastPaint=-1;schedule()}});
   document.fonts?.ready.then(invalidate);
   root.querySelector('.journey-photo-picker').hidden=false;
   const photoButtons=[...root.querySelectorAll('[data-opening-photo]')];

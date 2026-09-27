@@ -15,6 +15,8 @@ Production remains on V10.5, commit `2639e3a5f61252b2235465539a756c518c582035`.
 
 One requestAnimationFrame scheduler drives all scenes. Native scrolling is retained. Per-frame changes use transforms and opacity; geometry is cached and invalidated on actual layout changes. The renderer sleeps when settled, offscreen or hidden. Mobile browser chrome resizing does not repeatedly reconfigure the stage.
 
+September 27 correction: after native wheel, touch or keyboard scrolling pauses for 180 ms, the opening settles in the travel direction to a complete scene. Touch stays under native control until release; tiny movements settle to the nearest scene. New input interrupts settling, and scrolling beyond either end remains free. Programmatic anchors and focus changes are not redirected. The mobile motion control accounts for the difference between dynamic and small viewport height so collapsed browser chrome does not move it over scene navigation. Native-input regression checks cover forward/reverse completion, held/released touch, keyboard navigation, interruption and exit.
+
 Focus leaves a scene before its controls become invisible. All scene buttons remain available on small screens. Motion off, reduced motion, forced colors, short landscape, missing JavaScript and missing scene script use semantic static content. Photography remains contained without cropping. Existing case studies, archive, CMS endpoints, authentication, security headers and concurrency protections remain in place.
 
 ## Verification

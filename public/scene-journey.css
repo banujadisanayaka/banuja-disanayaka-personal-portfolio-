@@ -255,7 +255,7 @@
  .journey-buttons button>span:last-child{display:block;font-size:8px;line-height:1.1;white-space:nowrap}
  .journey-buttons button>span:first-child{font-size:9px}
  .journey-skip{display:none}
- .scene-home .motion-toggle{bottom:70px;right:5%;min-height:44px;padding:9px 12px;font-size:11px}
+ .scene-home .motion-toggle{bottom:70px;bottom:calc(70px + 100dvh - 100svh + max(0px,env(safe-area-inset-bottom) - 12px));right:5%;min-height:44px;padding:9px 12px;font-size:11px}
  .environment-1{background:linear-gradient(180deg,#e8eadf 0 31%,#d6dece 31% 73%,#c4cdbb 73%)}
  .environment-1 span{left:2%;top:34%;bottom:24%;right:2%;border-color:#52715c33}
  .environment-1 i{display:none}
