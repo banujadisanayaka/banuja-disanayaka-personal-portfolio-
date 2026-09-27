@@ -38,7 +38,11 @@
 .journey-brands{display:grid;grid-template-columns:1fr 1fr;gap:18px 14px;margin-top:36px}
 .journey-brands>span{border-top:1px solid #81775f;padding:12px 2px;text-align:center;font-size:13px;line-height:1.4}
 .journey-backgrounds,.journey-contours,.journey-orbit,.journey-paper,.journey-word,.journey-satellite,.journey-scroll-note{display:none;pointer-events:none}
-.scene-journey.is-scrubbed .journey-stage{position:sticky;top:0;height:100svh;min-height:600px;overflow:clip;isolation:isolate;contain:layout paint}
+.scene-journey{--journey-frame-height:100svh;--journey-cover-height:100lvh}
+.scene-journey.is-scrubbed .journey-stage{position:sticky;top:0;height:var(--journey-cover-height);min-height:600px;overflow:clip;isolation:isolate;contain:layout paint}
+.scene-journey.is-scrubbed .journey-canvas{position:relative;height:var(--journey-frame-height);min-height:600px}
+.is-scrubbed .journey-backgrounds,.is-scrubbed .journey-environment{height:var(--journey-cover-height);min-height:600px}
+@media print{.scene-journey.is-scrubbed .journey-canvas{height:auto;min-height:0}}
 .scene-journey.is-scrubbed .journey-panel{position:absolute;inset:0;display:block;background:transparent;padding:0;overflow:visible;pointer-events:none}
 .is-scrubbed .journey-heading{position:absolute;left:7%;top:22%;width:43%;max-width:640px}
 .is-scrubbed .journey-caption{position:absolute;left:7%;bottom:135px;width:38%}

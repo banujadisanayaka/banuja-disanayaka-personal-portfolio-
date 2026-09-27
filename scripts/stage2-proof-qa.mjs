@@ -4,7 +4,7 @@ import {chromium} from 'playwright';
 const base=process.env.BROWSER_QA_BASE_URL||'http://127.0.0.1:4173';
 const browser=await chromium.launch();
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
-async function geometry(root){return root.evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,step:el.querySelector('.journey-stage').clientHeight*.9}))}
+async function geometry(root){return root.evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,step:el.querySelector('.journey-canvas').clientHeight*.9}))}
 async function go(page,g,p,wait=520){await page.evaluate(({g,p})=>scrollTo({top:g.top+g.step*p,behavior:'instant'}),{g,p});await page.waitForTimeout(wait)}
 async function state(root){
   return root.evaluate(el=>({
@@ -152,6 +152,32 @@ try{
     assert.deepEqual(errors,[]);
     await context.close();
     console.log(`Stage 2 corrected acceptance checks passed at ${viewport.width}×${viewport.height}`);
+  }
+
+  // Model distinct small/large viewport heights: desktop emulation does not
+  // reproduce Android's browser toolbar. The foreground must stay pinned while
+  // the cover fills both viewport states, including the final scene boundary.
+  {
+    const context=await browser.newContext({viewport:{width:390,height:744},isMobile:true,hasTouch:true});
+    const page=await context.newPage();await page.goto(base+'/',{waitUntil:'networkidle'});
+    const root=page.locator('.scene-journey');
+    await root.evaluate(el=>{el.style.setProperty('--journey-frame-height','744px');el.style.setProperty('--journey-cover-height','944px')});
+    const g=await geometry(root);await go(page,g,1);
+    const before=await page.locator('[data-journey-scene="1"] .journey-heading').boundingBox();
+    await page.setViewportSize({width:390,height:944});await page.waitForTimeout(300);
+    const after=await page.locator('[data-journey-scene="1"] .journey-heading').boundingBox();
+    assert.ok(Math.abs(before.y-after.y)<1,'Toolbar viewport expansion does not move the reading frame');
+    assert.ok(Math.abs((await state(root)).p-1)<.003,'Toolbar expansion preserves the scene position');
+    for(const index of [1,2,3,4,5]){
+      await go(page,g,index);
+      const coverage=await root.evaluate((el,index)=>{
+        const stage=el.querySelector('.journey-stage').getBoundingClientRect();
+        const environment=el.querySelector(`[data-journey-scene="${index}"] .journey-environment`).getBoundingClientRect();
+        return {top:stage.top,bottom:stage.bottom,environmentBottom:environment.bottom,viewport:innerHeight};
+      },index);
+      assert.ok(Math.abs(coverage.top)<1&&coverage.bottom>=coverage.viewport-1&&coverage.environmentBottom>=coverage.viewport-1,`Scene ${index} covers the expanded viewport without revealing the page underneath`);
+    }
+    await context.close();console.log('Stable foreground and full viewport coverage passed with distinct small/large heights');
   }
 
   for(const mode of ['reduced','no-js','landscape','forced']){

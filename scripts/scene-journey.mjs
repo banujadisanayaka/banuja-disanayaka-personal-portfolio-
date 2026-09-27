@@ -35,6 +35,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
   const contours = Array.from({length:22},(_,i)=>`<path d="M -120 ${i*34-180} C 150 ${i*22-65}, 260 ${i*44-60}, 540 ${i*24+120} S 920 ${i*28-60}, 1320 ${i*24+90}"/>`).join('');
   return `<section class="scene-journey" id="opening" aria-label="Banuja’s portfolio in six scenes">
     <div class="journey-stage">
+      <div class="journey-canvas">
       <div class="journey-backgrounds" aria-hidden="true">${scenes.map(s=>`<div class="journey-background ${s.theme}"></div>`).join('')}</div>
       <div class="journey-signal" aria-hidden="true"><span></span><i></i></div>
       ${scenes.map((s,i)=>`<article class="journey-panel ${s.theme}" data-journey-scene="${i}"${s.section?` data-section="${s.section}"`:''} aria-labelledby="journey-title-${i}">
@@ -53,6 +54,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
         <div class="journey-progress" aria-hidden="true"><span></span></div>
       </nav>
       <span class="journey-scroll-note" aria-hidden="true">SCROLL TO UNFOLD ↓</span>
+      </div>
     </div>
   </section>`;
 }

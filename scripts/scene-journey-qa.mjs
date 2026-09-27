@@ -13,7 +13,7 @@ try {
     await page.goto(base+'/',{waitUntil:'networkidle'});
     const journey=page.locator('.scene-journey.is-scrubbed');await journey.waitFor();
     assert.equal(await journey.locator('[data-journey-scene]').count(),6);
-    const geometry=await journey.evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,step:el.querySelector('.journey-stage').clientHeight*.9}));
+    const geometry=await journey.evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,step:el.querySelector('.journey-canvas').clientHeight*.9}));
     for(let i=0;i<6;i++) {
       await page.evaluate(({top,step,i})=>scrollTo({top:top+step*i,behavior:'instant'}),{...geometry,i});
       await page.waitForFunction(i=>document.querySelector('.scene-journey').dataset.activeScene===String(i),i);

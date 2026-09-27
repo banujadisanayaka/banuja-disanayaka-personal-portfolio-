@@ -13,7 +13,7 @@ async function measure(url, label) {
   await page.goto(url, {waitUntil:'networkidle'});
   const scenes = await page.locator('.scene-journey').count() > 0;
   await page.locator(scenes ? '.scene-journey.is-scrubbed' : '.v10-story.is-cinematic').waitFor();
-  const geometry = scenes ? await page.locator('.scene-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.journey-stage').clientHeight*.9,range:4.9})) : await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight,range:1.9}));
+  const geometry = scenes ? await page.locator('.scene-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.journey-canvas').clientHeight*.9,range:4.9})) : await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight,range:1.9}));
   const cdp = await context.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', {rate:4});
   await cdp.send('Performance.enable');

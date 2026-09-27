@@ -21,6 +21,8 @@ Focus leaves a scene before its controls become invisible. All scene buttons rem
 
 ## Verification
 
+Mobile viewport correction: the pinned stage and environments now cover the large browser viewport, while a separate small-viewport canvas keeps text, artwork, navigation and scroll distances stable. The scroll spacer includes the full stage height so Contact remains pinned through its endpoint. Regression QA models different small/large viewport heights and checks fixed heading position, unchanged scene progress and full background coverage through Contact. This models browser chrome geometry; it is not a physical Android recording.
+
 The full CI run for `afcabc48ccc4a406fae048e66f7763d14279fe6e` passed before the final caption and contact-horizon polish:
 https://github.com/banujadisanayaka/banuja-disanayaka-personal-portfolio-/actions/runs/36243076063
 

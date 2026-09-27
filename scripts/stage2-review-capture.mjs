@@ -5,7 +5,7 @@ const base=process.env.BROWSER_QA_BASE_URL||'http://127.0.0.1:4173';
 const out='qa-artifacts/v10/stage2';
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch();
-async function geometry(page){return page.locator('.scene-journey').evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,step:el.querySelector('.journey-stage').clientHeight*.9}))}
+async function geometry(page){return page.locator('.scene-journey').evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,step:el.querySelector('.journey-canvas').clientHeight*.9}))}
 async function scrub(page,g,from,to,duration=1500){
   await page.evaluate(({g,from,to,duration})=>new Promise(resolve=>{
     const start=performance.now();

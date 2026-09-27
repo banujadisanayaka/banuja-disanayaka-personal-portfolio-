@@ -77,6 +77,7 @@
   const root=document.querySelector('.scene-journey');
   if(!root)return;
   const html=document.documentElement, stage=root.querySelector('.journey-stage');
+  const canvas=root.querySelector('.journey-canvas');
   const controls=root.querySelector('.journey-controls');
   const buttons=[...root.querySelectorAll('[data-journey-select]')];
   const backgrounds=[...root.querySelectorAll('.journey-background')];
@@ -103,7 +104,7 @@
   function stop(){cancelAnimationFrame(raf);raf=0;lastTime=0}
   function invalidate(){dirty=true;lastPaint=-1;schedule()}
   function measure(){
-    const w=stage.clientWidth,h=stage.clientHeight,compact=w<=700;
+    const w=canvas.clientWidth,h=canvas.clientHeight,compact=w<=700;
     geometry={w,h,compact,step:h*.9,top:root.getBoundingClientRect().top+scrollY};
     for(const scene of scenes){
       const aw=scene.art.offsetWidth,ah=scene.art.offsetHeight;
@@ -114,7 +115,7 @@
       const centerY=compact?(top+bottom)/2:h*.48;
       scene.frame={x:centerX-aw*scale/2,y:centerY-ah*scale/2,scale};
     }
-    root.style.height=`${h+geometry.step*Math.max(0,scenes.length-1)}px`;
+    root.style.height=`${stage.clientHeight+geometry.step*Math.max(0,scenes.length-1)}px`;
     dirty=false;
   }
   const proofState={};root.__stage2ProofState=proofState; // regression instrumentation, never a CSS input
@@ -233,7 +234,7 @@
   });
   addEventListener('scroll',onScroll,{passive:true});
   // Mobile browser chrome changes height while scrolling. Re-measure only when the stable stage changes.
-  new ResizeObserver(invalidate).observe(stage);
+  const resizeObserver=new ResizeObserver(invalidate);resizeObserver.observe(canvas);resizeObserver.observe(stage);
   let lastWidth=innerWidth,lastShort=innerHeight<=600;
   addEventListener('resize',()=>{const short=innerHeight<=600;if(innerWidth!==lastWidth||short!==lastShort){lastWidth=innerWidth;lastShort=short;configure()}},{passive:true});
   reduced.addEventListener('change',configure);forced.addEventListener('change',configure);
