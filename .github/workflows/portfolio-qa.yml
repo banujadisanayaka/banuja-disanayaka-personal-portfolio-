@@ -29,6 +29,9 @@ jobs:
       - name: Install runtime dependencies
         run: npm ci --no-audit --no-fund --ignore-scripts
 
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Build release and responsive media
         run: node scripts/build-derivatives.mjs && node scripts/build-site.mjs
 
