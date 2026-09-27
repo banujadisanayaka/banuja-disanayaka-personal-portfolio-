@@ -170,6 +170,7 @@
     if(!enabled||!geometry)return;
     if(snapping){scrollTo({top:scrollY,behavior:'instant'});snapping=false}
     if(!gesture)gesture={distance:0,direction:0};
+    gesture.inputDirection=!!direction;
     if(direction)gesture.direction=direction;
     gesture.distance+=distance;clearTimeout(settleTimer);
     settleTimer=setTimeout(settle,180);
@@ -184,14 +185,14 @@
     const p=(scrollY-geometry.top)/geometry.step,last=scenes.length-1;
     // Let native scrolling leave either end; never pull archive visitors back in.
     if(p<0||p>last)return;
-    const next=input.distance<24?Math.round(p):input.direction>0?Math.ceil(p-.08):Math.floor(p+.08);
+    const next=input.distance<24?Math.round(p):input.direction>0?Math.ceil(p-.003):Math.floor(p+.003);
     const destination=geometry.top+clamp(next,0,last)*geometry.step;
     if(Math.abs(destination-scrollY)<1)return;
     snapping=true;scrollTo({top:destination,behavior:'smooth'});schedule();
   }
   function onScroll(){
     const delta=scrollY-previousY;previousY=scrollY;
-    if(gesture&&Math.abs(delta)>.5){gesture.direction=Math.sign(delta);gesture.distance+=Math.abs(delta)}
+    if(gesture&&Math.abs(delta)>.5){if(!gesture.inputDirection)gesture.direction=Math.sign(delta);gesture.distance+=Math.abs(delta)}
     if(gesture||snapping){clearTimeout(settleTimer);settleTimer=setTimeout(settle,180)}
     schedule();
   }
