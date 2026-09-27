@@ -115,7 +115,8 @@ try{
     // Released native input must finish a scene, including a short swipe that
     // previously left Work faded. Fractional probes above remain geometry checks.
     const atScene=async index=>{
-      await page.waitForFunction(({g,index})=>Math.abs(scrollY-(g.top+g.step*index))<2&&Math.abs(document.querySelector('.scene-journey').__stage2ProofState['--s2-p']-index)<.003,{g,index},{timeout:4000});
+      try{await page.waitForFunction(({g,index})=>Math.abs(scrollY-(g.top+g.step*index))<2&&Math.abs(document.querySelector('.scene-journey').__stage2ProofState['--s2-p']-index)<.003,{g,index},{timeout:4000})}
+      catch(error){console.log('Scene settle failure',JSON.stringify({expected:index,g,viewport,state:await page.evaluate(()=>({y:scrollY,p:document.querySelector('.scene-journey').__stage2ProofState['--s2-p'],hit:document.elementFromPoint(innerWidth/2,innerHeight/2)?.outerHTML.slice(0,350),focus:document.activeElement?.outerHTML.slice(0,200)}))}));throw error}
     };
     await atScene(2);await go(page,g,0);
     await page.mouse.move(viewport.width/2,viewport.height/2);
@@ -124,6 +125,7 @@ try{
     await page.mouse.wheel(0,-160);await atScene(0);
     await page.evaluate(()=>document.activeElement?.blur());
     await page.keyboard.press('PageDown');await atScene(1);
+    await page.getByRole('button',{name:'Scene 2: Work',exact:true}).focus();
     await page.keyboard.press('PageUp');await atScene(0);
     if(viewport.width<=700){
       const cdp=await context.newCDPSession(page);

@@ -166,11 +166,13 @@
   // Programmatic anchor/focus scrolling is left alone. No wheel/touch cancellation.
   let settleTimer=0,gesture=null,touchHeld=false,snapping=false,previousY=scrollY;
   function cancelSettle(){clearTimeout(settleTimer);gesture=null;snapping=false}
-  function intent(){
+  function intent(direction=0,distance=0){
     if(!enabled||!geometry)return;
     if(snapping){scrollTo({top:scrollY,behavior:'instant'});snapping=false}
-    if(!gesture)gesture={start:scrollY,direction:0};
-    previousY=scrollY;clearTimeout(settleTimer);
+    if(!gesture)gesture={distance:0,direction:0};
+    if(direction)gesture.direction=direction;
+    gesture.distance+=distance;clearTimeout(settleTimer);
+    settleTimer=setTimeout(settle,180);
   }
   function settle(){
     clearTimeout(settleTimer);
@@ -182,23 +184,24 @@
     const p=(scrollY-geometry.top)/geometry.step,last=scenes.length-1;
     // Let native scrolling leave either end; never pull archive visitors back in.
     if(p<0||p>last)return;
-    const next=Math.abs(scrollY-input.start)<24?Math.round(p):input.direction>0?Math.ceil(p-.08):Math.floor(p+.08);
+    const next=input.distance<24?Math.round(p):input.direction>0?Math.ceil(p-.08):Math.floor(p+.08);
     const destination=geometry.top+clamp(next,0,last)*geometry.step;
     if(Math.abs(destination-scrollY)<1)return;
     snapping=true;scrollTo({top:destination,behavior:'smooth'});schedule();
   }
   function onScroll(){
     const delta=scrollY-previousY;previousY=scrollY;
-    if(gesture&&Math.abs(delta)>.5)gesture.direction=Math.sign(delta);
+    if(gesture&&Math.abs(delta)>.5){gesture.direction=Math.sign(delta);gesture.distance+=Math.abs(delta)}
     if(gesture||snapping){clearTimeout(settleTimer);settleTimer=setTimeout(settle,180)}
     schedule();
   }
-  addEventListener('wheel',event=>{if(Math.abs(event.deltaY)>Math.abs(event.deltaX)&&!event.ctrlKey)intent()},{passive:true});
+  addEventListener('wheel',event=>{if(Math.abs(event.deltaY)>Math.abs(event.deltaX)&&!event.ctrlKey)intent(Math.sign(event.deltaY),Math.abs(event.deltaY)*(event.deltaMode===1?16:event.deltaMode===2?innerHeight:1))},{passive:true});
   addEventListener('touchstart',()=>{touchHeld=true;intent()},{passive:true});
   const release=()=>{touchHeld=false;if(gesture){clearTimeout(settleTimer);settleTimer=setTimeout(settle,180)}};
   addEventListener('touchend',release,{passive:true});addEventListener('touchcancel',release,{passive:true});
   addEventListener('keydown',event=>{
-    if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select,button,a,[contenteditable]'))return;
+    if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select,[contenteditable]'))return;
+    if(event.key===' '&&event.target.closest('button'))return;
     if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key))intent();
   });
   // A scrollbar drag also settles on release, while ordinary clicks keep focus behavior.
