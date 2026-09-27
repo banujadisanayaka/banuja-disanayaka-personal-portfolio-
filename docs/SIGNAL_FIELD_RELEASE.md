@@ -19,6 +19,10 @@ September 27 correction: after native wheel, touch or keyboard scrolling pauses 
 
 Focus leaves a scene before its controls become invisible. All scene buttons remain available on small screens. Motion off, reduced motion, forced colors, short landscape, missing JavaScript and missing scene script use semantic static content. Photography remains contained without cropping. Existing case studies, archive, CMS endpoints, authentication, security headers and concurrency protections remain in place.
 
+## Visual polish
+
+September 27 polish: larger mobile scene labels, a consistent amber active marker, quieter rounded control frames, clearer workflow rows, finer artwork caption tracking, and a continuous tonal Work background on mobile. Link hover no longer changes border thickness. Pointer hover cues are limited to mouse/trackpad devices. No animation timing, viewport geometry, assets, content or CMS behavior was changed.
+
 ## Verification
 
 Mobile viewport correction: the pinned stage and environments now cover the large browser viewport, while a separate small-viewport canvas keeps text, artwork, navigation and scroll distances stable. The scroll spacer includes the full stage height so Contact remains pinned through its endpoint. Regression QA models different small/large viewport heights and checks fixed heading position, unchanged scene progress and full background coverage through Contact. This models browser chrome geometry; it is not a physical Android recording.
