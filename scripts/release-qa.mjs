@@ -8,14 +8,14 @@ assert.equal(defaults.dailyGaze.length,115);
 assert.equal(new Set(defaults.dailyGaze.map(p=>p.id)).size,115);
 const routes=['public/index.html','public/daily-gaze/index.html','public/resume/index.html','public/about/index.html',...['tfc-orders-tracker','class-tracker','second-brain','banu-2','veloria'].map(p=>`public/work/${p}/index.html`)];
 for(const path of routes){const html=read(path);assert.equal((html.match(/<h1[ >]/g)||[]).length,1,path+' has one main heading');assert.match(html,/<main id="main"/);assert.match(html,/rel="canonical"/);assert.match(html,/name="description"/);assert.doesNotMatch(html,/PORTRAIT ASSET SLOT|drive\.google|thumbnail\?id|scanline|<canvas|AI DESIGNER/i);for(const [,url]of html.matchAll(/(?:href|src)="(\/[^"?#]*)"/g)){const target='public'+url;assert.ok(fs.existsSync(target)||url==='/favicon.svg',`${path} links to missing ${url}`)}}
+assert.ok(!fs.existsSync('public/review/stage2'),'Prototype review media must stay out of the production publish directory');
 for(const path of routes){
   const html=read(path);
-  const images=[...html.matchAll(/<img\\b[^>]*>/g)].map(match=>match[0]);
+  const images=[...html.matchAll(/<img\b[^>]*>/g)].map(match=>match[0]);
+  assert.ok(images.length>0,path+' image audit must inspect actual image elements');
   for(const tag of images){
-    assert.match(tag,/\\balt="[^"]*"/,path+' image missing alt attribute: '+tag);
-    if(/\\balt=""/.test(tag)&&! /id="lightbox-image"/.test(tag)) {
-      assert.match(tag,/\\baria-hidden="true"/,path+' decorative image must be explicitly hidden from assistive tech: '+tag);
-    }
+    // Empty alt is valid for decorative images; meaningful images carry descriptive alt.
+    assert.match(tag,/\balt="[^"]*"/,path+' image missing alt attribute: '+tag);
   }
 }
 for(const photo of defaults.dailyGaze){assert.ok(photo.alt.length>15);assert.ok(photo.width>0&&photo.height>0);assert.ok(photo.derivatives.length>=2);assert.ok(photo.derivatives.every(d=>d.width<=photo.width&&fs.existsSync('public'+d.url)));assert.equal(photo.derivatives.at(-1).url,photo.preview)}

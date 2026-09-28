@@ -1,0 +1,47 @@
+# Signal Field release candidate
+
+The six-scene opening is implemented on draft PR #40, branch `stage2-identity-work-proof`.
+Preview: https://deploy-preview-40--banujadisanayaka.netlify.app/
+Production remains on V10.5, commit `2639e3a5f61252b2235465539a756c518c582035`.
+
+## Implementation
+
+- Identity: original portrait, evergreen contour field and editorial name.
+- Work: operations environment, five project selectors, consistent project map, summary and case-study destination.
+- Daily Gaze: light chamber, original photographs with their existing watermark, manual selection and journal link.
+- Journey: a timeline drawn from the existing career data, with a link to the full biography.
+- VELORIA: six named divisions arranged around a shared constellation. The labels are explanatory text, not a replacement logo. The official standalone locked watermark was not currently surfaced; no identity was redrawn.
+- Contact: quiet horizon, original personal portrait, contact and résumé actions.
+
+One requestAnimationFrame scheduler drives all scenes. Native scrolling is retained. Per-frame changes use transforms and opacity; geometry is cached and invalidated on actual layout changes. The renderer sleeps when settled, offscreen or hidden. Mobile browser chrome resizing does not repeatedly reconfigure the stage.
+
+September 27 correction: after native wheel, touch or keyboard scrolling pauses for 180 ms, the opening settles in the travel direction to a complete scene. Touch stays under native control until release; tiny movements settle to the nearest scene. New input interrupts settling, and scrolling beyond either end remains free. Programmatic anchors and focus changes are not redirected. The mobile motion control accounts for the difference between dynamic and small viewport height so collapsed browser chrome does not move it over scene navigation. Native-input regression checks cover forward/reverse completion, held/released touch, keyboard navigation, interruption and exit.
+
+Focus leaves a scene before its controls become invisible. All scene buttons remain available on small screens. Motion off, reduced motion, forced colors, short landscape, missing JavaScript and missing scene script use semantic static content. Photography remains contained without cropping. Existing case studies, archive, CMS endpoints, authentication, security headers and concurrency protections remain in place.
+
+## Visual polish
+
+September 27 polish: larger mobile scene labels, a consistent amber active marker, quieter rounded control frames, clearer workflow rows, finer artwork caption tracking, and a continuous tonal Work background on mobile. Link hover no longer changes border thickness. Pointer hover cues are limited to mouse/trackpad devices. No animation timing, viewport geometry, assets, content or CMS behavior was changed.
+
+The final dependency audit identified GHSA-rgj7-g3m4-5g8c in sharp 0.35.3. Sharp is pinned to patched 0.35.5; the production dependency audit is now a CI gate for high/critical advisories. A local WebP decode/resize/encode smoke check passed without modifying original assets.
+
+## Verification
+
+Mobile viewport correction: the pinned stage and environments now cover the large browser viewport, while a separate small-viewport canvas keeps text, artwork, navigation and scroll distances stable. The scroll spacer includes the full stage height so Contact remains pinned through its endpoint. Regression QA models different small/large viewport heights and checks fixed heading position, unchanged scene progress and full background coverage through Contact. This models browser chrome geometry; it is not a physical Android recording.
+
+The polished candidate `be3140e7150a3dd73e155a6c701846433e65f5e1` passed Portfolio QA, Netlify Build Smoke and exact-commit Netlify deployment checks:
+https://github.com/banujadisanayaka/banuja-disanayaka-personal-portfolio-/actions/runs/36322687943
+
+Release cleanup removes the obsolete public Stage 2 review media. Current screenshots and recordings remain in CI review evidence. The static image-alt audit now scans real image tags and fails if no images were inspected. The release gate also rejects the obsolete prototype media directory.
+
+Checks include six-scene geometry at 1366×900, 768×1024, 390×844 and 320×700; transition midpoints and the former Work/Gaze seam in both directions; all five project maps; keyboard and touch interactions; motion controls; reduced-motion/no-JS/forced-colors/landscape fallbacks; CMS empty-journal and outage behavior; modal focus and archive navigation; SEO; security and conditional CMS writes.
+
+The measured 390×844, DPR 2, 4× CPU-throttled scroll sample recorded 119 frame intervals, p95 33 ms, no intervals over 50 ms, 11 layouts, 105 ms style recalculation, 128 ms script time, and zero pinned-stage drift. All existing budgets passed. These are Chromium emulation results, not a physical Samsung-device measurement or a promise of constant 60 fps.
+
+The final head must also have successful Portfolio QA, Netlify Build Smoke and Netlify preview checks before release. Review media is generated by `scripts/stage2-review-capture.mjs`; it now captures all six scenes and forward/reverse desktop/mobile scrolling. The historical filename is retained for CI compatibility.
+
+## Release and rollback
+
+Review the draft preview first. Do not merge or deploy to production until Banu approves the concrete preview. After approval, merge PR #40 through the normal GitHub/Netlify flow and verify the deployed commit, routes and API boundaries. Production rollback is the previous V10.5 deploy above. No production environment variables or secrets were modified.
+
+Netlify may add its own preview drawer. In the cloud review browser its iframe can appear as an error strip; this is outside the portfolio rendering and production was not altered to work around it.

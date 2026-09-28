@@ -13,7 +13,7 @@ async function measure(url, label) {
   await page.goto(url, {waitUntil:'networkidle'});
   const scenes = await page.locator('.scene-journey').count() > 0;
   await page.locator(scenes ? '.scene-journey.is-scrubbed' : '.v10-story.is-cinematic').waitFor();
-  const geometry = scenes ? await page.locator('.scene-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.journey-stage').clientHeight*.9,range:4.9})) : await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight,range:1.9}));
+  const geometry = scenes ? await page.locator('.scene-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:(el.querySelector('.journey-canvas')||el.querySelector('.journey-stage')).clientHeight*.9,range:4.9})) : await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight,range:1.9}));
   const cdp = await context.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', {rate:4});
   await cdp.send('Performance.enable');
@@ -54,6 +54,8 @@ async function measure(url, label) {
     assert.ok(result.copyDriftPx <= 1, `Story copy moved ${result.copyDriftPx}px during native scroll`);
     assert.ok(result.styleMs <= 500, `Scroll spent ${result.styleMs}ms recalculating styles; budget is 500ms at 4× CPU slowdown`);
     assert.ok(result.layouts <= 12, `Scroll triggered ${result.layouts} layouts; budget is 12`);
+    assert.ok(result.p95FrameMs <= 34, `p95 scripted frame interval was ${result.p95FrameMs}ms; corrected Stage 2 gate is 34ms`);
+    assert.ok(result.framesOver50ms <= 3, `Scroll produced ${result.framesOver50ms} intervals over 50ms; corrected Stage 2 gate is 3`);
     const beforeControls=await page.locator('.journey-controls').boundingBox();
     assert.ok(beforeControls.width<=390,'Story controls fit the mobile viewport');
     await page.getByRole('button',{name:'Scene 6: Contact',exact:true}).click();

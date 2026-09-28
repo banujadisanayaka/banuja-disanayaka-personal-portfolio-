@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "@netlify/blobs": "11.0.1",
-    "sharp": "0.35.3"
+    "sharp": "0.35.5"
   }
 }
