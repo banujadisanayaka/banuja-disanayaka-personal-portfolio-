@@ -1,0 +1,47 @@
+name: ThreeUI Preview QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'public/experiments/project-library/**'
+      - 'scripts/*project-library*'
+      - '.github/workflows/threeui-preview.yml'
+permissions:
+  contents: read
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check generated content is current
+        run: |
+          node scripts/build-project-library.mjs
+          git diff --exit-code -- public/experiments/project-library/index.html
+      - name: Install browser QA
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.55.0 && npx playwright install --with-deps chromium
+      - name: Wait for exact preview
+        env:
+          QA_URL: https://deploy-preview-${{ github.event.pull_request.number }}--banujadisanayaka.netlify.app
+          EXPECTED_COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: |
+          for i in {1..60}; do
+            BODY="$(curl -fsS "$QA_URL/build-info.json" 2>/dev/null || true)"
+            echo "$BODY" | grep -q "$EXPECTED_COMMIT" && exit 0
+            sleep 5
+          done
+          exit 1
+      - name: Test ThreeUI experiment
+        env:
+          BROWSER_QA_BASE_URL: https://deploy-preview-${{ github.event.pull_request.number }}--banujadisanayaka.netlify.app
+        run: node scripts/project-library-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: threeui-preview
+          path: qa-artifacts/threeui/
+          retention-days: 7
