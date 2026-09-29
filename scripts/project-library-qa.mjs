@@ -15,7 +15,7 @@ const scenarios=[
  {name:'reduced',viewport:{width:390,height:844},reducedMotion:'reduce'},
  {name:'forced',viewport:{width:390,height:844},forcedColors:'active'}
 ];
-const settle=page=>page.waitForFunction(()=>document.getAnimations().every(a=>a.playState!=='running'));
+const settle=page=>page.waitForFunction(()=>(!document.querySelector('dialog').open||document.querySelector('dialog').classList.contains('is-open'))&&document.getAnimations().every(a=>a.playState!=='running'));
 const fits=async page=>assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'No horizontal page overflow');
 try{
  for(const {name,...options} of scenarios){
@@ -102,8 +102,10 @@ try{
   // Runtime preference changes cancel transitions and persist; no continuous frame loop.
   if(name==='desktop'){
    await page.locator('.book-card').first().click();await page.emulateMedia({reducedMotion:'reduce'});
+   await page.waitForFunction(()=>document.documentElement.dataset.motion==='off');
    await settle(page);assert.equal(await page.locator('html').getAttribute('data-motion'),'off');
    await page.keyboard.press('Escape');await page.emulateMedia({reducedMotion:'no-preference'});
+   await page.waitForFunction(()=>document.documentElement.dataset.motion==='on');
    await page.locator('.motion-toggle').click();await page.reload();
    assert.equal(await page.locator('html').getAttribute('data-motion'),'off');
   }
