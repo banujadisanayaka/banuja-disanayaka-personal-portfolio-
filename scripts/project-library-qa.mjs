@@ -19,10 +19,18 @@ const settle=page=>page.waitForFunction(()=>document.getAnimations().every(a=>a.
 const fits=async page=>assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'No horizontal page overflow');
 try{
  for(const {name,...options} of scenarios){
-  const context=await browser.newContext(options),page=await context.newPage(),errors=[];
+  const context=await browser.newContext(options),page=await context.newPage(),errors=[],drawerBlocks=[];
   page.on('pageerror',e=>errors.push(e.message));
-  page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-  await page.goto(url,{waitUntil:'networkidle'});
+  page.on('console',m=>{
+   if(m.type()!=='error')return;
+   const message=m.text().trim();
+   const drawerFrame=message===`Refused to frame 'https://app.netlify.com/' because it violates the following Content Security Policy directive: "frame-src 'none'".`;
+   const drawerPermission=/^Potential permissions policy violation: (camera|microphone) is not allowed in this document\.$/.test(message);
+   (drawerFrame||drawerPermission?drawerBlocks:errors).push(message);
+  });
+  const response=await page.goto(url,{waitUntil:'networkidle'});
+  assert.ok(response.headers()['content-security-policy'].includes("frame-src 'none'"),'Frame protection remains enforced');
+  assert.ok(response.headers()['permissions-policy'].includes('camera=()'),'Camera protection remains enforced');
   await fits(page);
   assert.equal(await page.locator('.book-card').count(),5);
   assert.equal(await page.locator('meta[name=robots]').getAttribute('content'),'noindex,nofollow');
@@ -104,7 +112,11 @@ try{
   await page.locator('dialog').evaluate(el=>el.scrollTop=0);
   await page.screenshot({path:`qa-artifacts/threeui/${name}-open.png`});
   if(name==='desktop'||name==='mobile')console.log(`THREEUI_IMAGE ${name}-open `+(await page.screenshot({type:'jpeg',quality:70})).toString('base64'));
-  assert.deepEqual(errors,[],`${name}: no script or CSP errors`);
+  if(drawerBlocks.length){
+   assert.ok(await page.locator('iframe[title="Netlify Drawer"][src^="https://app.netlify.com/cdp/"]').count()>0,'Known policy warnings belong to Netlify preview tooling');
+   console.log(`Expected preview-tool policy blocks: ${name} / ${drawerBlocks.length}`);
+  }
+  assert.deepEqual(errors,[],`${name}: no application script or unexpected CSP errors`);
   await context.close();console.log(`ThreeUI project library passed: ${name}`);
  }
  const context=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}}),page=await context.newPage();
