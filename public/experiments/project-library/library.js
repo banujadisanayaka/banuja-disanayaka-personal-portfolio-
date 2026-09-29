@@ -32,7 +32,15 @@
     close.addEventListener('click',()=>dialog.close());
     dialog.addEventListener('close',cleanClose);
     dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
-    // Native dialog supplies Escape handling, inert background, and focus containment.
+    // Wrap Tab explicitly, including the browser-chrome focus boundary.
+    dialog.addEventListener('keydown',event=>{
+      if(event.key!=='Tab')return;
+      const stops=[...dialog.querySelectorAll('button,a[href],summary')].filter(el=>!el.disabled&&el.getClientRects().length);
+      const first=stops[0],last=stops.at(-1);
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    });
+    // Native dialog supplies Escape handling and an inert background.
   }
   function updatePosition(){
     positionFrame=0;
