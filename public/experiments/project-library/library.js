@@ -29,9 +29,11 @@
         openFrame=requestAnimationFrame(()=>{openFrame=requestAnimationFrame(()=>{if(dialog.open)dialog.classList.add('is-open');});});
       });
     });
-    close.addEventListener('click',()=>dialog.close());
-    dialog.addEventListener('close',cleanClose);
-    dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
+    function closeProject(){dialog.close();cleanClose();}
+    close.addEventListener('click',closeProject);
+    dialog.addEventListener('cancel',event=>{event.preventDefault();closeProject();});
+    dialog.addEventListener('close',()=>{if(!dialog.open)cleanClose();});
+    dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeProject();});
     // Wrap Tab explicitly, including the browser-chrome focus boundary.
     dialog.addEventListener('keydown',event=>{
       if(event.key!=='Tab')return;

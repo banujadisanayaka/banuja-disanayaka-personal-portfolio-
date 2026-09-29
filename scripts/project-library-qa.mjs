@@ -27,6 +27,7 @@ try{
   assert.equal(await page.locator('.book-card').count(),5);
   assert.equal(await page.locator('meta[name=robots]').getAttribute('content'),'noindex,nofollow');
   await page.screenshot({path:`qa-artifacts/threeui/${name}-library.png`,fullPage:true});
+  if(name==='desktop'||name==='mobile')console.log(`THREEUI_IMAGE ${name}-library `+(await page.screenshot({type:'jpeg',quality:70,fullPage:true})).toString('base64'));
   for(let i=0;i<5;i++){
    const card=page.locator('.book-card').nth(i);
    await card.scrollIntoViewIfNeeded();
@@ -102,6 +103,7 @@ try{
   await page.locator('.book-card').first().click();await settle(page);
   await page.locator('dialog').evaluate(el=>el.scrollTop=0);
   await page.screenshot({path:`qa-artifacts/threeui/${name}-open.png`});
+  if(name==='desktop'||name==='mobile')console.log(`THREEUI_IMAGE ${name}-open `+(await page.screenshot({type:'jpeg',quality:70})).toString('base64'));
   assert.deepEqual(errors,[],`${name}: no script or CSP errors`);
   await context.close();console.log(`ThreeUI project library passed: ${name}`);
  }
