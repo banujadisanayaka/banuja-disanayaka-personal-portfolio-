@@ -37,5 +37,5 @@ export function workShowcase(cards) {
       <div class="work-preview-cover" aria-hidden="true"></div>
       <div class="work-preview-copy"><p class="work-preview-category"></p><h2 id="work-preview-title"></h2><p class="work-preview-description"></p><p class="work-preview-status"></p><div class="work-preview-details"></div><a class="button primary work-case-link">View full case study <span aria-hidden="true">↗</span></a></div>
     </div>
-  </dialog><p class="book-credit">Book interaction adapted from <a href="https://github.com/MengTo/threeui">ThreeUI</a> · <a href="/experiments/project-library/THREEUI-LICENSE.txt">MIT licence</a></p>`;
+  </dialog>`;
 }
