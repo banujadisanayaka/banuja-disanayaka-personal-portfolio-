@@ -11,6 +11,9 @@
   const closeButton = q('.work-preview-close', dialog);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
+  const compact = matchMedia('(max-width: 700px)');
+  const cardStates = new WeakMap();
+  let cardStep = 240;
   const tones = {sage:'113, 207, 164', lavender:'177, 152, 246', sand:'234, 177, 112', blue:'112, 184, 238', gold:'209, 183, 128'};
   let cards = [], buttons = [], selected = 0, selectedHref = '', trigger = null;
   let gesture = null, suppressClickUntil = 0, resizeFrame = 0, previousOverflow = '', dialogAnimation = null, closing = false;
@@ -33,31 +36,91 @@
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
       if (!showcase.classList.contains('is-ready')) return;
+      cardStep = parseFloat(getComputedStyle(grid).getPropertyValue('--work-step')) || 240;
       const height = Math.max(0, ...cards.map(card => card.offsetHeight));
       grid.style.minHeight = `${height + 80}px`;
       layout();
     });
   }
 
-  function layout() {
-    const step = parseFloat(getComputedStyle(grid).getPropertyValue('--work-step')) || 240;
+  function cardPose(distance) {
+    const magnitude = Math.abs(distance);
+    const scale = magnitude === 0 ? 1 : magnitude === 1 ? .86 : .73;
+    // Phones use a single flat card surface; the printed book keeps its own depth.
+    const depth = compact.matches ? 0 : -magnitude * 65;
+    const angle = compact.matches || !distance ? 0 : -Math.sign(distance) * 18;
+    return `translate3d(calc(-50% + ${distance * cardStep}px + var(--work-drag, 0px)),0,${depth}px) rotateY(${angle}deg) scale(${scale})`;
+  }
+
+  function stopCards() {
+    cards.forEach(card => {
+      cardStates.get(card)?.animation?.cancel();
+      const state = cardStates.get(card);
+      if (state) state.animation = null;
+    });
+  }
+
+  function layout(animate = false) {
+    const moving = animate && motion();
+    // Read interrupted positions together, before writing any new card styles.
+    // Rapid taps reverse from the frame on screen instead of restarting a transition.
+    const starts = cards.map(card => {
+      const state = cardStates.get(card);
+      if (!state) return null;
+      const live = state.animation?.playState === 'running' ? getComputedStyle(card) : null;
+      return { ...state, transform: live?.transform || state.transform,
+        opacity: live?.opacity || state.opacity, zIndex: live?.zIndex || state.zIndex };
+    });
     cards.forEach((card, index) => {
       let distance = index - selected;
       if (distance > cards.length / 2) distance -= cards.length;
       if (distance < -cards.length / 2) distance += cards.length;
       const magnitude = Math.abs(distance), active = index === selected;
-      card.style.setProperty('--card-x', `${distance * step}px`);
-      card.style.setProperty('--card-angle', `${active ? 0 : -Math.sign(distance) * 18}deg`);
-      card.style.setProperty('--card-scale', String(active ? 1 : magnitude === 1 ? .86 : .73));
-      card.style.setProperty('--card-depth', `${-magnitude * 65}px`);
-      card.style.zIndex = String(10 - magnitude);
-      card.style.opacity = active ? '1' : magnitude === 1 ? '.64' : '.3';
+      const transform = cardPose(distance);
+      const opacity = active ? '1' : magnitude === 1 ? '.64' : '.3';
+      const zIndex = String(10 - magnitude);
+      const start = starts[index];
+      start?.animation?.cancel();
+      card.style.transform = transform;
+      card.style.zIndex = zIndex;
+      card.style.opacity = opacity;
       card.style.visibility = magnitude > 2 ? 'hidden' : 'visible';
+      const state = {distance, transform, opacity, zIndex, animation:null};
+      cardStates.set(card, state);
+      if (!moving || !start || start.distance === distance || !card.animate) return;
+      const recycled = Math.abs(distance - start.distance) > cards.length / 2;
+      let frames;
+      if (recycled) {
+        // Recycle at the outside edge while invisible. Never sweep a back card
+        // across the selected project when the circular list wraps.
+        const exit = cardPose(Math.sign(start.distance) * (Math.floor(cards.length / 2) + 1));
+        const entry = cardPose(Math.sign(distance) * (Math.floor(cards.length / 2) + 1));
+        frames = [
+          {transform:start.transform, opacity:start.opacity, offset:0},
+          {transform:exit, opacity:0, offset:.45},
+          {transform:exit, opacity:0, offset:.5},
+          {transform:entry, opacity:0, offset:.5},
+          {transform:entry, opacity:0, offset:.55},
+          {transform, opacity, offset:1}
+        ];
+      } else {
+        frames = [{transform:start.transform, opacity:start.opacity},
+          {transform, opacity}];
+      }
+      state.animation = card.animate(frames, {
+        duration:compact.matches ? 480 : 560,
+        easing:'cubic-bezier(.22,.61,.36,1)'
+      });
+      const animation = state.animation;
+      animation.finished.then(() => {
+        if (state.animation === animation) state.animation = null;
+      }).catch(() => {});
     });
   }
 
   function select(index, announce = true) {
     if (!cards.length) return;
+    const previous = selected;
     selected = (index + cards.length) % cards.length;
     selectedHref = href(cards[selected]);
     showcase.style.setProperty('--work-rgb', tones[tone(cards[selected])]);
@@ -72,7 +135,7 @@
       q('.work-card-select', card).hidden = active;
       buttons[i].setAttribute('aria-pressed', String(active));
     });
-    layout();
+    if (previous !== selected || !cardStates.has(cards[selected])) layout(true);
     if (announce) q('.work-announcement', showcase).textContent = `${selected + 1} of ${cards.length}: ${title(cards[selected])}`;
   }
 
@@ -273,15 +336,19 @@
     if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) close();
   });
   dialog.addEventListener('close', cleanClose);
-  const stopAnimation = () => { if (!motion()) { dialogAnimation?.cancel(); cancelGesture(); } };
+  const stopAnimation = () => { if (!motion()) { dialogAnimation?.cancel(); stopCards(); cancelGesture(); } };
   new MutationObserver(stopAnimation).observe(document.documentElement, {attributes:true,attributeFilter:['data-motion']});
   reduced.addEventListener('change', stopAnimation);
   forced.addEventListener('change', stopAnimation);
-  window.addEventListener('resize', () => { cancelGesture(); measure(); }, {passive:true});
+  let measuredWidth = innerWidth;
+  window.addEventListener('resize', () => {
+    if (innerWidth === measuredWidth) return; // Browser chrome changes height during a phone swipe.
+    measuredWidth = innerWidth; cancelGesture(); measure();
+  }, {passive:true});
   if ('ResizeObserver' in window) new ResizeObserver(measure).observe(grid);
   document.addEventListener('portfolio:content', refresh);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelGesture(); dialogAnimation?.cancel(); } });
-  window.addEventListener('pagehide', () => { if (dialog.open) dialog.close(); cancelGesture(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelGesture(); stopCards(); dialogAnimation?.cancel(); } });
+  window.addEventListener('pagehide', () => { if (dialog.open) dialog.close(); stopCards(); cancelGesture(); });
   refresh();
   document.fonts?.ready.then(measure);
 })();
