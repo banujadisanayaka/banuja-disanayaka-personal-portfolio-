@@ -14,7 +14,7 @@
   const tones = {sage:'113, 207, 164', lavender:'177, 152, 246', sand:'234, 177, 112', blue:'112, 184, 238', gold:'209, 183, 128'};
   let cards = [], buttons = [], selected = 0, selectedHref = '', trigger = null;
   let gesture = null, suppressClickUntil = 0, resizeFrame = 0, previousOverflow = '', dialogAnimation = null, closing = false;
-  let bookFrame = 0, dialogSession = false;
+  let bookFrame = 0, dialogSession = false, openingScroll = 0;
   const motion = () => document.documentElement.dataset.motion === 'on' && !reduced.matches && !forced.matches;
   const heading = card => q('h3 a', card);
   const title = card => heading(card)?.textContent.replace(/\s*↗\s*$/, '').trim() || 'Project';
@@ -111,6 +111,7 @@
   function open(card, source) {
     if (!href(card) || dialog.open) return;
     trigger = source;
+    openingScroll = scrollY;
     closing = false;
     renderPreview(card);
     previousOverflow = document.documentElement.style.overflow;
@@ -120,6 +121,8 @@
     document.documentElement.style.overflow = 'hidden';
     dialog.scrollTop = 0;
     closeButton.focus({preventScroll:true});
+    // Modal focus and scrollbar changes must not move a pinned scene.
+    scrollTo({top:openingScroll,behavior:'instant'});
     animateDialog(true);
     bookFrame = requestAnimationFrame(() => { bookFrame = requestAnimationFrame(() => {
       if (dialog.open) dialog.classList.add('is-book-open');
@@ -133,6 +136,7 @@
     dialog.classList.remove('is-book-open');
     dialogAnimation?.cancel(); dialogAnimation = null; closing = false;
     document.documentElement.style.overflow = previousOverflow;
+    scrollTo({top:openingScroll,behavior:'instant'});
     const restore = trigger?.isConnected && !trigger.closest('[inert],[hidden]') ? trigger : buttons[selected];
     restore?.focus({preventScroll:true});
     trigger = null;
