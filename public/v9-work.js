@@ -56,7 +56,7 @@
     cards.forEach(card => {
       cardStates.get(card)?.animation?.cancel();
       const state = cardStates.get(card);
-      if (state) state.animation = null;
+      if (state) { state.animation = null; state.recycled = false; }
     });
   }
 
@@ -88,19 +88,16 @@
       const state = {distance, transform, opacity, zIndex, animation:null};
       cardStates.set(card, state);
       if (!moving || !start || start.distance === distance || !card.animate) return;
-      const recycled = Math.abs(distance - start.distance) > cards.length / 2;
+      const recycled = Math.abs(distance - start.distance) > cards.length / 2 || start.recycled;
+      state.recycled = recycled;
       let frames;
       if (recycled) {
         // Recycle at the outside edge while invisible. Never sweep a back card
         // across the selected project when the circular list wraps.
-        const exit = cardPose(Math.sign(start.distance) * (Math.floor(cards.length / 2) + 1));
-        const entry = cardPose(Math.sign(distance) * (Math.floor(cards.length / 2) + 1));
         frames = [
           {transform:start.transform, opacity:start.opacity, offset:0},
-          {transform:exit, opacity:0, offset:.45},
-          {transform:exit, opacity:0, offset:.5},
-          {transform:entry, opacity:0, offset:.5},
-          {transform:entry, opacity:0, offset:.55},
+          {transform:start.transform, opacity:0, offset:.35},
+          {transform, opacity:0, offset:.35},
           {transform, opacity, offset:1}
         ];
       } else {
@@ -113,7 +110,7 @@
       });
       const animation = state.animation;
       animation.finished.then(() => {
-        if (state.animation === animation) state.animation = null;
+        if (state.animation === animation) { state.animation = null; state.recycled = false; }
       }).catch(() => {});
     });
   }
