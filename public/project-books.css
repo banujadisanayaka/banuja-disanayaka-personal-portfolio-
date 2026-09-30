@@ -1,0 +1,70 @@
+/* ThreeUI MIT book layers, adapted from the approved Project Library.
+   Licence: /experiments/project-library/THREEUI-LICENSE.txt. Scoped to Work. */
+.project-book.book-theme-0{min-width:0;--cover-color:#bdc8a5;--cover-ink:#213b2b;--cover-accent:#4e6642;--tilt:-5deg}
+.project-book.book-theme-1{--cover-color:#cbbcb0;--cover-ink:#382d39;--cover-accent:#6c5075;--tilt:-2deg}
+.project-book.book-theme-2{--cover-color:#e7cca3;--cover-ink:#49391e;--cover-accent:#87653e;--tilt:1deg}
+.project-book.book-theme-3{--cover-color:#91aca7;--cover-ink:#142f37;--cover-accent:#365b6b;--tilt:3deg}
+.project-book.book-theme-4{--cover-color:#292d28;--cover-ink:#e3cc98;--cover-accent:#bbaa7f;--tilt:5deg}
+.project-book .book{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transform:rotateY(-12deg);transition:transform 700ms var(--ease)}
+.project-book .book-back,.project-book .page-block,.project-book .page-fan,.project-book .front-cover,.project-book .inside-page{position:absolute;inset:0;border-radius:3px 7px 7px 3px}
+.project-book .book-back{background:var(--cover-color);box-shadow:12px 24px 28px #0005;transform:translate3d(7px,1px,-22px)}
+.project-book .page-block{inset:1.7% 1.4% 1.7% 3.8%;border:1px solid #ab9d7c;background:repeating-linear-gradient(0deg,#ddcfb2 0,#ddcfb2 1px,#f0e7d4 1px,#f0e7d4 3px);transform:translate3d(7px,1px,-10px)}
+.project-book .page-block::after{content:'';position:absolute;right:-7px;top:0;width:8px;height:100%;background:repeating-linear-gradient(0deg,#cbbb96 0,#cbbb96 1px,#eee3cd 1px,#eee3cd 3px);transform:skewY(-2deg);transform-origin:left center}
+.project-book .front-cover{display:flex;flex-direction:column;padding:10% 9% 8% 12%;color:var(--cover-ink);background:linear-gradient(115deg,#fff1,transparent 65%),var(--cover-color);box-shadow:inset -5px 0 10px #0001,inset 2px 0 5px #fff3;transform:translate3d(0,0,12px);transform-origin:1.5% center;transition:transform 800ms var(--ease);overflow:hidden;backface-visibility:hidden}
+.project-book .front-cover::before{content:'';position:absolute;inset:0 auto 0 0;width:5.5%;background:linear-gradient(90deg,#0005,#fff2 35%,#0002 75%,transparent)}
+.project-book .cover-top{display:flex;justify-content:space-between;gap:5px;font-size:7px;letter-spacing:1px;border-bottom:1px solid currentColor;padding-bottom:10px}
+.project-book .cover-top b{font-weight:400}
+.project-book .cover-title{display:block;margin-top:13%;font-size:clamp(19px,2vw,31px);line-height:1.05;letter-spacing:-1px}
+.project-book .cover-title em{font-family:Georgia,serif;font-weight:400}
+.project-book .cover-mark{display:block;flex:1;min-height:0;width:80%;align-self:center;margin:8% 0;color:var(--cover-accent)}
+.project-book .cover-mark .accent{stroke-width:3}
+.project-book .cover-bottom{display:block;font-size:10px;line-height:1.3;border-top:1px solid currentColor;padding-top:9px}
+.project-book .cover-bottom small{display:block;font-size:6px;letter-spacing:1.2px;margin-top:6px}
+.project-book .inside-page{inset:2%;padding:20% 12%;background:#ece2cc;color:#324231;display:flex;flex-direction:column;justify-content:space-between;transform:translateZ(1px)}
+.project-book .inside-page span{font-size:10px;letter-spacing:1px}
+.project-book .inside-page strong{font:italic 28px/1.1 Georgia,serif}
+.project-book .page-fan{inset:2.4% 2% 2.4% 4.3%;pointer-events:none;transform-style:preserve-3d}
+.project-book .page-fan i{position:absolute;inset:0;display:block;border:1px solid #b9aa87;border-radius:2px 5px 5px 2px;background:linear-gradient(90deg,#c4b391,#f0e6d0 9%);opacity:0;transform:translateZ(0) rotateY(0);transform-origin:1.5% center;transition:opacity 400ms,transform 800ms var(--ease)}
+.project-book{--ease:cubic-bezier(.2,.78,.2,1);display:block;position:relative;width:220px;height:324px;perspective:1400px;font-family:Arial,Helvetica,sans-serif;isolation:isolate}
+.project-book .cover-title{font-size:30px}.project-book .cover-top{font-size:7px}.project-book .cover-bottom{font-size:12px}.project-book .cover-bottom small{font-size:7px}.project-book .inside-page strong{font-size:26px}
+.scene-journey [data-journey-scene="1"] .journey-art{background:transparent;border:0;box-shadow:none;overflow:visible}
+.scene-journey [data-journey-scene="1"] .journey-art-inner{overflow:visible;display:flex;align-items:center;justify-content:center}
+.journey-book-link{display:block;padding:18px 28px;perspective:1400px}
+.journey-book-link .project-book{width:246px;height:362px}
+.scene-journey [data-journey-scene="1"] .journey-art figcaption{text-align:center}
+.is-scrubbed [data-journey-scene="1"][aria-hidden=false] .journey-book-link{pointer-events:auto}
+.scene-journey .journey-book-link:focus-visible{outline-offset:8px}
+#work .project-visual,#work .work-showcase.is-ready .project-visual{display:flex;justify-content:center;align-items:center;min-height:364px;padding:22px 30px;overflow:visible;background:transparent;border:0}
+#work .project-visual::after{display:none}
+#work .project-visual .project-book{width:190px;height:280px}
+#work .project-visual .cover-title{font-size:26px}
+.work-preview-cover{justify-content:center;perspective:1400px;overflow:hidden;min-height:410px}
+.work-preview-cover .project-book{width:210px;height:309px;margin-left:50px}
+.work-preview-cover .book{transform:rotateY(-8deg) rotateZ(3deg)}
+.work-preview.is-book-open .front-cover{transform:translate3d(0,0,12px) rotateY(-58deg)}
+.work-preview.is-book-open .page-fan i{opacity:1}
+.work-preview.is-book-open .page-fan i:nth-child(1){transform:translateZ(5px) rotateY(-36deg)}
+.work-preview.is-book-open .page-fan i:nth-child(2){transform:translateZ(4px) rotateY(-24deg)}
+.work-preview.is-book-open .page-fan i:nth-child(3){transform:translateZ(3px) rotateY(-12deg)}
+.book-workflow{padding-left:20px;font-size:14px;line-height:1.7}.book-limits{font-size:14px;line-height:1.65;color:#c2d0c5}.book-credit{font-size:11px;text-align:center;color:#b7c2b8;line-height:1.6;margin:22px 0 0}.book-credit a{text-decoration:underline;text-underline-offset:3px}
+@media(hover:hover) and (pointer:fine){html[data-motion=on] .journey-book-link:hover .book,html[data-motion=on] #work .project.is-selected .project-visual:hover .book{transform:rotateY(-20deg) rotateX(3deg)}html[data-motion=on] .journey-book-link:hover .front-cover,html[data-motion=on] #work .project.is-selected .project-visual:hover .front-cover{transform:translateZ(12px) rotateY(-12deg)}}
+@media(max-width:700px){
+ .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-art{width:260px;height:300px;padding:0}
+ .scene-journey.is-scrubbed [data-journey-scene="1"] .journey-art-inner{height:277px}
+ .is-scrubbed .journey-book-link{padding:8px 24px}
+ .is-scrubbed .journey-book-link .project-book{width:166px;height:244px}
+ .is-scrubbed .journey-book-link .cover-title{font-size:24px}
+ .is-scrubbed .journey-book-link .cover-top{font-size:5px}
+ .is-scrubbed .journey-book-link .cover-bottom{font-size:10px}
+ .is-scrubbed .journey-book-link .cover-bottom small{font-size:5px}
+ #work .project-visual,#work .work-showcase.is-ready .project-visual{min-height:300px;padding:18px 22px}
+ #work .project-visual .project-book{width:166px;height:244px}
+ #work .project-visual .cover-title{font-size:24px}
+ .work-preview-cover{min-height:300px;align-self:stretch}
+ .work-preview-cover .project-book{width:156px;height:230px;margin-left:50px}
+ .work-preview-cover .cover-title{font-size:22px}.work-preview-cover .cover-top{font-size:5px}.work-preview-cover .cover-bottom{font-size:9px}.work-preview-cover .cover-bottom small{font-size:5px}.work-preview-cover .inside-page strong{font-size:19px}.work-preview-cover .inside-page span{font-size:7px}
+}
+html[data-motion=off] .project-book *{transition:none!important;animation:none!important}
+@media(prefers-reduced-motion:reduce){.project-book *{transition:none!important;animation:none!important}}
+@media(forced-colors:active){.project-book .front-cover{background:Canvas;color:CanvasText;border:1px solid CanvasText}.project-book .cover-mark{color:CanvasText}.project-book .book{transform:none!important}.project-book .book-back,.project-book .page-block,.project-book .page-fan{display:none}.work-preview-cover{display:none}.book-credit{color:CanvasText}}
+@media print{.project-book{break-inside:avoid}.project-book .book{transform:none!important}.book-credit{color:#222}}

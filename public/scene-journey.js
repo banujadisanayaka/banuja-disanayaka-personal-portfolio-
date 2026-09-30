@@ -7,11 +7,8 @@
   const workCopy=work.querySelector('[data-journey-project-copy]');
   const workNote=work.querySelector('[data-journey-project-note]');
   const workOpen=work.querySelector('[data-journey-project-open]');
-  const systemCategory=work.querySelector('.journey-system-category');
-  const systemIndex=work.querySelector('.journey-system-index');
-  const systemTitle=work.querySelector('.journey-sheet-title');
-  const systemSteps=[...work.querySelectorAll('.journey-system li')];
-  const systemFooter=work.querySelector('.journey-system-footer');
+  const bookLink=work.querySelector('[data-journey-book]');
+  const bookTemplates=[...work.querySelectorAll('[data-journey-book-template]')];
   const systemCaption=work.querySelector('.journey-art figcaption');
   let selectedProject=0;
   function chooseProject(index,{focus=false}={}){
@@ -25,18 +22,16 @@
     if(workCopy&&chip.dataset.projectSummary)workCopy.textContent=chip.dataset.projectSummary;
     if(workNote)workNote.textContent=category;
     if(workOpen){workOpen.href=chip.href;workOpen.firstChild.textContent='Open '+title+' ';}
-    if(systemCategory)systemCategory.textContent=category;
-    if(systemIndex)systemIndex.textContent=String(selectedProject+1).padStart(2,'0');
-    if(systemTitle)systemTitle.textContent=title;
-    systemSteps.forEach((row,i)=>{
-      const number=row.querySelector('span');
-      if(number)number.textContent=String(i+1).padStart(2,'0');
-      const label=row.querySelector('.journey-flow-label');
-      if(label)label.textContent=flow[i]||'Case study detail';
-      row.hidden=i>=flow.length;
-    });
-    if(systemFooter)systemFooter.textContent=chip.dataset.projectKicker||category;
-    if(systemCaption)systemCaption.textContent='PROJECT MAP / '+title.toUpperCase();
+    if(bookLink){
+      bookLink.href=chip.href;bookLink.setAttribute('aria-label','Explore '+title);
+      if(bookLink.dataset.project!==String(selectedProject)){
+        bookLink.replaceChildren(bookTemplates[selectedProject].content.cloneNode(true));
+        bookLink.dataset.project=String(selectedProject);
+      }
+      const label=bookLink.querySelector('.cover-bottom');
+      if(label)label.firstChild.textContent=title;
+    }
+    if(systemCaption)systemCaption.textContent='PROJECT LIBRARY / '+title.toUpperCase();
     root.__journeyInvalidate?.();
     if(focus)chip.focus({preventScroll:true});
   }
@@ -167,8 +162,9 @@
   // Programmatic anchor/focus scrolling is left alone. No wheel/touch cancellation.
   let settleTimer=0,gesture=null,touchHeld=false,snapping=false,previousY=scrollY;
   function cancelSettle(){clearTimeout(settleTimer);gesture=null;snapping=false}
+  document.addEventListener('portfolio:project-dialog',cancelSettle);
   function intent(direction=0,distance=0){
-    if(!enabled||!geometry)return;
+    if(!enabled||!geometry||document.querySelector('dialog[open]'))return;
     if(snapping){scrollTo({top:scrollY,behavior:'instant'});snapping=false}
     if(!gesture)gesture={distance:0,direction:0};
     gesture.inputDirection=!!direction;
@@ -181,7 +177,7 @@
     if(touchHeld)return;
     if(snapping){snapping=false;return}
     const input=gesture;gesture=null;
-    if(!input||!enabled||!inView||document.hidden||!input.direction)return;
+    if(!input||!enabled||!inView||document.hidden||!input.direction||document.querySelector('dialog[open]'))return;
     if(dirty)measure();
     const p=(scrollY-geometry.top)/geometry.step,last=scenes.length-1;
     // Let native scrolling leave either end; never pull archive visitors back in.

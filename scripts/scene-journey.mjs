@@ -1,3 +1,4 @@
+import {projectBook} from './project-book.mjs';
 // A semantic introduction first; the browser progressively pins and choreographs it.
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -8,8 +9,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
   const workProjects = Array.isArray(projects) ? projects.slice(0, 5) : [];
   const projectDock = workProjects.length ? `<div class="journey-project-dock" role="group" aria-label="Selected work projects">${workProjects.map((p,i)=>`<a class="journey-project-chip${i===0?' is-selected':''}" href="/work/${esc(p.slug)}/" data-journey-project="${i}" data-project-path="/work/${esc(p.slug)}/" data-project-title="${esc(p.title)}" data-project-summary="${esc(p.description)}" data-project-category="${esc(p.category)}" data-project-kicker="${esc(p.kicker)}" data-project-flow="${esc((p.flow||[]).join('|'))}" ${i===0?'aria-current="true"':''}><span>0${i+1}</span><span class="journey-project-title">${esc(p.title)}</span></a>`).join('')}</div>` : '';
   const primaryWork=workProjects[0]||{title:'Selected work',category:'Operations → product',kicker:'A working system.',flow:['Project context','Core workflow','Implementation','Outcome']};
-  const primaryFlow=(primaryWork.flow||[]).slice(0,4);
-  const workArt=`<div class="journey-system"><div class="journey-sheet-top"><span class="journey-system-category">${esc(primaryWork.category)}</span><span class="journey-system-index">01</span></div><span class="journey-system-label">Project map</span><p class="journey-sheet-title">${esc(primaryWork.title)}</p><ol>${primaryFlow.map((step,i)=>`<li><span>0${i+1}</span><b class="journey-flow-label">${esc(step)}</b></li>`).join('')}</ol><small class="journey-system-footer">${esc(primaryWork.kicker)}</small></div>`;
+  const workArt=`<a class="journey-book-link" data-journey-book href="/work/${esc(primaryWork.slug)}/" aria-label="Explore ${esc(primaryWork.title)}">${projectBook(primaryWork,0)}</a>${workProjects.map((p,i)=>`<template data-journey-book-template="${i}">${projectBook(p,i)}</template>`).join('')}`;
   const route = [...career].reverse().filter((_, i, list) => i === 0 || i === 2 || i === list.length-1);
   const routeArt = `<div class="journey-route"><p class="route-label">EXPERIENCE / A CONTINUING LINE</p><ol>${route.map((item,i)=>`<li><span class="route-number">0${i+1}</span><div><small>${esc(item.year)}</small><strong>${esc(item.title)}</strong><span>${esc(item.company)}</span></div></li>`).join('')}</ol></div>`;
   const scenes = [
@@ -19,7 +19,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       art:`<div class="portrait-frame" data-depth>${picture('portrait','Banuja Disanayaka in a navy suit, standing in a studio.','',true)}</div>`,label:'THE PERSON / BANUJA DISANAYAKA'},
     {name:'Work',word:'MAKE IT WORK',theme:'workproof',kicker:'02 / SELECTED WORK',section:'#work',
       heading:'<h2>Ideas,<br>made <em>useful.</em></h2>',copy:'From everyday work to a working system.',note:'TFC ORDERS TRACKER',href:'/work/tfc-orders-tracker/',action:'Inside the project',
-      art:workArt,label:`PROJECT MAP / ${esc(primaryWork.title).toUpperCase()}`},
+      art:workArt,label:`PROJECT LIBRARY / ${esc(primaryWork.title).toUpperCase()}`},
     {name:'Gaze',word:'LOOK CLOSER',theme:'sage',kicker:'03 / THROUGH MY LENS',section:'#photography',
       heading:'<h2>The Daily<br><em>Gaze.</em></h2>',copy:'A closer look at the everyday.',note:'ORIGINAL PHOTOGRAPHY',href:'/daily-gaze/',action:'Enter the photographic journal',art:photo(forest),label:'THE DAILY GAZE / INTO THE MIST'},
     {name:'Journey',word:'BECOMING',theme:'clay',kicker:'04 / THE PERSON BEHIND THE WORK',section:'#about',

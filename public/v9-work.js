@@ -14,6 +14,7 @@
   const tones = {sage:'113, 207, 164', lavender:'177, 152, 246', sand:'234, 177, 112', blue:'112, 184, 238', gold:'209, 183, 128'};
   let cards = [], buttons = [], selected = 0, selectedHref = '', trigger = null;
   let gesture = null, suppressClickUntil = 0, resizeFrame = 0, previousOverflow = '', dialogAnimation = null, closing = false;
+  let bookFrame = 0, dialogSession = false;
   const motion = () => document.documentElement.dataset.motion === 'on' && !reduced.matches && !forced.matches;
   const heading = card => q('h3 a', card);
   const title = card => heading(card)?.textContent.replace(/\s*↗\s*$/, '').trim() || 'Project';
@@ -76,7 +77,7 @@
   }
 
   function cardTransform() {
-    const card = cards[selected];
+    const card = trigger?.closest('.journey-art') || cards[selected];
     if (!card) return null;
     const a = card.getBoundingClientRect(), b = dialog.getBoundingClientRect();
     if (!a.width || !b.width || a.bottom < 0 || a.top > innerHeight) return null;
@@ -114,17 +115,35 @@
     renderPreview(card);
     previousOverflow = document.documentElement.style.overflow;
     dialog.showModal();
+    dialogSession = true;
+    document.dispatchEvent(new CustomEvent('portfolio:project-dialog'));
     document.documentElement.style.overflow = 'hidden';
     dialog.scrollTop = 0;
     closeButton.focus({preventScroll:true});
     animateDialog(true);
+    bookFrame = requestAnimationFrame(() => { bookFrame = requestAnimationFrame(() => {
+      if (dialog.open) dialog.classList.add('is-book-open');
+    }); });
   }
 
-  async function close() {
+  function cleanClose() {
+    if (!dialogSession || dialog.open) return;
+    dialogSession = false;
+    cancelAnimationFrame(bookFrame);
+    dialog.classList.remove('is-book-open');
+    dialogAnimation?.cancel(); dialogAnimation = null; closing = false;
+    document.documentElement.style.overflow = previousOverflow;
+    const restore = trigger?.isConnected && !trigger.closest('[inert],[hidden]') ? trigger : buttons[selected];
+    restore?.focus({preventScroll:true});
+    trigger = null;
+    document.dispatchEvent(new CustomEvent('portfolio:project-dialog'));
+  }
+
+  function close() {
     if (!dialog.open || closing) return;
     closing = true;
-    await animateDialog(false);
     dialog.close();
+    cleanClose();
   }
 
   function refresh() {
@@ -145,6 +164,8 @@
       card.setAttribute('role', 'group');
       card.setAttribute('aria-roledescription', 'slide');
       card.setAttribute('aria-label', `${i + 1} of ${cards.length}`);
+      const coverTitle = q('.cover-bottom', card);
+      if (coverTitle) coverTitle.firstChild.textContent = title(card);
       if (!q('.work-open', card)) {
         const openButton = button('work-open', `Explore ${title(card)}`);
         openButton.append(document.createTextNode('Explore project'));
@@ -184,6 +205,15 @@
     const source = e.target.closest('a, .work-open');
     if (source) { e.preventDefault(); open(card, source); }
   });
+  // The opening scene and archive share the same canonical project preview.
+  document.querySelector('.scene-journey')?.addEventListener('click', e => {
+    const source=e.target.closest('[data-journey-book],[data-journey-project-open]');
+    if(!source || e.button!==0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)return;
+    const index=cards.findIndex(card=>href(card)===source.href);
+    if(index<0)return; // Native case-study link remains the fallback.
+    e.preventDefault();select(index,false);open(cards[index],source);
+  });
+  document.querySelectorAll('[data-journey-book],[data-journey-project-open]').forEach(el=>el.setAttribute('aria-haspopup','dialog'));
   q('.work-previous', showcase).addEventListener('click', () => select(selected - 1));
   q('.work-next', showcase).addEventListener('click', () => select(selected + 1));
   showcase.addEventListener('keydown', e => {
@@ -238,13 +268,7 @@
     const r = dialog.getBoundingClientRect();
     if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) close();
   });
-  dialog.addEventListener('close', () => {
-    dialogAnimation?.cancel(); dialogAnimation = null; closing = false;
-    document.documentElement.style.overflow = previousOverflow;
-    const restore = trigger?.isConnected ? trigger : buttons[selected];
-    restore?.focus({preventScroll:true});
-    trigger = null;
-  });
+  dialog.addEventListener('close', cleanClose);
   const stopAnimation = () => { if (!motion()) { dialogAnimation?.cancel(); cancelGesture(); } };
   new MutationObserver(stopAnimation).observe(document.documentElement, {attributes:true,attributeFilter:['data-motion']});
   reduced.addEventListener('change', stopAnimation);

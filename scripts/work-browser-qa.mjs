@@ -50,8 +50,8 @@ try {
       assert.ok(await page.locator('.project[aria-hidden="true"] .project-status').evaluateAll(nodes => nodes.every(el => Number(getComputedStyle(el).opacity) < .05)), 'Inactive project statuses stay visually quiet');
       await fits(page, '.work-dock');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `Page fits with ${projects[i]} selected at ${name}`);
-      const coverFits = await page.locator('.project.is-selected .system-map').evaluate(el => el.scrollHeight <= el.clientHeight + 1);
-    assert.ok(coverFits, `Workflow and technology labels fit in ${projects[i]} at ${name}`);
+      const coverFits = await page.locator('.project.is-selected .front-cover').evaluate(el => el.scrollHeight <= el.clientHeight + 1);
+    assert.ok(coverFits, `Book cover labels fit in ${projects[i]} at ${name}`);
     }
     await page.locator('.work-pick').first().click();
     await settle(page);

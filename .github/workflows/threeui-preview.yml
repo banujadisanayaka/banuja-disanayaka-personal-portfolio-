@@ -5,6 +5,7 @@ on:
     paths:
       - 'public/experiments/project-library/**'
       - 'scripts/*project-library*'
+      - 'scripts/project-book.mjs'
       - '.github/workflows/threeui-preview.yml'
 permissions:
   contents: read
