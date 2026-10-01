@@ -69,3 +69,5 @@ html[data-motion=off] .project-book *{transition:none!important;animation:none!i
 @media(forced-colors:active){.project-book .front-cover{background:Canvas;color:CanvasText;border:1px solid CanvasText}.project-book .cover-mark{color:CanvasText}.project-book .book{transform:none!important}.project-book .book-back,.project-book .page-block,.project-book .page-fan{display:none}.work-preview-cover{display:none}.book-credit{color:CanvasText}}
 @media print{.project-book{break-inside:avoid}.project-book .book{transform:none!important}.book-credit{color:#222}}
 @media(min-width:701px){.is-scrubbed [data-journey-scene="1"] .journey-art figcaption{color:#dbe4d3}}
+/* Give the selected book the visual weight of the approved mobile composition. */
+@media(max-width:700px){.is-scrubbed .journey-book-link .project-book{width:200px;height:294px}.is-scrubbed [data-journey-scene="1"] .journey-art figcaption{display:none}}
