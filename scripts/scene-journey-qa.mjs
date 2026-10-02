@@ -6,7 +6,7 @@ const base=process.env.BROWSER_QA_BASE_URL || 'http://127.0.0.1:4173';
 const browser=await chromium.launch();
 await mkdir('qa-artifacts/v10',{recursive:true});
 try {
-  for(const viewport of [{width:1366,height:900},{width:768,height:1024},{width:390,height:844},{width:320,height:700}]) {
+  for(const viewport of [{width:1366,height:900},{width:768,height:1024},{width:390,height:844},{width:320,height:844}]) {
     const mobile=viewport.width<=700;
     const context=await browser.newContext({viewport,hasTouch:mobile,isMobile:mobile});
     const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -83,8 +83,8 @@ try {
     assert.deepEqual(errors,[]);
     await context.close();console.log(`Six graphical scenes, continuous transforms, no overlap, controls and motion-off passed at ${viewport.width}px`);
   }
-  for(const mode of ['no-js','missing-script','reduced','landscape']) {
-    const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:{width:320,height:700},javaScriptEnabled:mode!=='no-js',reducedMotion:mode==='reduced'?'reduce':'no-preference'});
+  for(const mode of ['no-js','missing-script','reduced','landscape','compact']) {
+    const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:mode==='compact'?{width:320,height:700}:{width:390,height:844},javaScriptEnabled:mode!=='no-js',reducedMotion:mode==='reduced'?'reduce':'no-preference'});
     const page=await context.newPage();
     if(mode==='missing-script')await page.route('**/scene-journey.js?*',r=>r.abort());
     await page.goto(base+'/',{waitUntil:'networkidle'});

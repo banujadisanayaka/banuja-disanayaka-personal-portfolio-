@@ -24,7 +24,7 @@ async function assertSignalClear(page){
   assert.equal(collisions,0,'Signal stays in the margin outside all visible reading regions');
 }
 try{
-  for(const viewport of [{width:1366,height:900},{width:390,height:844},{width:320,height:700}]){
+  for(const viewport of [{width:1366,height:900},{width:390,height:844},{width:320,height:844}]){
     const context=await browser.newContext({viewport,hasTouch:viewport.width<=700,isMobile:viewport.width<=700});
     const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(base+'/',{waitUntil:'networkidle'});
@@ -184,12 +184,14 @@ try{
     await context.close();console.log('Stable foreground and full viewport coverage passed with distinct small/large heights');
   }
 
-  for(const mode of ['reduced','no-js','landscape','forced']){
-    const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:{width:390,height:844},reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js',forcedColors:mode==='forced'?'active':'none'});
+  for(const mode of ['reduced','no-js','landscape','forced','compact']){
+    const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:mode==='compact'?{width:320,height:700}:{width:390,height:844},reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js',forcedColors:mode==='forced'?'active':'none'});
     const page=await context.newPage();await page.goto(base+'/',{waitUntil:'networkidle'});
     assert.equal(await page.locator('.scene-journey.is-scrubbed').count(),0,`${mode} uses the readable fallback`);
     assert.ok(await page.locator('[data-journey-scene="0"] h1').isVisible());
     assert.ok(await page.locator('[data-journey-scene="1"] h2').isVisible());
+    assert.equal(await page.locator('.journey-panel:visible').count(),6,'All six chapters remain readable');
+    assert.equal(await page.locator('.journey-panel[inert]').count(),0,'Fallback content remains accessible');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
     await context.close();console.log(`Stage 2 fallback passed: ${mode}`);
   }
