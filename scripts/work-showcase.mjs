@@ -1,7 +1,8 @@
+import {projectBook} from './project-book.mjs';
 // Keep complete links and summaries in the HTML; the carousel is an enhancement.
 export function projectCards(projects, map, esc) {
   return projects.map((p, i) => `<article class="project" data-reveal data-project="${p.slug}" data-work-tone="${p.color}">
-    <a class="project-visual" data-depth href="/work/${p.slug}/" tabindex="-1" aria-hidden="true">${map(p)}</a>
+    <a class="project-visual" data-depth href="/work/${p.slug}/" tabindex="-1" aria-hidden="true">${projectBook(p,i)}</a>
     <div class="project-copy">
       <p class="eyebrow">${esc(p.category)} <span>${String(i + 1).padStart(2, '0')}</span></p>
       <h3><a href="/work/${p.slug}/">${esc(p.title)} <span aria-hidden="true">↗</span></a></h3>
@@ -11,7 +12,7 @@ export function projectCards(projects, map, esc) {
     <template class="project-preview-content">
       <p class="work-preview-kicker">${esc(p.kicker)}</p>
       <div class="work-preview-facts"><div><h3>My role</h3><p>${esc(p.role)}</p></div><div><h3>Built with</h3><p>${esc(p.stack)}</p></div></div>
-      <div class="work-preview-story"><h3>The starting point</h3><p>${esc(p.problem)}</p><h3>The approach</h3><p>${esc(p.approach)}</p></div>
+      <div class="work-preview-story"><h3>The starting point</h3><p>${esc(p.problem)}</p><h3>The approach</h3><p>${esc(p.approach)}</p></div><h3>Project workflow</h3><ol class="book-workflow">${p.flow.map(step=>`<li>${esc(step)}</li>`).join('')}</ol><h3>Current scope & limitations</h3><p class="book-limits">${esc(p.limits)}</p>
     </template>
   </article>`).join('');
 }
@@ -31,7 +32,7 @@ export function workShowcase(cards) {
     </div>
   </div>
   <dialog class="work-preview" id="work-preview" aria-labelledby="work-preview-title">
-    <div class="work-preview-top"><span>Selected work</span><button type="button" class="work-preview-close" aria-label="Close project preview" autofocus>Close <span aria-hidden="true">×</span></button></div>
+    <div class="work-preview-top"><span>Project library</span><button type="button" class="work-preview-close" aria-label="Close project preview" autofocus>Close <span aria-hidden="true">×</span></button></div>
     <div class="work-preview-layout">
       <div class="work-preview-cover" aria-hidden="true"></div>
       <div class="work-preview-copy"><p class="work-preview-category"></p><h2 id="work-preview-title"></h2><p class="work-preview-description"></p><p class="work-preview-status"></p><div class="work-preview-details"></div><a class="button primary work-case-link">View full case study <span aria-hidden="true">↗</span></a></div>

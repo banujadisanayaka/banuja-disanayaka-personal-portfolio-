@@ -50,8 +50,8 @@ try {
       assert.ok(await page.locator('.project[aria-hidden="true"] .project-status').evaluateAll(nodes => nodes.every(el => Number(getComputedStyle(el).opacity) < .05)), 'Inactive project statuses stay visually quiet');
       await fits(page, '.work-dock');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `Page fits with ${projects[i]} selected at ${name}`);
-      const coverFits = await page.locator('.project.is-selected .system-map').evaluate(el => el.scrollHeight <= el.clientHeight + 1);
-    assert.ok(coverFits, `Workflow and technology labels fit in ${projects[i]} at ${name}`);
+      const coverFits = await page.locator('.project.is-selected .front-cover').evaluate(el => el.scrollHeight <= el.clientHeight + 1);
+    assert.ok(coverFits, `Book cover labels fit in ${projects[i]} at ${name}`);
     }
     await page.locator('.work-pick').first().click();
     await settle(page);
@@ -93,6 +93,53 @@ try {
     assert.deepEqual(errors, []);
     await context.close();
     console.log(`Work carousel, all five covers, expansion, focus and keyboard passed: ${name}`);
+  }
+
+  // Regression from Banu's phone recording: circular recycling must not sweep
+  // a background card across the centre. Exercise both directions and fast reversals.
+  {
+    const context = await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+    const page = await context.newPage();
+    await page.goto(base + '/#work', {waitUntil:'networkidle'});
+    await page.locator('.work-next').scrollIntoViewIfNeeded();
+    for (const direction of [1,-1]) {
+      for (let n=0;n<5;n++) {
+        const report = await page.evaluate(async direction => {
+          const cards = [...document.querySelectorAll('.project-grid .project')];
+          const selected = cards.findIndex(c=>c.classList.contains('is-selected'));
+          const recycled = cards[(selected + (direction>0?3:2)) % cards.length];
+          const grid = document.querySelector('.project-grid').getBoundingClientRect();
+          const centre = grid.left + grid.width/2;
+          document.querySelector(direction>0?'.work-next':'.work-previous').click();
+          let violations=0,frames=0;
+          const start=performance.now();
+          await new Promise(resolve=>{
+            function sample(now){
+              const r=recycled.getBoundingClientRect(),opacity=Number(getComputedStyle(recycled).opacity);
+              if(opacity>.05 && Math.abs(r.left+r.width/2-centre)<80)violations++;
+              frames++;
+              if(now-start<620)requestAnimationFrame(sample);else resolve();
+            }
+            requestAnimationFrame(sample);
+          });
+          return {violations,frames,selected:cards.findIndex(c=>c.classList.contains('is-selected'))};
+        }, direction);
+        assert.equal(report.violations,0,'Recycled cards never cross the visible centre');
+        assert.ok(report.frames>1,'Observed the transition, not just its final frame');
+      }
+    }
+    await page.evaluate(async()=>{
+      for(const selector of ['.work-next','.work-next','.work-previous','.work-next']){
+        document.querySelector(selector).click();await new Promise(r=>setTimeout(r,70));
+      }
+    });
+    await settle(page);
+    assert.equal(await page.locator('.work-showcase').getAttribute('data-selected-project'),projects[2]);
+    await fits(page,'.project.is-selected');
+    await page.getByRole('button',{name:'Animation effects'}).click();
+    assert.equal(await page.evaluate(()=>document.getAnimations().filter(a=>a.playState==='running'&&a.effect?.target?.matches('.project')).length),0);
+    await context.close();
+    console.log('Carousel wrap, reverse, rapid input and motion-off regression passed');
   }
 
   // Real pointer drag, including vertical-scroll intent and accidental-open protection.

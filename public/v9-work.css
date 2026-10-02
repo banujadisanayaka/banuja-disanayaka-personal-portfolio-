@@ -10,12 +10,12 @@
 .work-ambience>span[data-glow-tone="gold"] { --glow-rgb: 209, 183, 128; }
 .work-ambience>span.is-current { opacity: 1; }
 .work-showcase.is-ready .project-grid { --work-step: 240px; position: relative; display: block; min-height: 550px; margin: 0 -3%; perspective: 1300px; overflow: clip; padding: 34px 0; touch-action: pan-y pinch-zoom; }
-.work-showcase.is-ready .project { --card-rgb: 113, 207, 164; --card-x: 0px; --card-angle: 0deg; --card-scale: 1; --card-depth: 0px; --work-drag: 0px; position: absolute; top: 30px; left: 50%; width: 330px; display: flex; flex-direction: column; gap: 0; margin: 0; padding: 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 23px; background: linear-gradient(145deg, rgba(255,255,255,.095), rgba(255,255,255,.018) 58%), #151d19ed; box-shadow: 0 26px 44px #0005, inset 0 1px 0 #ffffff15; transform: translateX(calc(-50% + var(--card-x) + var(--work-drag))) translateZ(var(--card-depth)) rotateY(var(--card-angle)) scale(var(--card-scale)); transform-origin: center; transition: transform .7s cubic-bezier(.2,.75,.2,1), opacity .5s ease, border-color .4s ease, box-shadow .4s ease; backface-visibility: hidden; }
+.work-showcase.is-ready .project { --card-rgb: 113, 207, 164; --card-x: 0px; --card-angle: 0deg; --card-scale: 1; --card-depth: 0px; --work-drag: 0px; position: absolute; top: 30px; left: 50%; width: 330px; display: flex; flex-direction: column; gap: 0; margin: 0; padding: 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 23px; background: linear-gradient(145deg, rgba(255,255,255,.095), rgba(255,255,255,.018) 58%), #151d19ed; box-shadow: 0 26px 44px #0005, inset 0 1px 0 #ffffff15; transform: translateX(calc(-50% + var(--card-x) + var(--work-drag))) translateZ(var(--card-depth)) rotateY(var(--card-angle)) scale(var(--card-scale)); transform-origin: center; transition: none; backface-visibility: hidden; contain: layout style; }
 .work-showcase.is-ready .project[data-work-tone="lavender"], .work-preview[data-work-tone="lavender"] { --card-rgb: 177, 152, 246; }
 .work-showcase.is-ready .project[data-work-tone="sand"], .work-preview[data-work-tone="sand"] { --card-rgb: 234, 177, 112; }
 .work-showcase.is-ready .project[data-work-tone="blue"], .work-preview[data-work-tone="blue"] { --card-rgb: 112, 184, 238; }
 .work-showcase.is-ready .project[data-work-tone="gold"], .work-preview[data-work-tone="gold"] { --card-rgb: 209, 183, 128; }
-.work-showcase.is-ready .project.is-selected { border-color: rgba(var(--card-rgb), .6); box-shadow: 0 30px 60px #0007, 0 0 40px rgba(var(--card-rgb), .09), inset 0 1px 0 #ffffff29; }
+.work-showcase.is-ready .project.is-selected { border-color: rgba(var(--card-rgb), .6); box-shadow: 0 26px 44px #0005, inset 0 1px 0 #ffffff15; }
 .work-showcase.is-ready .project-visual { border-radius: 13px; overflow: hidden; transform: none; }
 .work-showcase.is-ready .project-visual::after { display: none; }
 .work-showcase.is-ready .system-map, .work-preview .system-map { --map-ink: #eef3ef; position: relative; min-height: 264px; height: auto; padding: 19px; border: 1px solid rgba(var(--card-rgb),.18); border-radius: 13px; background: radial-gradient(ellipse at 90% 0%, rgba(var(--card-rgb), .32), transparent 75%), linear-gradient(150deg, #213028, #0c1611); color: #eef3ef; overflow: hidden; }
@@ -86,7 +86,8 @@
 @media (max-width: 700px) {
   .work-showcase.is-ready { padding-top: 0; }
   .work-showcase.is-ready .project-grid { --work-step: 195px; min-height: 520px; margin: 0 -6.85%; perspective: 1000px; }
-  .work-showcase.is-ready .project { width: min(76vw, 310px); top: 24px; padding: 10px; border-radius: 20px; }
+  .work-showcase.is-ready .project { width: min(76vw, 310px); top: 24px; padding: 10px; border-radius: 20px; background: linear-gradient(145deg,#26302a,#151d19 58%); box-shadow: 0 12px 24px #0004; }
+  .work-showcase.is-ready .project.is-selected { box-shadow: 0 12px 24px #0004; }
   .work-showcase.is-ready .system-map { min-height: 254px; padding: 16px; }
   .work-showcase.is-ready .project-copy { padding: 16px 8px 7px; }
   .work-showcase.is-ready .project h3 { font-size: 27px; }
@@ -99,6 +100,8 @@
   .work-dock button { min-width: 36px; width: 36px; min-height: 44px; }
   .work-dock .work-previous, .work-dock .work-next { min-width: 42px; }
   .work-preview { width: calc(100% - 20px); max-height: calc(100dvh - 20px); border-radius: 20px; }
+  /* A flat dimmer avoids re-filtering the full scene while the book opens. */
+  .work-preview::backdrop { background: #050d09ed; backdrop-filter: none; }
   .work-preview-top { padding: 9px 16px; }
   .work-preview-layout { display: flex; flex-direction: column; }
   .work-preview-cover { padding: 22px; }

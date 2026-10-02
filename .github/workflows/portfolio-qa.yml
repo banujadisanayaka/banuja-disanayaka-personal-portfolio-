@@ -129,7 +129,7 @@ jobs:
       - name: Browser accessibility and responsive QA
         env:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
-        run: node scripts/stage2-proof-qa.mjs && node scripts/v10-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
+        run: node scripts/work-books-qa.mjs && node scripts/stage2-proof-qa.mjs && node scripts/v10-browser-qa.mjs && node scripts/scene-journey-qa.mjs && node scripts/work-browser-qa.mjs && node scripts/release-browser-qa.mjs && node scripts/experience-browser-qa.mjs
 
 
       - name: Mobile scroll performance regression

@@ -24,7 +24,7 @@ async function assertSignalClear(page){
   assert.equal(collisions,0,'Signal stays in the margin outside all visible reading regions');
 }
 try{
-  for(const viewport of [{width:1366,height:900},{width:390,height:844},{width:320,height:700}]){
+  for(const viewport of [{width:1366,height:900},{width:390,height:844},{width:320,height:844}]){
     const context=await browser.newContext({viewport,hasTouch:viewport.width<=700,isMobile:viewport.width<=700});
     const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(base+'/',{waitUntil:'networkidle'});
@@ -87,16 +87,20 @@ try{
     assert.equal(await page.evaluate(()=>document.activeElement?.closest('.journey-project-dock')!==null),false,'Focus is moved before the dock is hidden');
     await go(page,g,1,650);assert.equal(await page.locator('.journey-project-dock').getAttribute('inert'),null,'Reverse scroll restores dock interaction');
 
-    // All five selections keep title, map, description and destination consistent.
+    // All five selections keep the book, description and destination consistent.
+    const bookArt=new Set();
     for(let i=0;i<5;i++){
       const chip=page.locator('.journey-project-chip').nth(i);await chip.click();
       const expected=await chip.evaluate(el=>({title:el.dataset.projectTitle,flow:(el.dataset.projectFlow||'').split('|').filter(Boolean),href:new URL(el.href).pathname}));
-      assert.equal((await page.locator('.journey-sheet-title').innerText()).trim(),expected.title);
+      const book=page.locator('[data-journey-book]');
+      assert.equal((await book.locator('.cover-bottom').evaluate(el=>el.firstChild.textContent)).trim(),expected.title);
+      assert.equal(new URL(await book.getAttribute('href'),base).pathname,expected.href);
+      assert.equal(await book.getAttribute('aria-label'),'Explore '+expected.title);
+      bookArt.add(await book.locator('.cover-mark').innerHTML());
       assert.equal(new URL(await page.locator('[data-journey-project-open]').getAttribute('href'),base).pathname,expected.href);
-      const labels=await page.locator('.journey-flow-label').evaluateAll(els=>els.filter(el=>!el.closest('li').hidden).map(el=>el.textContent.trim()));
-      assert.deepEqual(labels,expected.flow.slice(0,4));
       assert.equal(await chip.getAttribute('aria-current'),'true');
     }
+    assert.equal(bookArt.size,5,'Each selected project has its own book illustration');
 
     if(viewport.width<=700){
       const nav=page.locator('.journey-buttons');const nb=await nav.boundingBox();
@@ -180,12 +184,14 @@ try{
     await context.close();console.log('Stable foreground and full viewport coverage passed with distinct small/large heights');
   }
 
-  for(const mode of ['reduced','no-js','landscape','forced']){
-    const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:{width:390,height:844},reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js',forcedColors:mode==='forced'?'active':'none'});
+  for(const mode of ['reduced','no-js','landscape','forced','compact']){
+    const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:mode==='compact'?{width:320,height:700}:{width:390,height:844},reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js',forcedColors:mode==='forced'?'active':'none'});
     const page=await context.newPage();await page.goto(base+'/',{waitUntil:'networkidle'});
     assert.equal(await page.locator('.scene-journey.is-scrubbed').count(),0,`${mode} uses the readable fallback`);
     assert.ok(await page.locator('[data-journey-scene="0"] h1').isVisible());
     assert.ok(await page.locator('[data-journey-scene="1"] h2').isVisible());
+    assert.equal(await page.locator('.journey-panel:visible').count(),6,'All six chapters remain readable');
+    assert.equal(await page.locator('.journey-panel[inert]').count(),0,'Fallback content remains accessible');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
     await context.close();console.log(`Stage 2 fallback passed: ${mode}`);
   }
