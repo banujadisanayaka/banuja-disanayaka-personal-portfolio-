@@ -3,6 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /.netlify/
-Disallow: /v9/
-Disallow: /v81/
 Sitemap: https://banujadisanayaka.netlify.app/sitemap.xml

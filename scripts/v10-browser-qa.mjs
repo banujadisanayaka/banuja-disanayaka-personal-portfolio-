@@ -180,6 +180,20 @@ try {
     await context.close();
   }
 
+  // Search metadata must follow the visible CMS journal, including removal.
+  for(const empty of [false,true]){
+    const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'}),page=await context.newPage();
+    const content=JSON.parse(await readFile('public/content-default.json','utf8'));
+    const original=content.dailyGaze.find(photo=>photo.featured);
+    content.dailyGaze=empty?[]:[{...original,title:'Updated journal title',alt:'Updated public description'}];
+    await page.route('**/api/content',route=>route.fulfill({json:{content}}));
+    await page.goto(base+'/daily-gaze/',{waitUntil:'networkidle'});
+    const images=await page.locator('script[type="application/ld+json"]').evaluate(el=>JSON.parse(el.textContent)['@graph'].filter(node=>node['@type']==='ImageObject'));
+    assert.equal(images.length,empty?0:1,'Search metadata excludes removed CMS photographs');
+    if(!empty){assert.equal(images[0].name,'Updated journal title');assert.equal(images[0].description,'Updated public description');}
+    await context.close();
+  }
+
   // A future non-downloadable photo must not resolve an empty URL to the site root.
   {
     const context = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
