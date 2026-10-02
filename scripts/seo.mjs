@@ -5,7 +5,7 @@ const websiteId = origin + '/#website';
 
 // One named author connects the biography, work and photographic journal.
 // Only public, verified profile facts belong in this graph.
-export function structuredData({title, description, path, projects}) {
+export function structuredData({title, description, path, projects, gallery = []}) {
   const url = origin + path;
   const project = projects.find(item => path === `/work/${item.slug}/`);
   const profile = path === '/' || path === '/about/';
@@ -30,6 +30,20 @@ export function structuredData({title, description, path, projects}) {
   if (project) page.mainEntity = {'@id':url + '#project'};
   if (path === '/') page.hasPart = projects.map(p => ({'@type':'CreativeWork', name:p.title, url:origin + `/work/${p.slug}/`, creator:{'@id':personId}}));
   const graph = [person, {'@type':'WebSite', '@id':websiteId, url:origin + '/', name:'Banuja Disanayaka', inLanguage:'en', publisher:{'@id':personId}}, page];
+  // Describe a small representative set already visible in the journal.
+  // Keep original files, captions and author credit; do not invent a licence.
+  if (path === '/daily-gaze/') {
+    const photographs = gallery.filter(photo => photo.featured).slice(0, 6);
+    page.image = photographs.map(photo => ({'@id':origin + photo.preview + '#image'}));
+    for (const photo of photographs) graph.push({
+      '@type':'ImageObject', '@id':origin + photo.preview + '#image',
+      contentUrl:origin + photo.preview, name:photo.title, description:photo.alt,
+      creator:{'@id':personId}, creditText:'Banuja Disanayaka / The Daily Gaze',
+      copyrightNotice:'© 2026 Banuja Disanayaka',
+      acquireLicensePage:origin + '/#contact',
+      isPartOf:{'@id':page['@id']}
+    });
+  }
   if (project) graph.push({'@type':'CreativeWork', '@id':url + '#project', name:project.title, description:project.description, url, creator:{'@id':personId}, mainEntityOfPage:{'@id':url + '#webpage'}});
   if (path !== '/' && path !== '/404.html') {
     const label = project?.title || ({'/about/':'About Banuja Disanayaka', '/daily-gaze/':'The Daily Gaze', '/resume/':'Résumé'}[path]);
