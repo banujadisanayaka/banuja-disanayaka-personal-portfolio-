@@ -147,7 +147,8 @@
   function animateDialog(opening) {
     dialogAnimation?.cancel();
     if (!motion() || !dialog.animate) return Promise.resolve();
-    const from = cardTransform() || 'translateY(18px) scale(.97)';
+    // Keep the mobile dialog at its final raster size while its 3D cover opens.
+    const from = matchMedia('(max-width: 700px)').matches ? 'translateY(18px)' : cardTransform() || 'translateY(18px) scale(.97)';
     const frames = opening ? [{transform:from, opacity:.25}, {transform:'none', opacity:1}] : [{transform:'none', opacity:1}, {transform:from, opacity:0}];
     dialogAnimation = dialog.animate(frames, {duration:opening ? 440 : 240, easing:'cubic-bezier(.2,.75,.2,1)'});
     return dialogAnimation.finished.catch(() => {});

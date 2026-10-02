@@ -100,6 +100,8 @@
   .work-dock button { min-width: 36px; width: 36px; min-height: 44px; }
   .work-dock .work-previous, .work-dock .work-next { min-width: 42px; }
   .work-preview { width: calc(100% - 20px); max-height: calc(100dvh - 20px); border-radius: 20px; }
+  /* A flat dimmer avoids re-filtering the full scene while the book opens. */
+  .work-preview::backdrop { background: #050d09ed; backdrop-filter: none; }
   .work-preview-top { padding: 9px 16px; }
   .work-preview-layout { display: flex; flex-direction: column; }
   .work-preview-cover { padding: 22px; }

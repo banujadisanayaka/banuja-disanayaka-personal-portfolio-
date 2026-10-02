@@ -66,6 +66,7 @@ try{
  const p=await context.newPage();await p.goto(base+'/',{waitUntil:'networkidle'});await p.locator('[data-journey-select="1"]').click();await p.waitForTimeout(1500);
  const cdp=await context.newCDPSession(p);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
  const metrics=await p.evaluate(()=>new Promise(resolve=>{const intervals=[];let last=0;const start=performance.now();document.querySelector('[data-journey-book]').click();function frame(t){if(last)intervals.push(t-last);last=t;if(t-start<2000)requestAnimationFrame(frame);else{const sorted=[...intervals].sort((a,b)=>a-b);resolve({samples:intervals.length,p95:sorted[Math.floor(sorted.length*.95)],over50:intervals.filter(n=>n>50).length})}}requestAnimationFrame(frame)}));
+ await writeFile('qa-artifacts/v10/books/performance.json',JSON.stringify(metrics,null,2));console.log('BOOK_PERFORMANCE '+JSON.stringify(metrics));
  assert.ok(metrics.p95<34,'Book opening p95 stays below 34 ms');assert.ok(metrics.over50<=2,'Book opening stays within the existing slow-frame budget');
- await writeFile('qa-artifacts/v10/books/performance.json',JSON.stringify(metrics,null,2));console.log('BOOK_PERFORMANCE '+JSON.stringify(metrics));await context.close();
+ await context.close();
 }finally{await browser.close()}
