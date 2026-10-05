@@ -132,6 +132,9 @@
   function stop(){cancelAnimationFrame(raf);raf=0;lastTime=0}
   function invalidate(){dirty=true;lastPaint=-1;schedule()}
   const dockIndicator=root.querySelector('.journey-dock-indicator');
+  const currentLabel=root.querySelector('.journey-current');
+  const chapterMenu=document.querySelector('#chapter-menu');
+  const chapterItems=[...document.querySelectorAll('[data-chapter-select]')];
   let dockFrames=[];
   function updateDock(){const frame=dockFrames[Math.max(0,selected)];if(!dockIndicator||!frame)return;style(dockIndicator,'width',frame.width+'px');style(dockIndicator,'height',frame.height+'px');style(dockIndicator,'transform',`translate3d(${frame.x}px,${frame.y}px,0)`);}
   function measure(){
@@ -191,7 +194,7 @@
     proofState['--s2-p']=p;
     style(signal,'transform',`translate3d(0,${(Math.sin(p*Math.PI/5)*10).toFixed(2)}px,0) scaleY(${(.75+Math.cos(p*Math.PI/5)*.12).toFixed(4)})`);
     style(progress,'transform',`scaleX(${(p/Math.max(1,scenes.length-1)).toFixed(5)})`);
-    if(selected!==scenes[current].id){selected=scenes[current].id;root.dataset.activeScene=String(selected);buttons.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===selected)));updateDock()}
+    if(selected!==scenes[current].id){selected=scenes[current].id;root.dataset.activeScene=String(selected);buttons.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===selected)));if(currentLabel)[...currentLabel.children].forEach((el,i)=>style(el,'opacity',i===selected?'1':'0'));chapterItems.forEach(b=>{if(Number(b.dataset.chapterSelect)===selected)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});updateDock()}
   }
   function tick(now){
     raf=0;if(!enabled||!inView||document.hidden){lastTime=0;return}
@@ -271,6 +274,30 @@
     initialized=true;
   }
   function select(id){const i=scenes.findIndex(s=>s.id===id);if(i<0||!enabled)return;cancelSettle();if(dirty)measure();scrollTo({top:geometry.top+geometry.step*i,behavior:'smooth'});schedule()}
+  // Native modal focus containment; one scene controller owns every chapter jump.
+  if(chapterMenu?.showModal){
+    const headerMenu=document.querySelector('.menu-toggle');
+    const launchers=[headerMenu,root.querySelector('.journey-menu-open')].filter(Boolean);
+    let returnFocus=null,previousOverflow='';
+    function closeChapters(){chapterMenu.close()}
+    function openChapters(event){
+      event.preventDefault();event.stopImmediatePropagation();cancelSettle();
+      returnFocus=event.currentTarget;previousOverflow=html.style.overflow;
+      chapterItems.forEach(b=>b.hidden=all[Number(b.dataset.chapterSelect)].el.hidden);
+      chapterMenu.showModal();html.style.overflow='hidden';headerMenu?.setAttribute('aria-expanded','true');
+    }
+    launchers.forEach(b=>b.addEventListener('click',openChapters,true));
+    document.querySelector('.site-header')?.classList.add('chapter-menu-ready');
+    headerMenu?.setAttribute('aria-controls','chapter-menu');headerMenu?.setAttribute('aria-haspopup','dialog');
+    chapterMenu.querySelector('.chapter-menu-close').addEventListener('click',closeChapters);
+    chapterMenu.addEventListener('close',()=>{html.style.overflow=previousOverflow;headerMenu?.setAttribute('aria-expanded','false');returnFocus?.focus({preventScroll:true})});
+    chapterMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeChapters));
+    chapterItems.forEach(button=>button.addEventListener('click',()=>{
+      const id=Number(button.dataset.chapterSelect);returnFocus=enabled?buttons[id]:all[id].heading;closeChapters();
+      if(enabled){buttons[id].focus({preventScroll:true});select(id)}
+      else{const heading=all[id].heading;heading.tabIndex=-1;heading.focus({preventScroll:true});all[id].el.scrollIntoView({block:'start',behavior:'instant'})}
+    }));
+  }
   buttons.forEach((button,id)=>{
     button.addEventListener('click',()=>select(id));
     button.addEventListener('keydown',event=>{const i=scenes.findIndex(s=>s.id===id),last=scenes.length-1;const n=event.key==='ArrowRight'?(i+1)%scenes.length:event.key==='ArrowLeft'?(i+last)%scenes.length:event.key==='Home'?0:event.key==='End'?last:null;if(n===null)return;event.preventDefault();buttons[scenes[n].id].focus({preventScroll:true});select(scenes[n].id)})

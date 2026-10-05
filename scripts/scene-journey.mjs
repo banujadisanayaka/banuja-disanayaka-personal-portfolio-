@@ -54,11 +54,15 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       </article>`).join('')}
       <nav class="journey-controls" aria-label="Scene navigation" hidden>
         <div class="journey-buttons"><span class="journey-dock-indicator" aria-hidden="true"></span>${scenes.map((s,i)=>`<button type="button" data-journey-select="${i}" aria-label="Scene ${i+1}: ${s.name}" aria-pressed="${i===0}"><span>0${i+1}</span><span>${s.name}</span></button>`).join('')}</div>
-        <div class="journey-utility"><a href="#work" class="journey-skip">Skip to work <span aria-hidden="true">↗</span></a></div>
+        <div class="journey-utility"><span class="journey-current" aria-hidden="true">${scenes.map((s,i)=>`<span style="opacity:${i===0?1:0}">0${i+1} / ${s.name}</span>`).join('')}</span><button type="button" class="journey-menu-open" aria-haspopup="dialog" aria-controls="chapter-menu">Scenes <span aria-hidden="true">+</span></button><a href="#work" class="journey-skip">Skip to work</a></div>
         <div class="journey-progress" aria-hidden="true"><span></span></div>
       </nav>
       <span class="journey-scroll-note" aria-hidden="true">SCROLL TO UNFOLD ↓</span>
       </div>
     </div>
-  </section>`;
+  </section><dialog class="chapter-menu" id="chapter-menu" aria-labelledby="chapter-menu-title">
+    <div class="chapter-menu-top"><p class="eyebrow" id="chapter-menu-title">SIX CHAPTERS / ONE PERSPECTIVE</p><button type="button" class="chapter-menu-close" autofocus>Close <span aria-hidden="true">×</span></button></div>
+    <div class="chapter-menu-layout"><nav aria-label="Choose a chapter">${scenes.map((s,i)=>`<button type="button" class="chapter-menu-item" data-chapter-select="${i}"><span>0${i+1}</span><strong>${s.name==='Gaze'?'The Daily Gaze':s.name}</strong><small>${['The person','Ideas made useful','Through my lens','A continuing story','One shared vision','A new conversation'][i]}</small></button>`).join('')}</nav>
+    <aside><p class="chapter-menu-note">People.<br>Systems.<br><em>Visual stories.</em></p><nav aria-label="Explore more"><a href="/#work">Selected work</a><a href="/daily-gaze/">The photographic journal</a><a href="/moments/">Moments by The Daily Gaze</a><a href="/about/">My full story</a><a href="/resume/">Résumé</a><a href="/#contact">Get in touch</a></nav><p class="eyebrow">BASED IN SRI LANKA</p></aside></div>
+  </dialog>`;
 }
