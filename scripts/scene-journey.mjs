@@ -54,7 +54,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       </article>`).join('')}
       <nav class="journey-controls" aria-label="Scene navigation" hidden>
         <div class="journey-buttons"><span class="journey-dock-indicator" aria-hidden="true"></span>${scenes.map((s,i)=>`<button type="button" data-journey-select="${i}" aria-label="Scene ${i+1}: ${s.name}" aria-pressed="${i===0}"><span>0${i+1}</span><span>${s.name}</span></button>`).join('')}</div>
-        <a href="#work" class="journey-skip">Skip to work <span aria-hidden="true">↗</span></a>
+        <div class="journey-utility"><a href="#work" class="journey-skip">Skip to work <span aria-hidden="true">↗</span></a></div>
         <div class="journey-progress" aria-hidden="true"><span></span></div>
       </nav>
       <span class="journey-scroll-note" aria-hidden="true">SCROLL TO UNFOLD ↓</span>
