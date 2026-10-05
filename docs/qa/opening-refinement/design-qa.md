@@ -31,7 +31,13 @@ Local build, JavaScript syntax, release content, SEO, security, CMS concurrency 
 
 The first CI run passed integrated book checks, six-scene geometry at 1366/768/390/320 pixels, reduced/no-JavaScript/compact/landscape fallbacks, project navigation, photo and gallery behavior, and responsive checks before being superseded by the desktop contrast correction.
 
-Final release CI and production verification are recorded below after completion.
+Final release CI: passed. GitHub Actions run `37280809890` passed static QA, deployed API authorization/privacy checks, browser accessibility/responsive QA, and mobile scroll performance. The separate Netlify build smoke check also passed.
+
+At 4× CPU slowdown the candidate measured 33 ms p95 scripted frame interval, zero intervals over 50 ms, zero copy drift, 10 layouts and 175 ms style recalculation time. The baseline measured the same 33 ms p95 interval. These are automated browser measurements, not physical-device benchmarks.
+
+PR #43 merged as `32b10cf41040f2b27bf2e2c227c788528700de82`. Netlify production deploy `6ac35aa60c342000082b36e8` is ready for that exact commit, published at 2026-10-05 08:07:43 UTC. The live homepage was opened and visually verified at https://banujadisanayaka.netlify.app/; the updated shared utility controls were also confirmed in the live DOM. `live-desktop.jpg` records the published Identity view.
+
+Final result: visual QA, release CI and production verification passed.
 
 ## Limits
 
