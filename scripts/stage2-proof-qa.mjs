@@ -144,7 +144,7 @@ try{
       assert.ok(held>20&&held<g.step*.7,'Held touch stays under native control before release');
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await atScene(1);
       await cdp.detach();
-      const navBox=await page.locator('.journey-controls').boundingBox(),motionBox=await page.locator('.motion-toggle').boundingBox();
+      const navBox=await page.locator('.journey-buttons').boundingBox(),motionBox=await page.locator('.motion-toggle').boundingBox();
       assert.ok(motionBox.y+motionBox.height<=navBox.y-4,'Motion button clears scene navigation');
     }
     // A new reverse gesture can interrupt completion without trapping the user.

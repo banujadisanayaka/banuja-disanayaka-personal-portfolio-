@@ -91,6 +91,10 @@
   const html=document.documentElement, stage=root.querySelector('.journey-stage');
   const canvas=root.querySelector('.journey-canvas');
   const controls=root.querySelector('.journey-controls');
+  // Keep the motion preference next to scene navigation, not floating over content.
+  const motionToggle=document.querySelector('.motion-toggle');
+  const motionHome=motionToggle?.parentElement;
+  const utility=root.querySelector('.journey-utility');
   const buttons=[...root.querySelectorAll('[data-journey-select]')];
   const backgrounds=[...root.querySelectorAll('.journey-background')];
   const signal=root.querySelector('.journey-signal');
@@ -111,6 +115,17 @@
     el.inert=!on;el.setAttribute('aria-hidden',String(!on));
   }
   let scenes=all, geometry, enabled=false, initialized=false, dirty=true, inView=true;
+  function placeMotion(){
+    if(!motionToggle)return;
+    const docked=enabled&&inView&&utility;
+    const parent=docked?utility:motionHome;
+    if(parent&&motionToggle.parentElement!==parent){
+      const focused=document.activeElement===motionToggle;
+      parent.append(motionToggle);
+      if(focused)motionToggle.focus({preventScroll:true});
+    }
+    motionToggle.classList.toggle('in-journey',!!docked);
+  }
   let raf=0,lastTime=0,value=0,target=0,lastPaint=-1,selected=-1;
   function schedule(){if(!raf&&enabled&&inView&&!document.hidden)raf=requestAnimationFrame(tick)}
   function stop(){cancelAnimationFrame(raf);raf=0;lastTime=0}
@@ -124,7 +139,7 @@
       const aw=scene.art.offsetWidth,ah=scene.art.offsetHeight;
       const top=scene.heading.offsetTop+scene.heading.offsetHeight+18;
       const obstruction=compact&&scene.id===1?scene.el.querySelector('.journey-work-stepper'):compact&&scene.id===2?scene.el.querySelector('.journey-photo-picker'):null;
-      const bottom=(obstruction?.offsetTop||scene.caption.offsetTop)-18;
+      const bottom=Math.min(scene.caption.offsetTop,obstruction?.offsetHeight?obstruction.offsetTop:Infinity)-18;
       const scale=compact?Math.min((w*(scene.id===4?.94:.84))/aw,Math.max(70,bottom-top)/ah,1.15):Math.min(w*(scene.id===4?.43:.36)/aw,h*.59/ah,1.65);
       const centerX=compact?w*.5:w*(scene.id===4?.72:.73);
       const centerY=compact?(top+bottom)/2:h*.48;
@@ -233,6 +248,7 @@
     let index=Math.max(0,scenes.findIndex(s=>s.id===selected));
     if(!enabled&&initialized&&next&&visible){const point=scrollY+innerHeight*.35;scenes.forEach((s,i)=>{if(s.el.getBoundingClientRect().top+scrollY<=point)index=i})}
     cancelSettle();stop();enabled=next;root.classList.toggle('is-scrubbed',enabled);controls.hidden=!enabled;
+    placeMotion();
     if(enabled){
       measure();value=target=initialized?index:clamp((scrollY-geometry.top)/geometry.step,0,scenes.length-1);lastPaint=-1;paint(value);
       if(initialized&&visible)scrollTo({top:geometry.top+geometry.step*index,behavior:'instant'});schedule();
@@ -257,7 +273,7 @@
   addEventListener('resize',()=>{const short=shortViewport();if(innerWidth!==lastWidth||short!==lastShort){lastWidth=innerWidth;lastShort=short;configure()}},{passive:true});
   reduced.addEventListener('change',configure);forced.addEventListener('change',configure);
   new MutationObserver(configure).observe(html,{attributes:true,attributeFilter:['data-motion']});
-  new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;if(inView){lastTime=0;schedule()}else stop()}).observe(stage);
+  new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;placeMotion();if(inView){lastTime=0;schedule()}else stop()}).observe(stage);
   document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelSettle();stop()}else{lastPaint=-1;schedule()}});
   document.fonts?.ready.then(invalidate);
   root.querySelector('.journey-photo-picker').hidden=false;
