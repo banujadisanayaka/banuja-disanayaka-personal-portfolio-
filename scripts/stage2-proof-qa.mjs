@@ -41,6 +41,7 @@ try{
         assert.ok(visual.idOpacity<.08,'Portrait is occluded by midpoint');
         const minimumArea=viewport.width*viewport.height*.04;
         assert.ok(visual.workOpacity>.75&&visual.workArea>minimumArea,`A visible Work structure occupies at least 4% of the midpoint viewport (area ${visual.workArea.toFixed(0)} > ${minimumArea.toFixed(0)})`);
+        assert.ok(s.work>.3,'Incoming reading layer arrives with the artwork at midpoint');
       }
       if(p===.75){assert.ok(s.id<.02&&s.work>.65,'Work owns the reading layer by 75%')}
       if(p===1){assert.ok(s.work>.98&&s.controls>.98,'Work rests with readable copy and usable controls')}
@@ -77,6 +78,8 @@ try{
       await go(page,g,scene+.5,700);
       const visible=await root.locator('.journey-art').evaluateAll(els=>els.map(el=>Number(getComputedStyle(el).opacity)));
       assert.ok(visible[scene]<.08&&visible[scene+1]>.9,`Transition ${scene}→${scene+1}: incoming scene replaces the outgoing photo without a ghosted overlay`);
+      const reading=await root.locator(`[data-journey-scene="${scene+1}"] .journey-heading`).evaluate(el=>Number(getComputedStyle(el).opacity));
+      assert.ok(reading>.3,`Transition ${scene}→${scene+1}: incoming heading is already visible at midpoint`);
       await assertSignalClear(page);
     }
     // Focus cannot remain inside a dock after it becomes invisible.
@@ -150,6 +153,9 @@ try{
     // A new reverse gesture can interrupt completion without trapping the user.
     await go(page,g,1);await page.mouse.wheel(0,160);await page.waitForTimeout(240);
     await page.mouse.wheel(0,-80);await atScene(1);
+    await go(page,g,5.2);
+    assert.ok(Math.abs((await page.locator('.journey-stage').boundingBox()).y)<1,'Contact has a pinned arrival runway before the page continues');
+    assert.ok(+await page.locator('[data-journey-scene="5"] .journey-heading').evaluate(el=>getComputedStyle(el).opacity)>.99,'Contact is fully readable before leaving the opening');
     await go(page,g,5);await page.mouse.wheel(0,viewport.height);
     await page.waitForTimeout(800);
     assert.ok(await page.evaluate(()=>scrollY)>g.top+g.step*5+100,'Native scrolling freely exits Contact');

@@ -108,11 +108,12 @@
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
   const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t)};
   const cache=new WeakMap();
+  const accessCache=new WeakMap();
   function style(el,key,value){let last=cache.get(el);if(!last)cache.set(el,last={});if(last[key]!==value){el.style[key]=value;last[key]=value}}
   function access(el,on,fallback){
-    if(el.getAttribute('aria-hidden')===String(!on))return;
+    if(accessCache.get(el)===on)return;
     if(!on&&el.contains(document.activeElement))fallback?.focus({preventScroll:true});
-    el.inert=!on;el.setAttribute('aria-hidden',String(!on));
+    el.inert=!on;el.setAttribute('aria-hidden',String(!on));accessCache.set(el,on);
   }
   let scenes=all, geometry, enabled=false, initialized=false, dirty=true, inView=true;
   function placeMotion(){
@@ -131,7 +132,8 @@
   function stop(){cancelAnimationFrame(raf);raf=0;lastTime=0}
   function invalidate(){dirty=true;lastPaint=-1;schedule()}
   const dockIndicator=root.querySelector('.journey-dock-indicator');
-  function updateDock(){const active=buttons[Math.max(0,selected)];if(!dockIndicator||!active)return;dockIndicator.style.width=active.offsetWidth+'px';dockIndicator.style.height=active.offsetHeight+'px';dockIndicator.style.transform=`translate3d(${active.offsetLeft}px,${active.offsetTop}px,0)`;}
+  let dockFrames=[];
+  function updateDock(){const frame=dockFrames[Math.max(0,selected)];if(!dockIndicator||!frame)return;style(dockIndicator,'width',frame.width+'px');style(dockIndicator,'height',frame.height+'px');style(dockIndicator,'transform',`translate3d(${frame.x}px,${frame.y}px,0)`);}
   function measure(){
     const w=canvas.clientWidth,h=canvas.clientHeight,compact=w<=700;
     geometry={w,h,compact,step:h*.9,top:root.getBoundingClientRect().top+scrollY};
@@ -145,7 +147,11 @@
       const centerY=compact?(top+bottom)/2:h*.48;
       scene.frame={x:centerX-aw*scale/2,y:centerY-ah*scale/2,scale};
     }
-    root.style.height=`${stage.clientHeight+geometry.step*Math.max(0,scenes.length-1)}px`;
+    // Read navigation geometry with the other measurements, never after paint writes.
+    dockFrames=buttons.map(b=>({width:b.offsetWidth,height:b.offsetHeight,x:b.offsetLeft,y:b.offsetTop}));
+    // A brief native-scroll runway lets Contact finish arriving before the stage unpins.
+    geometry.runway=geometry.step*.28;
+    root.style.height=`${stage.clientHeight+geometry.step*Math.max(0,scenes.length-1)+geometry.runway}px`;
     updateDock();
     dirty=false;
   }
@@ -157,7 +163,7 @@
     const current=Math.min(scenes.length-1,Math.round(p));
     for(let i=0;i<scenes.length;i++){
       const s=scenes[i],d=p-i,enter=clamp(d+1),leave=clamp(d);
-      const copy=d<0?smooth(.52,.78,enter):1-smooth(.20,.44,leave);
+      const copy=d<0?smooth(.40,.64,enter):1-smooth(.20,.40,leave);
       const art=d<0?smooth(.28,.44,enter):1-smooth(.27,.46,leave);
       const env=d<0?smooth(.12,.70,enter):1-smooth(.12,.70,leave);
       const extra=d<0?smooth(.70,.88,enter):1-smooth(.16,.42,leave);
@@ -167,8 +173,10 @@
       style(s.environment,'opacity',env.toFixed(4));
       // An opaque incoming background covers the previous environment; no photo cross-dissolves.
       style(backgrounds[s.id],'opacity',(d<0?env:d<1?1:0).toFixed(4));
+      // Keep only nearby artwork ready for compositing; distant scenes release layers.
+      style(s.art,'willChange',Math.abs(d)<1.1?'transform, opacity':'auto');
       if(art>0){
-        const travel=d<0?(1-smooth(.20,.82,enter))*.65:-smooth(.12,.64,leave)*.72;
+        const travel=d<0?(1-smooth(.20,.70,enter))*(compact?.28:.55):-smooth(.12,.64,leave)*(compact?.32:.62);
         const tilt=compact?0:(s.id===0?-3:s.id===2?2:0)+travel*7;
         style(s.art,'transform',`translate3d(${(s.frame.x+travel*w).toFixed(2)}px,${s.frame.y.toFixed(2)}px,0) rotate(${tilt.toFixed(2)}deg) scale(${s.frame.scale.toFixed(5)})`);
       }
@@ -189,8 +197,10 @@
     raf=0;if(!enabled||!inView||document.hidden){lastTime=0;return}
     if(dirty)measure();target=clamp((scrollY-geometry.top)/geometry.step,0,scenes.length-1);
     const dt=lastTime?Math.min((now-lastTime)/1000,.05):1/60;lastTime=now;
-    // A short, time-based filter removes wheel jitter without a long spring tail.
-    value+=(target-value)*(1-Math.exp(-dt/.065));
+    // Touch momentum and native smooth scrolling are already eased by the browser.
+    // Follow them directly on phones instead of applying a second delayed camera.
+    if(geometry.compact)value=target;
+    else value+=(target-value)*(1-Math.exp(-dt/.045));
     const settled=Math.abs(value-target)<.0003;if(settled)value=target;
     paint(value);if(!settled)schedule();else lastTime=0;
   }
@@ -206,7 +216,7 @@
     gesture.inputDirection=!!direction;
     if(direction)gesture.direction=direction;
     gesture.distance+=distance;clearTimeout(settleTimer);
-    settleTimer=setTimeout(settle,180);
+    settleTimer=setTimeout(settle,120);
   }
   function settle(){
     clearTimeout(settleTimer);
@@ -226,12 +236,12 @@
   function onScroll(){
     const delta=scrollY-previousY;previousY=scrollY;
     if(gesture&&Math.abs(delta)>.5){if(!gesture.inputDirection)gesture.direction=Math.sign(delta);gesture.distance+=Math.abs(delta)}
-    if(gesture||snapping){clearTimeout(settleTimer);settleTimer=setTimeout(settle,180)}
+    if(gesture||snapping){clearTimeout(settleTimer);settleTimer=setTimeout(settle,120)}
     schedule();
   }
   addEventListener('wheel',event=>{if(Math.abs(event.deltaY)>Math.abs(event.deltaX)&&!event.ctrlKey)intent(Math.sign(event.deltaY),Math.abs(event.deltaY)*(event.deltaMode===1?16:event.deltaMode===2?innerHeight:1))},{passive:true});
   addEventListener('touchstart',()=>{touchHeld=true;intent()},{passive:true});
-  const release=()=>{touchHeld=false;if(gesture){clearTimeout(settleTimer);settleTimer=setTimeout(settle,180)}};
+  const release=()=>{touchHeld=false;if(gesture){clearTimeout(settleTimer);settleTimer=setTimeout(settle,120)}};
   addEventListener('touchend',release,{passive:true});addEventListener('touchcancel',release,{passive:true});
   addEventListener('keydown',event=>{
     if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select,[contenteditable]'))return;
