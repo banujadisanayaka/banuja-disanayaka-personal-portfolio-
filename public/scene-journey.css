@@ -518,6 +518,11 @@ html[data-motion=off] .scene-journey *{transition:none!important;animation:none!
  .journey-buttons button>span:last-child{font-size:9px}
  .scene-home .wordmark{font-size:8px}
 }
+/* Intrinsic grid height must include the gap when About stacks on mobile. */
+.scene-home .about-section{row-gap:40px}
+/* Outside the opening, the preference stays in document flow, clear of copy. */
+.scene-home .site-footer .motion-toggle{position:static;flex:0 0 auto;margin:8px 0;transform:none}
+.scene-home .site-footer{padding-bottom:max(22px,env(safe-area-inset-bottom))}
 @media(prefers-reduced-motion:reduce){.journey-dock-indicator{transition:none}}
 @media(max-width:700px){
  .scene-journey.is-scrubbed .journey-work-stepper{display:none}
