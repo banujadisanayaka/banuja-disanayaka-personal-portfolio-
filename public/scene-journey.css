@@ -402,6 +402,11 @@ html[data-motion=off] .scene-journey *{transition:none!important;animation:none!
 .scene-home .wordmark{gap:12px}
 .scene-home .menu-toggle{font-size:13px;border-color:#e4d6ae35;border-radius:6px;min-height:44px;padding:8px 14px}
 .journey-utility{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.is-scrubbed[data-active-scene="2"] .journey-utility,
+.is-scrubbed[data-active-scene="5"] .journey-utility{color:#24382e}
+.scene-home .journey-utility .motion-toggle{color:inherit}
+.is-scrubbed[data-active-scene="2"] .motion-toggle.in-journey,
+.is-scrubbed[data-active-scene="5"] .motion-toggle.in-journey{border-color:#24382e66}
 .scene-home .motion-toggle.in-journey{position:static;min-height:44px;padding:8px 12px;font-size:11px;background:transparent;box-shadow:none;backdrop-filter:none;white-space:nowrap;border-color:#a9b8a445}
 .journey-controls{right:5%;left:5%;gap:24px}
 .journey-controls .journey-progress{bottom:-9px}
