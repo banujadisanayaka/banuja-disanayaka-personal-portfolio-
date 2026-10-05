@@ -1,0 +1,10 @@
+{
+  "name": "Sathiw’s 7th Birthday — Moments by The Daily Gaze",
+  "short_name": "Sathiw · Moments",
+  "start_url": "/moments/sathiw-7th-birthday/",
+  "scope": "/moments/sathiw-7th-birthday/",
+  "display": "standalone",
+  "background_color": "#17110d",
+  "theme_color": "#17110d",
+  "description": "A client memory gallery by The Daily Gaze."
+}
