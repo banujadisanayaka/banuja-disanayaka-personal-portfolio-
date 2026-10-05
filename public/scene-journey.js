@@ -93,7 +93,7 @@
   const controls=root.querySelector('.journey-controls');
   // Keep the motion preference next to scene navigation, not floating over content.
   const motionToggle=document.querySelector('.motion-toggle');
-  const motionHome=motionToggle?.parentElement;
+  const motionHome=document.querySelector('.site-footer')||motionToggle?.parentElement;
   const utility=root.querySelector('.journey-utility');
   const buttons=[...root.querySelectorAll('[data-journey-select]')];
   const backgrounds=[...root.querySelectorAll('.journey-background')];
