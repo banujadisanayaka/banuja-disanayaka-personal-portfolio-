@@ -60,13 +60,23 @@
     jobs: [...scenes[5].querySelectorAll('.journey-list li')],
     answers: [...scenes[8].querySelectorAll('.curiosity-answer span')],
     credits: [...scenes[9].querySelectorAll('.credits-list>div')],
-    signature: q(9, '.signature-stage'), lime: q(9, '.signature-lime')
+    signature: q(9, '.signature-stage'), pen: q(9, '.signature-pen'),
+    globe: q(2, '.reach-globe'), worlds: [...scenes[7].querySelectorAll('.orbit-node')]
   };
+  const rig = root.querySelector('.signal-rig');
+  const gate = rig.querySelector('.signal-gate'), circle = rig.querySelector('.signal-circle');
+  const dot = rig.querySelector('.signal-dot'), map = rig.querySelector('.signal-map');
+  const spine = rig.querySelector('.signal-spine'), branches = [...rig.querySelectorAll('.signal-branch')];
+  const copy = scenes.map(scene => [...scene.children].filter(el => !el.matches('.opening-photo,.gaze-reel-window,.reach-globe,.work-wall,.journey-list,.veloria-orbit')));
+  const mix = (a,b,t) => a+(b-a)*t;
+  const f = v => Number(v).toFixed(3);
+  function attr(el,key,value) { if(el.getAttribute(key)!==value) el.setAttribute(key,value); }
   const canvas = q(2, '[data-world]'), ctx = canvas.getContext('2d');
   let land = [], globeSize = 0, globePhase = -1;
   function drawWorld(phase = .4) {
     if (!ctx || !globeSize) return;
-    if (Math.abs(phase - globePhase) < .006) return;
+    phase = Math.round(phase * 160) / 160;
+    if (phase === globePhase) return;
     globePhase = phase;
     const size = globeSize, r = size * .46, center = size / 2;
     const lon0 = (82 + phase * 18) * Math.PI / 180, lat0 = 15 * Math.PI / 180;
@@ -94,7 +104,7 @@
   }
   fetch('/assets/data/land-points.json').then(r => r.ok ? r.json() : []).then(points => {
     land = points; globePhase = -1;
-    if (!enabled || active === 2) drawWorld();
+    if (enabled) schedule(); else drawWorld();
   }).catch(() => {});
 
   function measure() {
@@ -106,6 +116,20 @@
     const dpr = Math.min(devicePixelRatio || 1, 2);
     canvas.width = Math.round(globeSize * dpr); canvas.height = Math.round(globeSize * dpr);
     ctx?.setTransform(dpr, 0, 0, dpr, 0, 0); globePhase = -1;
+    // Cache untransformed layout geometry only on resize/content change, never in paint.
+    const box = el => {
+      let x=0,y=0,node=el;
+      while(node && node!==stage){x+=node.offsetLeft;y+=node.offsetTop;node=node.offsetParent;}
+      return {x,y,w:el.offsetWidth,h:el.offsetHeight};
+    };
+    geo.film = box(parts.window); geo.strip = box(parts.strip); geo.globe = box(canvas);
+    geo.jobs = parts.jobs.filter(el=>!el.hidden).map(el=>{const b=box(el);return {x:b.x+3,y:b.y+b.h/2};});
+    geo.worlds = parts.worlds.map(el=>{const b=box(el);return {x:b.x+3,y:b.y+8};});
+    geo.signature = box(parts.signature);
+    attr(map,'viewBox',`0 0 ${w} ${h}`);
+    attr(spine,'d',geo.jobs.length?`M${geo.jobs.map(p=>`${f(p.x)} ${f(p.y)}`).join(' L')}`:'M0 0 L0 1');
+    const hub=anchor(7,0);
+    branches.forEach((path,j)=>{const dest=geo.worlds[j];if(dest)attr(path,'d',`M${f(hub.x)} ${f(hub.y)} C${f(hub.x)} ${f(dest.y)} ${f(dest.x-18)} ${f(dest.y)} ${f(dest.x)} ${f(dest.y)}`);});
     dirty = false;
     if (!enabled) drawWorld();
   }
@@ -122,55 +146,129 @@
       label.setAttribute('aria-hidden', String(i !== j));
     }));
   }
+  // All motion is a pure function of native scroll position. No transition timers,
+  // autonomous camera loop, wheel interception or direction-dependent state.
   function reveal(elements, t, spacing = .035) {
     elements.forEach((el, i) => {
-      const progress = ease(i * spacing, .12 + i * spacing, t);
-      set(el, 'opacity', progress.toFixed(3));
-      set(el, 'transform', `translate3d(0,${((1 - progress) * 24).toFixed(1)}px,0)`);
+      const progress = ease(i * spacing, .14 + i * spacing, t);
+      set(el, 'opacity', '1');
+      set(el, 'clipPath', `inset(0 0 ${f((1-progress)*100)}% 0)`);
+      set(el, 'transform', `translate3d(0,${f((1-progress)*40)}px,0)`);
     });
   }
   function sceneMotion(i, t) {
     if (i === 0) {
-      const exit = ease(.5, 1, t);
-      set(parts.photo, 'transform', `scale(${(1 + exit * .045).toFixed(4)})`);
-      set(parts.name, 'transform', `translate3d(0,${(-exit * 20).toFixed(1)}px,0)`);
+      set(parts.photo,'transform',`scale(${f(1+.04*ease(0,.65,t))})`);
+      set(parts.name,'transform','none');
     } else if (i === 1) {
-      const title = 1 - ease(.18, .29, t), reel = ease(.26, .35, t);
-      set(parts.intro, 'opacity', title.toFixed(3));
-      set(parts.intro, 'transform', `translate3d(0,${((1 - title) * -24).toFixed(1)}px,0)`);
-      set(parts.strip, 'opacity', reel.toFixed(3));
-      const travel = ease(.31, .86, t) * geo.reelTravel;
-      set(parts.strip, 'transform', `translateX(-50%) translate3d(0,${((1 - reel) * 60 - travel).toFixed(1)}px,0)`);
-      set(parts.readout, 'opacity', reel.toFixed(3)); set(parts.note, 'opacity', reel.toFixed(3));
-      const number = parts.total;
-      if (number !== lastNumber) { parts.number.textContent = String(number); lastNumber = number; }
-    } else if (i === 2) drawWorld(t);
-    else if (i === 4) reveal(parts.work, t);
-    else if (i === 5) reveal(parts.jobs, t, .045);
-    else if (i === 8) reveal(parts.answers, t, .04);
-    else if (i === 9) {
-      reveal(parts.credits, t, .03);
-      const draw = ease(.35, .65, t);
-      set(parts.signature, 'clipPath', `inset(0 ${((1 - draw) * 100).toFixed(2)}% 0 0)`);
-      set(parts.signature, 'opacity', draw.toFixed(3));
-      set(parts.lime, 'opacity', ease(.7, .82, t).toFixed(3));
+      const title=1-ease(.17,.27,t), reel=ease(.23,.34,t);
+      set(parts.intro,'opacity','1');
+      set(parts.intro,'clipPath',`inset(0 0 ${f((1-title)*100)}% 0)`);
+      set(parts.intro,'transform',`translate3d(0,${f((1-title)*-70)}px,0)`);
+      set(parts.strip,'opacity','1');
+      set(parts.window,'clipPath',`inset(0 ${f((1-reel)*50)}% 0 ${f((1-reel)*50)}%)`);
+      const travel=ease(.31,.68,t)*geo.reelTravel;
+      set(parts.strip,'transform',`translateX(-50%) translate3d(0,${f((1-reel)*geo.h*.3-travel)}px,0) scale(${f(.8+.2*reel)})`);
+      set(parts.readout,'opacity',f(reel));set(parts.note,'opacity',f(reel));
+      if(parts.total!==lastNumber){parts.number.textContent=String(parts.total);lastNumber=parts.total;}
+    } else if(i===2) {
+      drawWorld(t);
+      set(parts.globe,'transform',`rotate(${f((1-ease(0,.4,t))*-12)}deg)`);
+    } else if(i===4) {
+      parts.work.forEach((el,j)=>{
+        const enter=1, travel=ease(.4,.7,t);
+        set(el,'opacity','1');set(el,'clipPath','none');
+        set(el,'transform',`translate3d(${f((1-enter)*(j-2)*geo.w*.1)}px,${f((1-enter)*geo.h*.65-travel*(j%2?12:-12))}px,${f((1-enter)*-450)}px) rotateY(${f((1-enter)*(j%2?22:-22))}deg)`);
+      });
+    } else if(i===5) reveal(parts.jobs,t,.045);
+    else if(i===7) reveal(parts.worlds,t,.04);
+    else if(i===8) reveal(parts.answers,t,.04);
+    else if(i===9) {
+      reveal(parts.credits,t,.03);
+      set(parts.signature,'opacity','1');set(parts.signature,'clipPath','none');
+      set(parts.pen,'strokeDashoffset',f(1-ease(.32,.83,t)));
     }
   }
-  function paint() {
-    const p = clamp((scrollY - geo.top) / geo.h, 0, total);
-    let i = available.findLast(index => p >= starts[index]) ?? available[0];
-    i = Math.max(0, i);
-    const phase = clamp((p - starts[i]) / durations[i]);
-    const next = available[available.indexOf(i) + 1];
-    const incoming = next !== undefined ? ease(.86, 1, phase) : 0;
-    setActive(incoming > .5 ? next : i);
-    scenes.forEach((scene, j) => {
-      set(scene, 'visibility', j === i || (j === next && incoming > 0) ? 'visible' : 'hidden');
-      set(scene, 'opacity', j === i ? '1' : j === next ? incoming.toFixed(3) : '0');
+  // Anchor states share one dot, one circle and one gate throughout all ten scenes.
+  // They inhabit real content coordinates, so resize does not sever the connection.
+  function anchor(i,t) {
+    const {w,h,strip,globe}=geo, portrait={x:w*.64,y:h*.34};
+    const filmX=strip.x-strip.w/2, globeX=globe.x+globe.w/2, globeY=globe.y+globe.w/2;
+    const base={x:w*.06,y:h*.55,r:3,gx:w*.06,gy:h*.15,gw:1,gh:h*.57,round:0};
+    if(i===0)return {...base,...portrait,gx:portrait.x-28,gy:portrait.y-28,gw:56,gh:56,round:0};
+    if(i===1){const u=ease(.23,.34,t);return {...base,x:mix(w*.5,filmX,u),y:h*.48,gx:mix(w*.5-24,filmX,u),gy:mix(h*.48-24,geo.film.y,u),gw:mix(48,strip.w,u),gh:mix(48,geo.film.h,u)};}
+    if(i===2)return {...base,x:globeX,y:globeY,r:globe.w*.46,gx:globeX-globe.w*.46,gy:globeY-globe.w*.46,gw:globe.w*.92,gh:globe.w*.92,round:50};
+    if(i===3||i===6)return {...base,x:w*.5,y:h*.46,gx:w*.075,gy:h*.32,gw:w*.85,gh:h*.28};
+    if(i===4)return {...base,x:w*.06,y:h*.29,gx:w*.06,gy:h*.29,gw:w*.88,gh:1};
+    if(i===5){const points=geo.jobs;if(!points.length)return base;const position=ease(0,.65,t)*(points.length-1),index=Math.min(points.length-2,Math.floor(position)),u=position-index;const a=points[Math.max(index,0)],b=points[Math.max(index+1,0)];return {...base,x:mix(a.x,b.x,u),y:mix(a.y,b.y,u),gx:a.x,gy:points[0].y,gw:1,gh:Math.max(1,points.at(-1).y-points[0].y)};}
+    if(i===7)return {...base,x:w*(w<701?.5:.48),y:h*(w<701?.37:.49),gx:w*(w<701?.5:.48),gy:h*.25,gw:1,gh:h*.45};
+    if(i===8)return {...base,x:w*(w<701?.06:.58),y:h*.52,gx:w*(w<701?.06:.58),gy:h*.25,gw:1,gh:h*.44};
+    const sig=geo.signature;return {...base,x:sig.x+sig.w*.13,y:sig.y+sig.h*.65,gx:sig.x+sig.w*.13,gy:sig.y+sig.h*.65,gw:1,gh:1};
+  }
+  function drawRig(i,t,next,u) {
+    const a=anchor(i,t),b=next===undefined?a:anchor(next,0),v=ease(0,1,u),s={};
+    for(const key of Object.keys(a))s[key]=mix(a[key],b[key],v);
+    set(gate,'transform',`translate3d(${f(s.gx)}px,${f(s.gy)}px,0) scale(${f(Math.max(1,s.gw)/200)},${f(Math.max(1,s.gh)/200)})`);
+    set(gate,'borderRadius',`${f(s.round)}%`);
+    set(circle,'transform',`translate3d(${f(s.x-s.r)}px,${f(s.y-s.r)}px,0) scale(${f(s.r/100)})`);
+    set(circle,'opacity',f(i===9?1-ease(.25,.4,t):1));
+    set(dot,'transform',`translate3d(${f(s.x)}px,${f(s.y)}px,0)`);
+    set(dot,'opacity',f(i===9?1-ease(.32,.45,t):1));
+    set(gate,'opacity',f(i===9?1-ease(.2,.32,t):.55));
+    // A continuous path passes through all five jobs, then splits into six worlds.
+    const draw=i===5?ease(0,.65,t)*(1-u):0;
+    set(spine,'strokeDashoffset',f(1-draw));
+    branches.forEach((path,j)=>{
+      const dest=geo.worlds[j], progress=i===7?ease(j*.04,.2+j*.04,t)*(1-u):0;
+      set(path,'transform',`translate(${f(i===7?(s.x-a.x):0)}px,${f(i===7?(s.y-a.y):0)}px)`);
+      set(path,'strokeDashoffset',f(1-progress));
     });
-    sceneMotion(i, phase);
-    if (incoming > 0) sceneMotion(next, 0);
-
+  }
+  function transition(i,next,u) {
+    if(next===undefined||u<=0)return;
+    // The outgoing title clears before any incoming title is uncovered.
+    copy[i].forEach(el=>{
+      const out=ease(0,.38,u);
+      set(el,'clipPath',`inset(0 0 ${f(out*100)}% 0)`);
+      set(el,'transform',`translate3d(0,${f(-out*geo.h*.14)}px,0)`);
+    });
+    copy[next].forEach(el=>{
+      const enter=ease(.38,1,u);
+      set(el,'clipPath',`inset(${f((1-enter)*100)}% 0 0 0)`);
+      set(el,'transform',`translate3d(0,${f((1-enter)*geo.h*.1)}px,0)`);
+    });
+    if(i===0)set(parts.photo,'transform',`translate3d(${f(-u*geo.w*.13)}px,${f(u*geo.h*.07)}px,0) scale(${f(1.04+u*.55)})`);
+    if(i===1){set(parts.strip,'transform',`translateX(-50%) translate3d(${f(u*geo.w*.1)}px,${f(-geo.reelTravel-u*geo.h*.55)}px,0) scale(${f(1+u*.3)})`);}
+    if(i===2)set(parts.globe,'transform',`translate3d(${f(-u*geo.w*.12)}px,0,0) scale(${f(1+u*.4)}) rotate(${f(u*32)}deg)`);
+    if(next===2)set(parts.globe,'transform',`scale(${f(.35+.65*ease(.1,1,u))}) rotate(${f((1-u)*-30)}deg)`);
+    if(next===4)parts.work.forEach((el,j)=>{const e=ease(.2+j*.04,1,u);set(el,'transform',`translate3d(${f((j-2)*(1-e)*geo.w*.14)}px,${f((1-e)*geo.h*.45)}px,${f((1-e)*-500)}px) rotateY(${f((1-e)*(j%2?25:-25))}deg)`);});
+    if(i===4)parts.work.forEach((el,j)=>set(el,'transform',`translate3d(${f((j-2)*u*geo.w*.28)}px,${f(-u*geo.h*(.2+j*.07))}px,${f(u*360)}px) rotateY(${f((j-2)*u*12)}deg)`));
+    if(i===5)parts.jobs.forEach((el,j)=>set(el,'transform',`translate3d(0,${f(-u*geo.h*(.4+j*.07))}px,0)`));
+    if(i===7)parts.worlds.forEach((el,j)=>set(el,'transform',`translate3d(${f((j%2?-1:1)*u*geo.w*.12)}px,${f(-u*geo.h*.15)}px,0) scale(${f(1-u*.25)})`));
+  }
+  function paint() {
+    const p=clamp((scrollY-geo.top)/geo.h,0,total);
+    const i=available.findLast(index=>p>=starts[index])??available[0];
+    const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
+    const u=next!==undefined?clamp((phase-.7)/.3):0;
+    setActive(u>.65?next:i);
+    // Reset both participants from timeline state on every paint: reverse/seek is exact.
+    for(const j of [i,...(u>0?[next]:[])]){
+      copy[j].forEach(el=>{set(el,'clipPath','none');set(el,'transform','none');});
+      sceneMotion(j,j===i?phase:0);
+    }
+    scenes.forEach((scene,j)=>{
+      const visible=j===i||(j===next&&u>0);
+      set(scene,'visibility',visible?'visible':'hidden');set(scene,'opacity','1');
+      let clip='inset(0 0 0 0)';
+      if(j===next&&u>0){
+        const aperture=ease(.15,.9,u),a=anchor(i,phase),b=anchor(next,0);
+        if(next===2)clip=`circle(${f(aperture*Math.hypot(geo.w,geo.h))}px at ${f(b.x)}px ${f(b.y)}px)`;
+        else {const cx=mix(a.x,geo.w/2,aperture),half=geo.w*.55*aperture;clip=`inset(0 ${f(Math.max(0,geo.w-cx-half))}px 0 ${f(Math.max(0,cx-half))}px)`;}
+      }
+      set(scene,'clipPath',clip);
+    });
+    transition(i,next,u);drawRig(i,phase,next,u);
   }
   function frame() { raf = 0; if (!enabled || document.hidden || menu.open) return; if (dirty) measure(); paint(); }
   function schedule() { if (!raf && enabled && !document.hidden && !menu.open) raf = requestAnimationFrame(frame); }

@@ -133,3 +133,24 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
 .film-label-stack{display:inline-grid}
 .film-label-stack>span{grid-area:1/1;white-space:nowrap}
 @media(max-width:700px){.film-time.film-label-stack{display:none}}
+
+/* One persistent rig spans the film. Only transforms, masks and SVG paint change on scroll. */
+.signal-rig{display:none;position:absolute;inset:0;z-index:60;pointer-events:none;overflow:hidden}
+.is-live .signal-rig{display:block}
+.signal-gate{position:absolute;left:0;top:0;width:200px;height:200px;border:1px solid #c5ed2370;transform-origin:0 0;box-sizing:border-box}
+.signal-circle{position:absolute;left:0;top:0;width:200px;height:200px;border:1px solid #c5ed23a0;border-radius:50%;transform-origin:0 0;box-sizing:border-box}
+.signal-dot{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--film-accent)}
+.signal-map{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:var(--film-accent);stroke-width:1;overflow:visible}
+.signal-map path{vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1}
+.signal-branch{opacity:.55}
+.is-live .film-scene{opacity:1;will-change:clip-path}
+.is-live .opening-photo,.is-live .filmstrip,.is-live .reach-globe,.is-live .work-cell{will-change:transform}
+.is-live .work-wall{perspective:1100px;transform-style:preserve-3d}
+.is-live .work-cell{transform-style:preserve-3d;transform-origin:50% 60%}
+.is-live .journey-list li{padding-left:16px}
+.is-live .orbit-node{padding-left:12px}
+.signature-performance{position:absolute;left:50%;top:50%;width:65%;aspect-ratio:1200/1283;transform:translate(-50%,-50%) rotate(39deg);overflow:visible}
+.signature-performance image{filter:brightness(0) invert(1)}
+.signature-pen{stroke-dasharray:1;stroke-dashoffset:1}
+.experience:not(.is-live) .signature-pen{stroke-dashoffset:0!important}
+@media(forced-colors:active){.signature-performance{filter:none}.signature-performance image{filter:none}}

@@ -21,6 +21,10 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   <a class="experience-skip" href="#credits">Skip cinematic introduction</a>
   <section class="experience v3-film" data-experience aria-label="Banuja Disanayaka portfolio film">
     <div class="experience-stage">
+      <div class="signal-rig" aria-hidden="true">
+        <div class="signal-gate"></div><div class="signal-circle"></div><div class="signal-dot"></div>
+        <svg class="signal-map" preserveAspectRatio="none"><path class="signal-spine" pathLength="1"/>${Array.from({length:6},()=>'<path class="signal-branch" pathLength="1"/>').join('')}</svg>
+      </div>
       <div class="film-topbar"><span data-film-label>OPENING · SC 01</span><span>COLOMBO / SRI LANKA</span></div>
       <button class="film-menu" type="button" data-open-scenes aria-haspopup="dialog" aria-controls="experience-menu" aria-expanded="false">SCENES</button>
 
@@ -108,8 +112,10 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           </div>
           <small class="made-in">MADE IN SRI LANKA</small>
           <div class="signature-stage" aria-label="Banuja handwritten signature">
-            <span class="signature-white" aria-hidden="true"></span>
-            <span class="signature-lime" aria-hidden="true"></span>
+            <svg class="signature-performance" viewBox="0 0 1200 1283" aria-hidden="true">
+              <defs><mask id="signature-draw" maskUnits="userSpaceOnUse" x="-100" y="-100" width="1400" height="1500"><path class="signature-pen" pathLength="1" d="M160 725 C90 650 520 315 615 335 C680 385 270 710 305 780 C360 840 685 320 740 325 C800 355 870 175 935 140 M600 340 L535 825 M30 1250 Q585 655 1175 30" fill="none" stroke="white" stroke-width="150" stroke-linecap="round" stroke-linejoin="round"/></mask></defs>
+              <image href="/assets/signature/banuja-signature.svg" width="1200" height="1283" mask="url(#signature-draw)"/>
+            </svg>
           </div>
           <small class="credits-copy">© 2026 BANUJA DISANAYAKA</small>
           <nav class="credits-more" aria-label="More about Banuja"><a href="/about/">Full story ↗</a><a href="/resume/">Résumé ↗</a></nav>

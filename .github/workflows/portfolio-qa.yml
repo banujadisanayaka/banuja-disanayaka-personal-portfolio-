@@ -131,6 +131,7 @@ jobs:
           BROWSER_QA_BASE_URL: ${{ steps.target.outputs.url }}
         run: |
           if test -f scripts/immersive-home.mjs && grep -q "cls:'immersive-home'" scripts/build-site.mjs; then
+            node scripts/continuous-motion-qa.mjs
             node scripts/immersive-browser-qa.mjs
             node scripts/release-browser-qa.mjs
           else
