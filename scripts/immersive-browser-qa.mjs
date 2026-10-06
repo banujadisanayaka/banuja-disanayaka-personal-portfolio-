@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
 const base=process.env.BROWSER_QA_BASE_URL||'http://127.0.0.1:4173';
+const preview=path=>{const url=new URL(path);url.searchParams.set('ntl-drawer-state','hidden');return url.href};
 const browser=await chromium.launch();
 await mkdir('qa-artifacts/immersive',{recursive:true});
 const names=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
@@ -15,7 +16,7 @@ async function jump(page,i){await page.getByRole('button',{name:names[i],exact:t
 try {
  for(const viewport of [{width:1366,height:900},{width:768,height:1024},{width:390,height:844},{width:320,height:700}]){
   const context=await browser.newContext({viewport}); const page=await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(base+'/',{waitUntil:'networkidle'}); await page.locator('.experience.is-live').waitFor();
+  await page.goto(preview(base+'/'),{waitUntil:'networkidle'}); await page.locator('.experience.is-live').waitFor();
   assert.equal(await page.locator('h1').count(),1);await fits(page,'h1');await fits(page,'.film-bottombar');
   assert.equal(await page.locator('.chapter-scene').count(),0,'One animation owner');
   for(let i=0;i<names.length;i++){
@@ -47,19 +48,19 @@ try {
   await page.keyboard.press('Escape');assert.equal(await menu.getAttribute('aria-expanded'),'false');assert.ok(await menu.evaluate(el=>el===document.activeElement));assert.equal(await page.locator('html').evaluate(el=>el.style.overflow),'');
   await menu.click();await page.locator('[data-menu-scene="5"]').click();await page.waitForFunction(()=>document.querySelector('[data-scene="5"]').getAttribute('aria-hidden')==='false');
   await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();assert.equal(await page.locator('.film-scene[inert]').count(),0);
-  await page.goto(base+'/about/',{waitUntil:'networkidle'});assert.equal(await page.locator('html').getAttribute('data-motion'),'off');
+  await page.goto(preview(base+'/about/'),{waitUntil:'networkidle'});assert.equal(await page.locator('html').getAttribute('data-motion'),'off');
   await page.locator('[data-explorer]').getByRole('button',{name:/The observer/}).click();assert.ok(await page.locator('#perspective-photography').isVisible());
   assert.deepEqual(errors,[]);await context.close();console.log(`Immersive scenes, links, reversals, focus and persistent motion passed ${viewport.width}x${viewport.height}`);
  }
  for(const mode of ['no-js','missing-runtime','reduced','forced','landscape','cms-offline']){
   const context=await browser.newContext({viewport:mode==='landscape'?{width:844,height:390}:{width:320,height:700},javaScriptEnabled:mode!=='no-js',reducedMotion:mode==='reduced'?'reduce':'no-preference',forcedColors:mode==='forced'?'active':'none'});
   const page=await context.newPage();if(mode==='missing-runtime')await page.route('**/immersive-home.js*',r=>r.abort());if(mode==='cms-offline')await page.route('**/api/content',r=>r.abort());
-  await page.goto(base+'/',{waitUntil:'networkidle'});assert.equal(await page.locator('.film-scene').count(),10);assert.equal(await page.locator('.work-cell').count(),5);
+  await page.goto(preview(base+'/'),{waitUntil:'networkidle'});assert.equal(await page.locator('.film-scene').count(),10);assert.equal(await page.locator('.work-cell').count(),5);
   if(mode!=='cms-offline'){
    assert.equal(await page.locator('.experience.is-live').count(),0);assert.equal(await page.locator('.film-scene[inert]').count(),0);
    for(const s of ['h1','.journey-list','.credits-list','.signature-stage']){await page.locator(s).scrollIntoViewIfNeeded();await fits(page,s);assert.ok(await page.locator(s).isVisible());}
   }
   await context.close();console.log('Content resilience passed: '+mode);
  }
- const context=await browser.newContext({viewport:{width:390,height:844}});const page=await context.newPage();await page.goto(base+'/#contact',{waitUntil:'networkidle'});assert.equal(await page.locator('[data-scene="9"]').getAttribute('aria-hidden'),'false');await context.close();
+ const context=await browser.newContext({viewport:{width:390,height:844}});const page=await context.newPage();await page.goto(preview(base+'/#contact'),{waitUntil:'networkidle'});assert.equal(await page.locator('[data-scene="9"]').getAttribute('aria-hidden'),'false');await context.close();
 } finally {await browser.close();}

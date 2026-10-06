@@ -10,7 +10,8 @@ await mkdir('qa-artifacts/v10', {recursive:true});
 async function measure(url, label) {
   const context = await browser.newContext({viewport:{width:390,height:844}, isMobile:true, hasTouch:true, deviceScaleFactor:2});
   const page = await context.newPage();
-  await page.goto(url, {waitUntil:'networkidle'});
+  const reviewURL=new URL(url);reviewURL.searchParams.set('ntl-drawer-state','hidden');
+  await page.goto(reviewURL.href, {waitUntil:'networkidle'});
   const immersive = await page.locator('[data-experience]').count() > 0;
   const scenes = await page.locator('.scene-journey').count() > 0;
   await page.locator(immersive ? '.experience.is-live' : scenes ? '.scene-journey.is-scrubbed' : '.v10-story.is-cinematic').waitFor();

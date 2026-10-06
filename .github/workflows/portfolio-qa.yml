@@ -159,7 +159,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: v10-visual-qa
-          path: qa-artifacts/v10/
+          path: |
+            qa-artifacts/v10/
+            qa-artifacts/immersive/
           if-no-files-found: ignore
           retention-days: 7
 

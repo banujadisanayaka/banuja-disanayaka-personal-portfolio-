@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 const base=process.env.BROWSER_QA_BASE_URL||'http://127.0.0.1:4173';
+const preview=path=>{const url=new URL(path);url.searchParams.set('ntl-drawer-state','hidden');return url.href};
 const browser=await chromium.launch();
 const sizes=[[320,700],[390,844],[768,1024],[812,375],[1024,768],[1366,900]];
 const paths=['/','/about/','/daily-gaze/','/work/tfc-orders-tracker/','/work/class-tracker/','/work/second-brain/','/work/banu-2/','/work/veloria/','/resume/'];
 async function openRelease(page,path){
   let status=0;
   for(let attempt=0;attempt<8;attempt++){
-    const response=await page.goto(base+path,{waitUntil:'domcontentloaded',timeout:30000});
+    const response=await page.goto(preview(base+path),{waitUntil:'domcontentloaded',timeout:30000});
     status=response?.status()||0;
     if(response?.ok()){
       try{
