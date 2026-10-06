@@ -58,9 +58,11 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
 
       <article class="experience-scene opening-scene is-current" data-scene="0" aria-labelledby="exp-title-0">
         <div class="opening-grid" aria-hidden="true"></div>
-        <div class="opening-portrait">
+        <div class="opening-portrait" aria-label="Portrait of Banuja Disanayaka">
           <span class="portrait-halo"></span>
-          <div class="opening-portrait-media">${picture('portrait','Banuja Disanayaka in a navy suit, standing in a studio.','',true)}</div>
+          <div class="portrait-window portrait-main">${picture('portrait','Banuja Disanayaka in a navy suit, standing in a studio.','',true)}</div>
+          <div class="portrait-window portrait-detail" aria-hidden="true">${picture('portrait','','',true)}</div>
+          <span class="portrait-index">PORTRAIT / 01</span>
         </div>
         <div class="opening-title" id="exp-title-0">
           <p>AN INDEPENDENT MIND / CONNECTED DISCIPLINES</p>
@@ -82,6 +84,12 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <span>Light, life and the things we walk past.</span>
         </header>
         <div class="gaze-reel" aria-label="A film reel of photographs">${photoFrames}</div>
+        <div class="gaze-orbit" aria-hidden="true">
+          <span class="gaze-orbit-ring"></span>
+          <i class="gaze-point gaze-point-sl"></i>
+          <i class="gaze-point gaze-point-my"></i>
+          <b>SRI LANKA</b><b>MALAYSIA</b>
+        </div>
         <div class="scene-stat">
           <strong>${visibleGallery.length}<sup>+</sup></strong>
           <span>moments kept<br>in one visual journal</span>
@@ -96,6 +104,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <span>Projects shaped by real work, not decoration.</span>
         </header>
         <div class="work-reel" aria-label="Selected work film reel">${projectFrames}</div>
+        <div class="work-shutter" aria-hidden="true">${Array.from({length:12},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div>
         <div class="scene-stat scene-stat-work">
           <strong>${projectList.length}</strong>
           <span>selected systems,<br>products & identities</span>
@@ -110,6 +119,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
         </header>
         <div class="journey-map" aria-hidden="true"><span class="journey-arc"></span><i class="journey-origin"></i><i class="journey-away"></i><i class="journey-return"></i></div>
         <ol class="journey-route">${route}</ol>
+        <div class="journey-statement" aria-hidden="true"><span>DESIGN</span><b>→</b><span>OPERATIONS</span><b>→</b><span>PRODUCT</span></div>
         <a class="scene-link" href="/about/">Read the full story <span>↗</span></a>
       </article>
 
@@ -119,6 +129,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <h2 id="exp-title-4">VELORIA<span class="gold-dot">.</span></h2>
           <span>Evolve Beyond.</span>
         </header>
+        <div class="world-signal" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
         <div class="world-sphere" aria-label="Six connected VELORIA worlds">
           <div class="sphere-grid" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
           <div class="sphere-core" aria-hidden="true"><strong>V</strong><span>ONE SHARED VISION</span></div>
@@ -144,7 +155,11 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
 
       <nav class="experience-timeline" aria-label="Portfolio scenes">
         <div class="timeline-track" aria-hidden="true"><span data-timeline-progress></span></div>
-        ${sceneNames.map((name,i)=>`<button type="button" data-scene-select="${i}" aria-label="Go to scene ${i+1}: ${name}" aria-pressed="${i===0}"><span>0${i+1}</span><b>${name}</b></button>`).join('')}
+        <span class="timeline-caption" data-timeline-caption>OPENING / SC 01</span>
+        <div class="timeline-dots">
+          ${sceneNames.map((name,i)=>`<button type="button" data-scene-select="${i}" data-label="${name}" aria-label="Go to scene ${i+1}: ${name}" aria-pressed="${i===0}"><span>0${i+1}</span></button>`).join('')}
+        </div>
+        <div class="timeline-links"><button type="button" data-open-scenes-mini>SCENES</button><a href="/moments/">MOMENTS</a><a href="#contact">CONTACT</a></div>
       </nav>
       <div class="experience-scroll-note" aria-hidden="true">SCROLL TO PLAY ↓</div>
       <div class="experience-utility"></div>
