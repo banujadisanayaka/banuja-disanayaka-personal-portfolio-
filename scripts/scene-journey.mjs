@@ -42,7 +42,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       <div class="journey-canvas">
       <div class="journey-backgrounds" aria-hidden="true">${scenes.map(s=>`<div class="journey-background ${s.theme}"></div>`).join('')}</div>
       <div class="journey-signal" aria-hidden="true"><span></span><i></i></div>
-      ${scenes.map((s,i)=>`<article class="journey-panel ${s.theme}" data-journey-scene="${i}"${s.section?` data-section="${s.section}"`:''} aria-labelledby="journey-title-${i}">
+      ${scenes.map((s,i)=>`<article class="journey-panel ${s.theme}" data-journey-scene="${i}" data-scene-number="${String(i+1).padStart(2,'0')}"${s.section?` data-section="${s.section}"`:''} aria-labelledby="journey-title-${i}">
         <div class="journey-environment environment-${i}" aria-hidden="true"><span></span><i></i><b></b></div>
         <span class="journey-word" aria-hidden="true">${s.word}</span>
         <div class="journey-heading" id="journey-title-${i}"><p class="journey-kicker">${s.kicker}</p>${s.heading}</div>
