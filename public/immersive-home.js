@@ -10,9 +10,12 @@
   const sceneButtons = [...root.querySelectorAll('[data-scene-select]')];
   const progress = root.querySelector('[data-timeline-progress]');
   const counter = root.querySelector('[data-scene-count]');
+  const timelineCaption = root.querySelector('[data-timeline-caption]');
+  const sceneNames = ['Opening','The Gaze','Work','Journey','VELORIA','Contact'];
   const menu = document.querySelector('#experience-menu');
   const menuButtons = [...document.querySelectorAll('[data-menu-scene]')];
   const openMenu = root.querySelector('[data-open-scenes]');
+  const openMenuMini = root.querySelector('[data-open-scenes-mini]');
   const closeMenu = menu?.querySelector('[data-close-scenes]');
   const utility = root.querySelector('.experience-utility');
   const motionToggle = document.querySelector('.motion-toggle');
@@ -28,13 +31,23 @@
     scene,
     title: scene.querySelector('.act-heading,.opening-title,.contact-frame'),
     openingPortrait: scene.querySelector('.opening-portrait'),
+    portraitMain: scene.querySelector('.portrait-main'),
+    portraitDetail: scene.querySelector('.portrait-detail'),
     openingProof: scene.querySelector('.opening-proof'),
     gazeReel: scene.querySelector('.gaze-reel'),
+    gazeOrbit: scene.querySelector('.gaze-orbit'),
     workReel: scene.querySelector('.work-reel'),
+    workFrames: [...scene.querySelectorAll('.work-frame')],
+    shutterBars: [...scene.querySelectorAll('.work-shutter i')],
     route: scene.querySelector('.journey-route'),
+    routeItems: [...scene.querySelectorAll('.journey-route li')],
+    journeyMap: scene.querySelector('.journey-map'),
     arc: scene.querySelector('.journey-arc'),
     sphere: scene.querySelector('.world-sphere'),
+    worldNodes: [...scene.querySelectorAll('.world-node')],
+    signalBars: [...scene.querySelectorAll('.world-signal span')],
     contactLedger: scene.querySelector('.contact-ledger'),
+    contactRows: [...scene.querySelectorAll('.contact-ledger a')],
     contactSignoff: scene.querySelector('.contact-signoff'),
     stat: scene.querySelector('.scene-stat')
   }));
@@ -70,6 +83,7 @@
     });
     sceneButtons.forEach((button,i) => button.setAttribute('aria-pressed', String(i === index)));
     if (counter) counter.textContent = String(index + 1).padStart(2,'0');
+    if (timelineCaption) timelineCaption.textContent = `${sceneNames[index].toUpperCase()} / SC ${String(index + 1).padStart(2,'0')}`;
     root.dataset.scene = String(index);
   }
 
@@ -92,12 +106,12 @@
     scenes.forEach((scene,i) => {
       const d = i - p;
       const distance = Math.abs(d);
-      const opacity = clamp(1 - smooth(.2,1.0,distance));
+      const opacity = clamp(1 - smooth(.28,.86,distance));
       const enter = clamp(d,0,1);
       const leave = clamp(-d,0,1);
-      const y = enter * h * .19 - leave * h * .12;
-      const x = (i % 2 ? 1 : -1) * (enter * w * .055 + leave * w * .028);
-      const scale = 1 - enter * .055 + leave * .065;
+      const y = enter * h * .12 - leave * h * .07;
+      const x = (i % 2 ? 1 : -1) * (enter * w * .028 + leave * w * .018);
+      const scale = 1 - enter * .035 + leave * .035;
 
       scene.style.opacity = opacity.toFixed(4);
       scene.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,${(-distance*90).toFixed(2)}px) scale(${scale.toFixed(4)})`;
@@ -115,35 +129,87 @@
       }
 
       if (part.openingPortrait) {
-        part.openingPortrait.style.transform = `translate3d(${(-local*w*.045).toFixed(2)}px,${(-local*h*.045).toFixed(2)}px,0) scale(${(1+local*.18).toFixed(4)})`;
+        part.openingPortrait.style.transform = `translate3d(${(-local*w*.025).toFixed(2)}px,${(-local*h*.02).toFixed(2)}px,0) scale(${(1+local*.08).toFixed(4)})`;
+      }
+      if (part.portraitMain) {
+        part.portraitMain.style.transform = `translate3d(${(-local*w*.075).toFixed(2)}px,${(-local*h*.015).toFixed(2)}px,0) scale(${(1+local*.16).toFixed(4)})`;
+        part.portraitMain.style.opacity = clamp(1-local*.62).toFixed(4);
+      }
+      if (part.portraitDetail) {
+        part.portraitDetail.style.transform = `translate3d(${(local*w*.115).toFixed(2)}px,${(-local*h*.045).toFixed(2)}px,0) scale(${(1+local*.28).toFixed(4)})`;
+        part.portraitDetail.style.opacity = clamp(1-local*.38).toFixed(4);
       }
       if (part.openingProof) {
-        part.openingProof.style.opacity = (1-local*.92).toFixed(4);
-        part.openingProof.style.transform = `translate3d(0,${(-local*22).toFixed(2)}px,0)`;
+        part.openingProof.style.opacity = (1-local*.98).toFixed(4);
+        part.openingProof.style.transform = `translate3d(0,${(-local*28).toFixed(2)}px,0)`;
       }
       if (part.gazeReel) {
-        const travel = (p - 1) * h * .26;
-        part.gazeReel.style.transform = `translate3d(0,${(-travel).toFixed(2)}px,0) rotate(${(-1.5 + (p-1)*2.2).toFixed(2)}deg)`;
+        const phase = clamp(p - 1,-.72,.82);
+        const travel = phase * h * .48;
+        part.gazeReel.style.transform = `translate3d(${(phase*w*.018).toFixed(2)}px,${(-travel).toFixed(2)}px,0) rotate(${(-2.5 + phase*5.5).toFixed(2)}deg) scale(${(1+Math.max(0,phase)*.05).toFixed(4)})`;
+      }
+      if (part.gazeOrbit) {
+        const phase = clamp(p - 1,-.8,.9);
+        part.gazeOrbit.style.transform = `rotate(${(-8+phase*34).toFixed(2)}deg) scale(${(.9+clamp(1-Math.abs(phase),0,1)*.1).toFixed(4)})`;
+        part.gazeOrbit.style.opacity = clamp(1-Math.abs(phase)*.72).toFixed(4);
       }
       if (part.workReel) {
-        const phase = p - 2;
-        part.workReel.style.transform = `translate3d(0,${(-phase*h*.11).toFixed(2)}px,0) rotate(${(-5+phase*7).toFixed(2)}deg) scale(${(1+Math.max(0,phase)*.035).toFixed(4)})`;
+        const phase = clamp(p - 2,-.85,.9);
+        part.workReel.style.transform = `translate3d(0,${(-phase*h*.055).toFixed(2)}px,0) rotate(${(-5+phase*5).toFixed(2)}deg) scale(${(.96+clamp(1-Math.abs(phase),0,1)*.04).toFixed(4)})`;
+        part.workFrames.forEach((frame,index) => {
+          const delay = index * .075;
+          const enterFrame = clamp((phase + .72 - delay)/.48,0,1);
+          const leaveFrame = clamp((phase - .20 - delay)/.55,0,1);
+          const side = index % 2 ? 1 : -1;
+          const tx = (1-enterFrame)*side*w*.09 - leaveFrame*side*w*.055;
+          const ty = (1-enterFrame)*h*.07 - leaveFrame*h*.035;
+          const rz = (1-enterFrame)*side*7 + leaveFrame*side*4;
+          frame.style.transform = `translate3d(${tx.toFixed(2)}px,${ty.toFixed(2)}px,0) rotate(${rz.toFixed(2)}deg)`;
+          frame.style.opacity = clamp(enterFrame*(1-leaveFrame*.7)).toFixed(4);
+        });
+        part.shutterBars.forEach((bar,index) => {
+          const wave = .16 + .84*Math.abs(Math.sin((index+1)*.74 + phase*2.6));
+          bar.style.transform = `scaleY(${wave.toFixed(4)})`;
+        });
       }
       if (part.route) {
-        const phase = clamp(p - 3, -.6, .9);
-        part.route.style.transform = `translate3d(0,${(-phase*h*.055).toFixed(2)}px,0)`;
+        const phase = clamp(p - 3,-.75,.9);
+        part.route.style.transform = `translate3d(0,${(-phase*h*.032).toFixed(2)}px,0)`;
+        part.routeItems.forEach((item,index) => {
+          const reveal = clamp((phase + .68 - index*.16)/.42,0,1);
+          const exit = clamp((phase - .38 - index*.08)/.5,0,1);
+          item.style.opacity = clamp(reveal*(1-exit*.55)).toFixed(4);
+          item.style.transform = `translate3d(${((1-reveal)*w*.05).toFixed(2)}px,${((1-reveal)*18-exit*10).toFixed(2)}px,0)`;
+        });
+      }
+      if (part.journeyMap) {
+        const phase = clamp(p-3,-.8,.9);
+        part.journeyMap.style.transform = `rotate(${(-8+phase*10).toFixed(2)}deg) scale(${(.94+clamp(1-Math.abs(phase),0,1)*.06).toFixed(4)})`;
       }
       if (part.arc) {
-        const phase = clamp((p - 2.72) / .9, 0, 1);
+        const phase = clamp((p - 2.72) / .82, 0, 1);
         part.arc.style.transform = `rotate(-8deg) scaleX(${phase.toFixed(4)})`;
       }
       if (part.sphere) {
-        const phase = p - 4;
-        part.sphere.style.transform = `rotateZ(${(phase*10).toFixed(2)}deg) rotateY(${(phase*13).toFixed(2)}deg) scale(${(1+Math.max(0,phase)*.035).toFixed(4)})`;
+        const phase = clamp(p - 4,-.9,.9);
+        part.sphere.style.transform = `rotateZ(${(phase*18).toFixed(2)}deg) rotateY(${(phase*22).toFixed(2)}deg) scale(${(.94+clamp(1-Math.abs(phase),0,1)*.06).toFixed(4)})`;
+        part.worldNodes.forEach((node,index) => {
+          const orbit = phase*(index%2?1:-1);
+          node.style.transform = `translate3d(${(Math.sin((index+1)*1.7+phase)*orbit*w*.016).toFixed(2)}px,${(Math.cos((index+1)*1.2+phase)*orbit*h*.012).toFixed(2)}px,0)`;
+        });
+        part.signalBars.forEach((bar,index) => {
+          const pulse = .28 + .72*Math.abs(Math.sin((index+1)*1.11 + phase*3.2));
+          bar.style.transform = `scaleY(${pulse.toFixed(4)})`;
+        });
       }
       if (part.contactLedger) {
-        const phase = clamp(p - 5, -.7, .5);
-        part.contactLedger.style.transform = `translate3d(0,${(-phase*h*.045).toFixed(2)}px,0)`;
+        const phase = clamp(p - 5,-.75,.5);
+        part.contactLedger.style.transform = `translate3d(0,${(-phase*h*.03).toFixed(2)}px,0)`;
+        part.contactRows.forEach((row,index) => {
+          const reveal = clamp((phase + .72 - index*.11)/.34,0,1);
+          row.style.opacity = reveal.toFixed(4);
+          row.style.transform = `translate3d(${((1-reveal)*w*.055).toFixed(2)}px,0,0)`;
+        });
       }
       if (part.contactSignoff) {
         const phase = clamp((p - 4.65) / .55, 0, 1);
@@ -230,9 +296,9 @@
     requestAnimationFrame(() => goTo(i));
   }));
 
-  openMenu?.addEventListener('click', () => {
-    if (!menu?.open) menu.showModal();
-  });
+  const showMenu = () => { if (!menu?.open) menu.showModal(); };
+  openMenu?.addEventListener('click', showMenu);
+  openMenuMini?.addEventListener('click', showMenu);
   closeMenu?.addEventListener('click', () => menu?.close());
   menu?.addEventListener('click', event => { if (event.target === menu) menu.close(); });
 
