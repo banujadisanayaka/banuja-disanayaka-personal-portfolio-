@@ -6,6 +6,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   const work=(projects||[]).slice(0,5);
   const worlds=(ecosystem||[]).slice(0,6);
   const jobs=[...(career||[])].reverse();
+  const gazeTags=[...new Set(photos.map(item=>item.category).filter(Boolean))].slice(0,4);
 
   const photo = (g,i=0) => {
     const src=g?.derivatives?.[0]?.url||g?.preview||'';
@@ -34,11 +35,22 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
       </article>
 
       <article class="film-scene gaze-shot" data-scene="1" id="photography">
-        <div class="filmstrip">
-          ${featured.map((g,i)=>`<figure><div>${photo(g,i)}</div><figcaption>${String(i+1).padStart(2,'0')} · ${esc(g.title||'Moment')}</figcaption></figure>`).join('')}
+        <div class="gaze-intro">
+          <small>NOW SHOWING</small>
+          <h2>The Daily <em>Gaze.</em></h2>
+          <p>One frame at a time — the light, places and small details worth keeping.</p>
+          <div class="gaze-tags">${(gazeTags.length?gazeTags:['Photography','Street','Travel','Moments']).map(tag=>`<span>+ ${esc(tag)}</span>`).join('')}</div>
         </div>
-        <div class="gaze-caption"><small>CHANNELS · SC 02</small><h2>The Daily<br><em>Gaze.</em></h2><p>A visual journal of light, life and the things we walk past.</p></div>
-        <div class="gaze-count"><span>PHOTOGRAPHS</span><strong>${photos.length}<sup>+</sup></strong></div>
+        <div class="filmstrip" data-gaze-strip>
+          ${featured.map((g,i)=>`<figure><div>${photo(g,i)}</div><figcaption>${String(i+1).padStart(2,'0')} · ${esc(g.title||'Moment')}</figcaption></figure>`).join('')}
+          <span class="gaze-focus-ring" aria-hidden="true"></span>
+        </div>
+        <div class="gaze-readout">
+          <span>MOMENTS</span>
+          <strong data-gaze-number>0</strong>
+          <em>/ ${photos.length}</em>
+        </div>
+        <div class="gaze-channel-note">THE DAILY GAZE · VISUAL JOURNAL</div>
       </article>
 
       <article class="film-scene reach-shot" data-scene="2">
