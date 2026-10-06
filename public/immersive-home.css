@@ -677,3 +677,28 @@ body.immersive-home .motion-toggle{
   .timeline-links{gap:10px}
   .timeline-links a,.timeline-links button{font-size:5px!important}
 }
+
+
+/* Gaze readability correction after mobile QA */
+.gaze-scene .act-heading{z-index:24}
+.gaze-orbit{z-index:1;opacity:.46;right:1.5vw;top:22%;width:min(22vw,320px)}
+.gaze-reel{z-index:7}
+.gaze-frame figcaption{z-index:3;max-width:calc(100% - 24px)}
+@media(max-width:700px){
+  .gaze-scene .act-heading{width:60vw}
+  .gaze-orbit{
+    right:-21vw;
+    top:27%;
+    width:44vw;
+    opacity:.28
+  }
+  .gaze-reel{
+    left:49%;
+    width:46vw;
+    padding:12px 9px;
+  }
+  .gaze-frame{padding:4px}
+  .gaze-frame figcaption{
+    left:7px;right:7px;bottom:7px;font-size:4.7px;
+  }
+}
