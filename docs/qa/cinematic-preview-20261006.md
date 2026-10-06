@@ -24,4 +24,8 @@ Browser automation uses Chromium/emulation, not a physical phone. Screenshots sh
 
 ## Validation
 
-Local release checks, JavaScript syntax and whitespace checks passed. The final candidate passed the mobile scrolling performance gate in run 37411476575. The full responsive and keyboard suite passed the preceding candidate in run 37410795038; the final full run is in progress.
+Local release checks, JavaScript syntax and whitespace checks passed. Final candidate 46b6cd546306366c1f4ee41faeee2fdd7e9e1dbb passed Portfolio QA run 37411476575 (static and browser jobs) and Netlify Build Smoke run 37411476587.
+
+Responsive browser checks passed at 320×700, 390×844, 768×1024, 812×375, 1024×768 and 1366×900. Menu focus containment, Escape dismissal, focus restoration, scene navigation, reduced motion, forced colors, no-JavaScript content, gallery interactions and CMS outage fallback passed.
+
+At 4× CPU throttling, both baseline and candidate recorded 9 layouts, p95 frame interval 17 ms, zero frames over 50 ms and zero pinned-stage drift. Candidate style recalculation time was 70 ms versus the 500 ms budget. This is an automated lab result, not a physical-device guarantee.

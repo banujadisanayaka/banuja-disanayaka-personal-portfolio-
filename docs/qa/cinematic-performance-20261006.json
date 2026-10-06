@@ -1,0 +1,28 @@
+[
+  {
+    "label": "baseline",
+    "cpuSlowdown": 4,
+    "frames": 119,
+    "layouts": 9,
+    "styleRecalculations": 330,
+    "layoutMs": 1,
+    "styleMs": 52,
+    "scriptMs": 38,
+    "framesOver50ms": 0,
+    "p95FrameMs": 17,
+    "copyDriftPx": 0
+  },
+  {
+    "label": "candidate",
+    "cpuSlowdown": 4,
+    "frames": 119,
+    "layouts": 9,
+    "styleRecalculations": 330,
+    "layoutMs": 6,
+    "styleMs": 70,
+    "scriptMs": 41,
+    "framesOver50ms": 0,
+    "p95FrameMs": 17,
+    "copyDriftPx": 0
+  }
+]
