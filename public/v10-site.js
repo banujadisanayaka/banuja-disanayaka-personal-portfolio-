@@ -308,7 +308,7 @@
 (() => {
   'use strict';
   const html = document.documentElement;
-  const scenes = ['#work','#photography','#about','#perspectives','#contact'].map(selector => document.querySelector(selector)).filter(Boolean);
+  const scenes = ['#work','#photography','#about','#perspectives','#contact'].map(selector => document.querySelector('.section'+selector)).filter(Boolean);
   if (!scenes.length || !('IntersectionObserver' in window)) return;
   html.dataset.sceneTransitions = 'on';
   const phaseFor = section => {

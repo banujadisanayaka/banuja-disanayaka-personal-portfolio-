@@ -1,0 +1,695 @@
+/* Cinematic Stage V2 — continuous dark stage inspired by film/editorial portfolios.
+   Keeps Banuja's green/gold identity and existing semantic scene content. */
+
+.scene-home .scene-journey{
+  --cinema-bg:#07100b;
+  --cinema-deep:#040806;
+  --cinema-ink:#f4eedb;
+  --cinema-gold:#d8b364;
+  --cinema-muted:#9ca89e;
+  --cinema-line:rgba(217,181,101,.34);
+  background:var(--cinema-bg);
+  color:var(--cinema-ink);
+}
+
+.scene-home .scene-journey.is-scrubbed .journey-stage{
+  background:
+    radial-gradient(ellipse at 70% 36%,rgba(64,96,72,.18),transparent 43%),
+    linear-gradient(120deg,#07100b 0%,#0a160f 48%,#050806 100%);
+}
+
+.scene-home .scene-journey.is-scrubbed .journey-canvas{
+  perspective:1600px;
+  transform-style:preserve-3d;
+}
+
+/* Kill the old "one different page colour per scene" feeling. The visual field stays
+   cinematic and dark while scene-specific light is painted inside it. */
+.scene-home .scene-journey.is-scrubbed .journey-background{
+  background:transparent!important;
+  color:var(--cinema-ink)!important;
+}
+.scene-home .scene-journey.is-scrubbed .journey-background::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.96;
+}
+.scene-home .scene-journey.is-scrubbed .journey-background:nth-child(1)::before{
+  background:
+    radial-gradient(circle at 72% 34%,rgba(110,149,111,.22),transparent 24%),
+    linear-gradient(108deg,#07100b 0 46%,#0d2116 76%,#07100b 100%);
+}
+.scene-home .scene-journey.is-scrubbed .journey-background:nth-child(2)::before{
+  background:
+    linear-gradient(90deg,rgba(5,10,7,.98) 0 42%,rgba(13,29,19,.94) 42% 100%),
+    radial-gradient(circle at 73% 48%,rgba(215,179,100,.12),transparent 35%);
+}
+.scene-home .scene-journey.is-scrubbed .journey-background:nth-child(3)::before{
+  background:
+    radial-gradient(ellipse at 71% 47%,rgba(140,164,142,.18),transparent 30%),
+    linear-gradient(115deg,#07100b 0 51%,#101d15 51% 72%,#07100b 100%);
+}
+.scene-home .scene-journey.is-scrubbed .journey-background:nth-child(4)::before{
+  background:
+    linear-gradient(118deg,#07100b 0 43%,#1a1710 43% 61%,#0c130d 61%),
+    radial-gradient(circle at 76% 28%,rgba(214,172,95,.16),transparent 36%);
+}
+.scene-home .scene-journey.is-scrubbed .journey-background:nth-child(5)::before{
+  background:
+    radial-gradient(circle at 71% 46%,rgba(70,113,79,.22),transparent 33%),
+    linear-gradient(112deg,#06100b 0 46%,#0b1b12 46% 78%,#050806 100%);
+}
+.scene-home .scene-journey.is-scrubbed .journey-background:nth-child(6)::before{
+  background:
+    radial-gradient(circle at 70% 34%,rgba(215,179,100,.11),transparent 25%),
+    linear-gradient(110deg,#07100b 0 48%,#111810 48% 100%);
+}
+.scene-home .scene-journey.is-scrubbed .journey-background::after{
+  background:
+    linear-gradient(90deg,rgba(3,7,5,.26),transparent 43%),
+    radial-gradient(ellipse at 50% 115%,rgba(0,0,0,.4),transparent 55%);
+}
+
+/* Editorial typography */
+.scene-home .is-scrubbed .journey-heading{
+  left:max(6vw,calc((100vw - 1500px)/2));
+  top:14%;
+  width:min(47vw,760px);
+  max-width:none;
+  z-index:7;
+}
+.scene-home .is-scrubbed .journey-heading h1,
+.scene-home .is-scrubbed .journey-heading h2{
+  font-size:clamp(64px,8.2vw,136px);
+  line-height:.82;
+  letter-spacing:-.072em;
+  text-wrap:balance;
+  text-shadow:0 12px 45px rgba(0,0,0,.18);
+}
+.scene-home .is-scrubbed .journey-heading h1 em,
+.scene-home .is-scrubbed .journey-heading h2 em{
+  color:var(--cinema-gold);
+  font-weight:400;
+}
+.scene-home .is-scrubbed .journey-kicker{
+  margin-bottom:25px;
+  color:#b8c3b9;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.2em;
+}
+.scene-home .is-scrubbed .journey-kicker::after{
+  background:var(--cinema-gold);
+  width:min(110px,17vw);
+}
+.scene-home .is-scrubbed .journey-caption{
+  left:max(6vw,calc((100vw - 1500px)/2));
+  bottom:144px;
+  width:min(35vw,480px);
+  color:#d8ddcf;
+}
+.scene-home .is-scrubbed .journey-caption>p{
+  max-width:420px;
+  font-size:clamp(17px,1.55vw,22px);
+  line-height:1.35;
+  letter-spacing:-.02em;
+}
+.scene-home .is-scrubbed .journey-caption>span{
+  margin-top:13px;
+  color:#87958a;
+  font-size:9px;
+  letter-spacing:.17em;
+}
+.scene-home .is-scrubbed .journey-link{
+  color:var(--cinema-ink);
+  border-color:rgba(245,238,219,.35);
+}
+
+/* Giant ghost cue = a real cinematic layer rather than a page background label. */
+.scene-home .is-scrubbed .journey-word{
+  display:block;
+  left:auto;
+  right:-2vw;
+  bottom:92px;
+  font-size:clamp(112px,17vw,300px);
+  font-weight:800;
+  line-height:.72;
+  letter-spacing:-.09em;
+  color:#e8dfc8;
+  opacity:.022;
+  z-index:0;
+  transform-origin:right bottom;
+}
+
+/* Scene numbering / act language */
+.scene-home .journey-panel::after{
+  content:attr(data-scene-number) " / 06";
+  position:absolute;
+  top:112px;
+  right:6vw;
+  z-index:8;
+  color:#a7b0a6;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.2em;
+}
+.scene-home .journey-panel::before{
+  content:"ACT";
+  position:absolute;
+  top:111px;
+  right:calc(6vw + 58px);
+  z-index:8;
+  color:var(--cinema-gold);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.2em;
+}
+
+/* Artwork feels placed in a stage, not inside a generic card. */
+.scene-home .is-scrubbed .journey-art{
+  width:440px;
+  height:560px;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  padding:0;
+  overflow:visible;
+  z-index:5;
+  transform-style:preserve-3d;
+}
+.scene-home [data-journey-scene="1"] .journey-art{width:520px;height:590px}
+.scene-home [data-journey-scene="2"] .journey-art{width:500px;height:590px}
+.scene-home [data-journey-scene="3"] .journey-art{width:500px;height:560px}
+.scene-home [data-journey-scene="4"] .journey-art{width:560px;height:610px}
+.scene-home [data-journey-scene="5"] .journey-art{width:420px;height:550px}
+.scene-home .is-scrubbed .journey-art-inner{
+  height:100%;
+  overflow:visible;
+}
+.scene-home .is-scrubbed .journey-art figcaption{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-26px;
+  padding:0;
+  color:#87958a;
+  font-size:8px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.scene-home [data-journey-scene="0"] .journey-art{
+  background:transparent;
+}
+.scene-home [data-journey-scene="0"] .journey-art::before{
+  content:"";
+  position:absolute;
+  inset:8% -7% -2% 7%;
+  border:1px solid rgba(216,179,100,.4);
+  border-radius:50% 46% 48% 44%;
+  transform:rotate(-9deg);
+  z-index:-1;
+}
+.scene-home [data-journey-scene="0"] .journey-art::after{
+  content:"";
+  position:absolute;
+  width:54%;
+  aspect-ratio:1;
+  right:-12%;
+  top:8%;
+  border:1px solid rgba(216,179,100,.16);
+  border-radius:50%;
+  box-shadow:0 0 0 34px rgba(216,179,100,.03),0 0 0 72px rgba(216,179,100,.018);
+  z-index:-1;
+}
+.scene-home [data-journey-scene="0"] .journey-art picture,
+.scene-home [data-journey-scene="0"] .journey-art img{
+  object-fit:contain;
+  filter:drop-shadow(0 28px 38px rgba(0,0,0,.35));
+}
+
+/* Work = bright editorial object on the dark stage, closer to a film insert. */
+.scene-home [data-journey-scene="1"] .journey-art{
+  filter:drop-shadow(0 34px 55px rgba(0,0,0,.34));
+}
+.scene-home [data-journey-scene="1"] .journey-book-link{
+  border:1px solid rgba(245,238,219,.15);
+}
+
+/* Photography = loose prints instead of a single framed card. */
+.scene-home [data-journey-scene="2"] .journey-art{
+  filter:drop-shadow(0 30px 48px rgba(0,0,0,.32));
+}
+.scene-home [data-journey-scene="2"] .gaze-print-front{
+  transform:rotate(-1.5deg);
+}
+.scene-home [data-journey-scene="2"] .print-left{
+  transform:translate(-16%,-3%) rotate(-8deg);
+}
+.scene-home [data-journey-scene="2"] .print-right{
+  transform:translate(16%,6%) rotate(8deg);
+}
+
+/* Experience and ecosystem objects retain their native art but receive the dark-stage treatment. */
+.scene-home [data-journey-scene="3"] .journey-route{
+  border:1px solid rgba(216,179,100,.23);
+  background:rgba(16,19,14,.84);
+  backdrop-filter:blur(14px);
+}
+.scene-home [data-journey-scene="4"] .journey-ecosystem{
+  background:transparent;
+  color:var(--cinema-ink);
+}
+.scene-home [data-journey-scene="4"] .constellation-center strong,
+.scene-home [data-journey-scene="4"] .constellation-node strong{
+  color:var(--cinema-ink);
+}
+.scene-home [data-journey-scene="4"] .constellation-node{
+  color:#aeb7aa;
+}
+.scene-home [data-journey-scene="5"] .journey-art{
+  background:rgba(241,234,218,.94);
+  padding:7px;
+  box-shadow:0 35px 65px rgba(0,0,0,.35);
+}
+.scene-home [data-journey-scene="5"] .journey-art-inner{
+  overflow:hidden;
+}
+
+/* Environment lines become one shared film set. */
+.scene-home .is-scrubbed .journey-environment{
+  background:transparent!important;
+  z-index:1;
+}
+.scene-home .is-scrubbed .journey-environment::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(90deg,transparent 0 49.94%,rgba(216,179,100,.07) 50%,transparent 50.06%),
+    linear-gradient(0deg,transparent 0 69.94%,rgba(216,179,100,.055) 70%,transparent 70.06%);
+}
+.scene-home .is-scrubbed .journey-signal{
+  right:3.2%;
+  top:12%;
+  bottom:18%;
+  background:linear-gradient(var(--cinema-gold),rgba(216,179,100,.18));
+  opacity:.75;
+}
+.scene-home .is-scrubbed .journey-signal::before,
+.scene-home .is-scrubbed .journey-signal::after{
+  background:var(--cinema-gold);
+}
+
+/* Film timeline: persistent, light, not a chunky app toolbar. */
+.scene-home .journey-controls{
+  left:max(6vw,calc((100vw - 1500px)/2));
+  right:6vw;
+  bottom:22px;
+  height:72px;
+  align-items:flex-end;
+  gap:22px;
+  color:#a9b2aa;
+  border-top:1px solid rgba(245,238,219,.13);
+  padding-top:13px;
+}
+.scene-home .journey-buttons{
+  position:relative;
+  flex:1;
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  overflow:visible;
+}
+.scene-home .journey-buttons::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:9px;
+  height:1px;
+  background:rgba(245,238,219,.16);
+}
+.scene-home .journey-buttons button{
+  position:relative;
+  min-width:0;
+  min-height:46px;
+  padding:22px 8px 0 0;
+  border-radius:0;
+  justify-content:flex-start;
+  color:#758078;
+  background:transparent!important;
+  box-shadow:none!important;
+  transform:none!important;
+  text-align:left;
+}
+.scene-home .journey-buttons button::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:6px;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#78847c;
+  box-shadow:0 0 0 4px var(--cinema-bg);
+  transition:transform .3s ease,background-color .3s ease;
+}
+.scene-home .journey-buttons button::after{
+  left:0;
+  right:auto;
+  bottom:auto;
+  top:9px;
+  width:0;
+  height:1px;
+  background:var(--cinema-gold);
+}
+.scene-home .journey-buttons button[aria-pressed="true"]{
+  color:var(--cinema-ink);
+}
+.scene-home .journey-buttons button[aria-pressed="true"]::before{
+  background:var(--cinema-gold);
+  transform:scale(1.4);
+}
+.scene-home .journey-buttons button>span:first-child{
+  color:var(--cinema-gold);
+  font-size:8px;
+  letter-spacing:.12em;
+}
+.scene-home .journey-buttons button>span:last-child{
+  font-size:10px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.scene-home .journey-dock-indicator{display:none!important}
+.scene-home .journey-progress{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-1px;
+  height:1px;
+  background:transparent;
+}
+.scene-home .journey-progress>span{
+  background:var(--cinema-gold);
+}
+.scene-home .journey-utility{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.scene-home .journey-skip{
+  min-height:38px;
+  padding:7px 11px;
+  border:1px solid rgba(245,238,219,.18);
+  background:rgba(7,16,11,.68);
+  color:#c8d0c7;
+  font-size:9px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.scene-home .motion-toggle.in-journey{
+  min-height:38px;
+  border-color:rgba(245,238,219,.18)!important;
+  background:rgba(7,16,11,.68)!important;
+  color:#c8d0c7!important;
+}
+.scene-home .is-scrubbed .journey-scroll-note{
+  right:3.4%;
+  bottom:104px;
+  color:#76827a;
+  font-size:8px;
+  letter-spacing:.2em;
+}
+
+/* Project and photo controls stay secondary to the film strip. */
+.scene-home .is-scrubbed .journey-project-dock{
+  left:max(6vw,calc((100vw - 1500px)/2));
+  right:7%;
+  bottom:105px;
+  gap:7px;
+}
+.scene-home .journey-project-chip{
+  min-height:38px;
+  padding:7px 10px;
+  border-color:rgba(216,179,100,.28);
+  background:rgba(7,16,11,.76);
+  color:#bac4ba;
+  border-radius:999px;
+  backdrop-filter:blur(10px);
+}
+.scene-home .journey-project-chip.is-selected{
+  background:var(--cinema-gold);
+  color:#0c130d;
+}
+.scene-home .is-scrubbed .journey-photo-picker{
+  left:max(6vw,calc((100vw - 1500px)/2));
+  bottom:108px;
+}
+.scene-home .journey-photo-picker button{
+  min-height:38px;
+  padding:8px 13px;
+  border-radius:999px;
+  border-color:rgba(216,179,100,.28);
+  background:rgba(7,16,11,.74);
+  color:#bac4ba;
+}
+.scene-home .journey-photo-picker button[aria-pressed="true"]{
+  background:var(--cinema-gold);
+  color:#0c130d;
+}
+
+/* Header participates in the cinematic world. */
+.scene-home .site-header{
+  background:linear-gradient(180deg,rgba(5,10,7,.94),rgba(5,10,7,.64) 72%,transparent);
+  backdrop-filter:none;
+  border-bottom-color:transparent;
+}
+
+/* Compact layout keeps the same story language without crushing content. */
+@media(max-width:700px){
+  .scene-home .scene-journey.is-scrubbed .journey-stage,
+  .scene-home .scene-journey.is-scrubbed .journey-canvas{
+    min-height:100svh;
+  }
+  .scene-home .is-scrubbed .journey-heading{
+    left:7%;
+    top:13.5%;
+    width:86%;
+  }
+  .scene-home .is-scrubbed .journey-art,
+  .scene-home [data-journey-scene="1"] .journey-art,
+  .scene-home [data-journey-scene="2"] .journey-art,
+  .scene-home [data-journey-scene="3"] .journey-art,
+  .scene-home [data-journey-scene="4"] .journey-art,
+  .scene-home [data-journey-scene="5"] .journey-art{
+    width:292px;
+    height:360px;
+  }
+  .scene-home .is-scrubbed .journey-heading h1,
+  .scene-home .is-scrubbed .journey-heading h2{
+    font-size:clamp(44px,14vw,66px);
+    line-height:.84;
+  }
+  .scene-home .is-scrubbed .journey-kicker{
+    margin-bottom:15px;
+    font-size:8px;
+    letter-spacing:.15em;
+  }
+  .scene-home .journey-panel::before{
+    top:90px;
+    right:calc(7% + 48px);
+    font-size:7px;
+  }
+  .scene-home .journey-panel::after{
+    top:90px;
+    right:7%;
+    font-size:7px;
+  }
+  .scene-home .is-scrubbed .journey-caption{
+    left:7%;
+    width:86%;
+    bottom:138px;
+  }
+  .scene-home .is-scrubbed .journey-caption>p{
+    font-size:15px;
+    line-height:1.3;
+    max-width:76%;
+  }
+  .scene-home .is-scrubbed .journey-caption>span{
+    margin-top:7px;
+    font-size:7px;
+    letter-spacing:.13em;
+  }
+  .scene-home .is-scrubbed .journey-link{
+    min-height:36px;
+    margin-top:5px;
+    font-size:11px;
+  }
+  .scene-home .is-scrubbed .journey-word{
+    right:-4vw;
+    bottom:116px;
+    font-size:29vw;
+  }
+  .scene-home .journey-controls{
+    left:7%;
+    right:7%;
+    bottom:14px;
+    height:58px;
+    gap:7px;
+    padding-top:8px;
+  }
+  .scene-home .journey-buttons button{
+    min-height:41px;
+    padding:20px 2px 0 0;
+  }
+  .scene-home .journey-buttons button>span:first-child{
+    font-size:7px;
+  }
+  .scene-home .journey-buttons button>span:last-child{
+    display:none;
+  }
+  .scene-home .journey-buttons::before{top:8px}
+  .scene-home .journey-buttons button::before{top:5px}
+  .scene-home .journey-utility{
+    position:absolute;
+    right:0;
+    bottom:53px;
+  }
+  .scene-home .journey-skip{
+    min-height:32px;
+    padding:5px 8px;
+    font-size:7px;
+  }
+  .scene-home .motion-toggle.in-journey{
+    min-height:32px!important;
+    padding:5px 8px!important;
+    font-size:8px!important;
+  }
+  .scene-home .is-scrubbed .journey-project-dock{
+    left:7%;
+    right:7%;
+    bottom:86px;
+  }
+  .scene-home .is-scrubbed .journey-photo-picker{
+    left:7%;
+    bottom:87px;
+  }
+  .scene-home .journey-project-chip{
+    min-height:32px;
+    padding:6px 9px;
+    font-size:9px;
+  }
+  .scene-home .journey-photo-picker button{
+    min-height:32px;
+    padding:6px 10px;
+    font-size:9px;
+  }
+  .scene-home .is-scrubbed .journey-signal{display:none}
+}
+
+@media(max-width:390px){
+  .scene-home .is-scrubbed .journey-heading{top:14%}
+  .scene-home .is-scrubbed .journey-heading h1,
+  .scene-home .is-scrubbed .journey-heading h2{font-size:43px}
+  .scene-home .is-scrubbed .journey-caption>p{max-width:70%;font-size:14px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .scene-home .journey-buttons button::before{transition:none}
+}
+
+
+/* Mobile scene readability polish from device recording. */
+@media(max-width:700px){
+  .scene-home [data-journey-scene="3"] .journey-art{
+    width:326px!important;
+    height:420px!important;
+  }
+  .scene-home [data-journey-scene="3"] .journey-route{
+    padding:20px 17px;
+  }
+  .scene-home [data-journey-scene="3"] .route-label{
+    margin-bottom:19px;
+    font-size:8px;
+    letter-spacing:.13em;
+  }
+  .scene-home [data-journey-scene="3"] .journey-route li{
+    gap:13px;
+    padding-bottom:19px;
+  }
+  .scene-home [data-journey-scene="3"] .route-number{
+    flex-basis:25px;
+    height:25px;
+    font-size:9px;
+  }
+  .scene-home [data-journey-scene="3"] .journey-route strong{
+    font-size:17px;
+    line-height:1.08;
+  }
+  .scene-home [data-journey-scene="3"] .journey-route small,
+  .scene-home [data-journey-scene="3"] .journey-route li div>span{
+    font-size:9px;
+  }
+
+  .scene-home [data-journey-scene="4"] .journey-art{
+    width:340px!important;
+    height:420px!important;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-center{
+    left:25%;
+    right:25%;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-center strong{
+    font-size:21px;
+    letter-spacing:.13em;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-center em{
+    font-size:12px;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-node{
+    min-height:54px;
+    padding:9px 3px;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-node strong{
+    font-size:13px;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-node small{
+    font-size:8px;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-node>span{
+    font-size:8px;
+  }
+
+  .scene-home [data-journey-scene="5"] .journey-art{
+    width:300px!important;
+    height:390px!important;
+  }
+
+  /* On a phone the film line should read as part of the composition, not as an app toolbar. */
+  .scene-home .journey-utility{
+    bottom:49px;
+  }
+  .scene-home .journey-skip{
+    display:none!important;
+  }
+  .scene-home .motion-toggle.in-journey{
+    border:0!important;
+    background:transparent!important;
+    padding:4px 0!important;
+    min-height:28px!important;
+    color:#8d998f!important;
+    box-shadow:none!important;
+    font-size:7px!important;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+  }
+  .scene-home .motion-toggle.in-journey .motion-indicator{
+    width:5px;
+    height:5px;
+  }
+}

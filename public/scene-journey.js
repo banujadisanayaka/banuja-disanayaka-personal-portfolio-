@@ -176,11 +176,28 @@
       // Keep only nearby artwork ready for compositing; distant scenes release layers.
       style(s.art,'willChange',Math.abs(d)<1.1?'transform, opacity':'auto');
       if(art>0){
-        const travel=d<0?(1-smooth(.20,.70,enter))*(compact?.28:.55):-smooth(.12,.64,leave)*(compact?.32:.62);
-        const tilt=compact?0:(s.id===0?-3:s.id===2?2:0)+travel*7;
-        style(s.art,'transform',`translate3d(${(s.frame.x+travel*w).toFixed(2)}px,${s.frame.y.toFixed(2)}px,0) rotate(${tilt.toFixed(2)}deg) scale(${s.frame.scale.toFixed(5)})`);
+        const entering=d<0;
+        const phase=entering?1-smooth(.16,.76,enter):smooth(.10,.68,leave);
+        const travelX=entering?phase*w*(compact?.34:.72):-phase*w*(compact?.38:.56);
+        const lift=entering?phase*(compact?22:70):-phase*(compact?18:45);
+        const baseTilt=compact?0:(s.id===0?-2.5:s.id===2?1.5:s.id===3?-1.5:0);
+        const turn=compact?0:(entering?phase*7:-phase*5);
+        const zoom=entering?.78+.22*art:1+.08*phase;
+        const depth=compact?0:-phase*120;
+        style(s.art,'transform',`translate3d(${(s.frame.x+travelX).toFixed(2)}px,${(s.frame.y+lift).toFixed(2)}px,${depth.toFixed(2)}px) rotateY(${turn.toFixed(2)}deg) rotateZ(${(baseTilt+turn*.35).toFixed(2)}deg) scale(${(s.frame.scale*zoom).toFixed(5)})`);
       }
-      if(copy>0){const shift=(d<0?1-copy:copy-1)*24;style(s.heading,'transform',`translate3d(${shift.toFixed(2)}px,0,0)`);style(s.caption,'transform',`translate3d(${(shift*.5).toFixed(2)}px,0,0)`)}
+      if(copy>0){
+        const entering=d<0;
+        const phase=entering?1-copy:1-copy;
+        const shiftX=(entering?1:-1)*phase*w*(compact?.055:.085);
+        const shiftY=phase*(entering?28:-18);
+        style(s.heading,'transform',`translate3d(${shiftX.toFixed(2)}px,${shiftY.toFixed(2)}px,0) scale(${(.96+copy*.04).toFixed(4)})`);
+        style(s.caption,'transform',`translate3d(${(shiftX*.48).toFixed(2)}px,${(shiftY*.35).toFixed(2)}px,0)`);
+      }
+      if(env>0){
+        const drift=(i-p)*w*(compact?.012:.022);
+        style(s.environment,'transform',`translate3d(${drift.toFixed(2)}px,0,0) scale(${(1+Math.abs(i-p)*.015).toFixed(4)})`);
+      }
       // Focus is moved before any reading layer becomes visually unavailable.
       const active=i===current&&copy>.08;
       access(s.el,active,buttons[s.id]);
