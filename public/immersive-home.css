@@ -128,3 +128,8 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
  .journey-list{top:34%}.journey-list li{padding:9px 0;flex:1 0 auto}.journey-list strong{font-size:16px;margin:3px 0}.journey-list span{display:block;line-height:1.2}.journey-list small{line-height:1.2}
 }
 .work-wall{padding-right:12px;box-sizing:border-box}
+
+/* Prelaid labels switch visibility without reshaping text during scroll. */
+.film-label-stack{display:inline-grid}
+.film-label-stack>span{grid-area:1/1;white-space:nowrap}
+@media(max-width:700px){.film-time.film-label-stack{display:none}}

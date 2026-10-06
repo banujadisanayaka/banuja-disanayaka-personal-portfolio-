@@ -17,6 +17,27 @@
   const durations = [1.6, 3.6, 1.8, .9, 2.3, 2.4, .9, 1.8, 1.4, 1.8];
   let starts = durations.map((_, i) => durations.slice(0, i).reduce((a, b) => a + b, 0));
   let total = durations.reduce((a, b) => a + b, 0);
+  // Lay out every chapter label once. Visibility changes preserve text geometry
+  // during scrolling, including the accessible live status.
+  const timecode = i => {
+    const seconds = Math.floor(starts[i] * 4);
+    return `00:${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}:00`;
+  };
+  const labelStacks = [
+    ['[data-film-label]', i => `${names[i].toUpperCase()} · SC ${String(i + 1).padStart(2, '0')}`],
+    ['[data-scene-status]', i => `${String(i + 1).padStart(2, '0')} / ${names[i].toUpperCase()}`],
+    ['[data-film-time]', timecode]
+  ].map(([selector, text]) => {
+    const host = root.querySelector(selector);
+    host.classList.add('film-label-stack');
+    const labels = names.map((_, i) => {
+      const span = document.createElement('span'); span.textContent = text(i);
+      span.style.visibility = i === 0 ? 'visible' : 'hidden';
+      span.setAttribute('aria-hidden', String(i !== 0));
+      return span;
+    });
+    host.replaceChildren(...labels); return labels;
+  });
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
   const ease = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
   let available = scenes.map((_,i) => i);
@@ -96,8 +117,10 @@
     scenes.forEach((s, j) => { s.classList.toggle('is-current', i === j); s.setAttribute('aria-hidden', String(i !== j)); s.inert = i !== j; });
     nav.forEach((b, j) => b.setAttribute('aria-pressed', String(i === j)));
     menuItems.forEach((b, j) => i === j ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
-    root.querySelector('[data-film-label]').textContent = `${names[i].toUpperCase()} · SC ${String(i + 1).padStart(2, '0')}`;
-    root.querySelector('[data-scene-status]').textContent = `${String(i + 1).padStart(2, '0')} / ${names[i].toUpperCase()}`;
+    labelStacks.forEach(labels => labels.forEach((label, j) => {
+      set(label, 'visibility', i === j ? 'visible' : 'hidden');
+      label.setAttribute('aria-hidden', String(i !== j));
+    }));
   }
   function reveal(elements, t, spacing = .035) {
     elements.forEach((el, i) => {
@@ -147,10 +170,7 @@
     });
     sceneMotion(i, phase);
     if (incoming > 0) sceneMotion(next, 0);
-    const seconds = Math.floor(starts[active] * 4);
-    const stamp = `00:${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}:00`;
-    const time = root.querySelector('[data-film-time]');
-    if (time.textContent !== stamp) time.textContent = stamp;
+
   }
   function frame() { raf = 0; if (!enabled || document.hidden || menu.open) return; if (dirty) measure(); paint(); }
   function schedule() { if (!raf && enabled && !document.hidden && !menu.open) raf = requestAnimationFrame(frame); }
@@ -241,6 +261,7 @@
     for(const [index,key] of Object.entries(visibility))scenes[index].hidden=c.settings?.[key]===false;
     available=scenes.map((_,i)=>i).filter(i=>!scenes[i].hidden);
     let offset=0; starts=durations.map((d,i)=>{const start=offset;if(available.includes(i))offset+=d;return start;});total=offset;
+    labelStacks[2].forEach((label,i) => { label.textContent=timecode(i); });
     nav.forEach((b,i)=>b.hidden=!available.includes(i));menuItems.forEach((b,i)=>b.hidden=!available.includes(i));
     dirty=true; if(enabled)schedule();else measure();
   });
