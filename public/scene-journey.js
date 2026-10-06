@@ -279,7 +279,7 @@
     const headerMenu=document.querySelector('.menu-toggle');
     const launchers=[headerMenu,root.querySelector('.journey-menu-open')].filter(Boolean);
     let returnFocus=null,previousOverflow='';
-    function closeChapters(){chapterMenu.close()}
+    function closeChapters(){if(!chapterMenu.open)return;chapterMenu.close();html.style.overflow=previousOverflow;headerMenu?.setAttribute('aria-expanded','false');returnFocus?.focus({preventScroll:true})}
     function openChapters(event){
       event.preventDefault();event.stopImmediatePropagation();cancelSettle();
       returnFocus=event.currentTarget;previousOverflow=html.style.overflow;
@@ -290,7 +290,7 @@
     document.querySelector('.site-header')?.classList.add('chapter-menu-ready');
     headerMenu?.setAttribute('aria-controls','chapter-menu');headerMenu?.setAttribute('aria-haspopup','dialog');
     chapterMenu.querySelector('.chapter-menu-close').addEventListener('click',closeChapters);
-    chapterMenu.addEventListener('close',()=>{html.style.overflow=previousOverflow;headerMenu?.setAttribute('aria-expanded','false');returnFocus?.focus({preventScroll:true})});
+    chapterMenu.addEventListener('cancel',event=>{event.preventDefault();closeChapters()});
     chapterMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeChapters));
     chapterItems.forEach(button=>button.addEventListener('click',()=>{
       const id=Number(button.dataset.chapterSelect);returnFocus=enabled?buttons[id]:all[id].heading;closeChapters();
