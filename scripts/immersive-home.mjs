@@ -5,7 +5,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   const featured=(photos.filter(x=>x.featured).length?photos.filter(x=>x.featured):photos).slice(0,6);
   const work=(projects||[]).slice(0,5);
   const worlds=(ecosystem||[]).slice(0,6);
-  const jobs=[...(career||[])].reverse().filter((_,i,a)=>i===0||i===Math.floor((a.length-1)/2)||i===a.length-1);
+  const jobs=[...(career||[])].reverse();
 
   const photo = (g,i=0) => {
     const src=g?.derivatives?.[0]?.url||g?.preview||'';
