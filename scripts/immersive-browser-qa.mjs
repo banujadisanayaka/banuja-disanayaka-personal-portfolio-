@@ -19,6 +19,7 @@ try {
   await page.goto(preview(base+'/'),{waitUntil:'networkidle'}); await page.locator('.experience.is-live').waitFor();
   assert.equal(await page.locator('h1').count(),1);await fits(page,'h1');await fits(page,'.film-bottombar');
   assert.equal(await page.locator('.chapter-scene').count(),0,'One animation owner');
+  const titleBottom=(await page.locator('h1').boundingBox()).y+(await page.locator('h1').boundingBox()).height;assert.ok(titleBottom<(await page.locator('.opening-copy').boundingBox()).y,'Opening copy never overlaps the name');
   for(let i=0;i<names.length;i++){
    await jump(page,i);assert.equal(await page.locator('.film-scene:not([inert])').count(),1);
    await fits(page,`[data-scene="${i}"]`);
@@ -61,6 +62,14 @@ try {
    for(const s of ['h1','.journey-list','.credits-list','.signature-stage']){await page.locator(s).scrollIntoViewIfNeeded();await fits(page,s);assert.ok(await page.locator(s).isVisible());}
   }
   await context.close();console.log('Content resilience passed: '+mode);
+ }
+ {
+  const context=await browser.newContext();const page=await context.newPage();
+  await page.route('**/api/content',async route=>{const response=await route.fetch();const json=await response.json();json.content.dailyGaze=[];json.content.projects=json.content.projects.slice(0,2);json.content.settings.showGaze=false;await route.fulfill({response,json});});
+  await page.goto(preview(base+'/'),{waitUntil:'networkidle'});
+  assert.equal(await page.locator('.filmstrip figure').count(),0,'CMS removals stay removed');assert.equal(await page.locator('.work-cell:not([hidden])').count(),2);assert.ok(await page.locator('[data-scene-select="1"]').isHidden());
+  await page.getByRole('button',{name:'Places',exact:true}).click();await page.waitForFunction(()=>document.querySelector('[data-scene="2"]').getAttribute('aria-hidden')==='false');
+  await context.close();console.log('CMS projection, removed photographs and skipped hidden scenes passed');
  }
  const context=await browser.newContext({viewport:{width:390,height:844}});const page=await context.newPage();await page.goto(preview(base+'/#contact'),{waitUntil:'networkidle'});assert.equal(await page.locator('[data-scene="9"]').getAttribute('aria-hidden'),'false');await context.close();
 } finally {await browser.close();}

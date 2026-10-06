@@ -15,10 +15,11 @@
   const names = nav.map(b => b.getAttribute('aria-label'));
   // Each chapter has time to tell its story; the reel needs several scroll beats.
   const durations = [1.6, 3.6, 1.8, .9, 2.3, 2.4, .9, 1.8, 1.4, 1.8];
-  const starts = durations.map((_, i) => durations.slice(0, i).reduce((a, b) => a + b, 0));
-  const total = durations.reduce((a, b) => a + b, 0);
+  let starts = durations.map((_, i) => durations.slice(0, i).reduce((a, b) => a + b, 0));
+  let total = durations.reduce((a, b) => a + b, 0);
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
   const ease = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
+  let available = scenes.map((_,i) => i);
   let enabled = false, initialized = false, active = -1, raf = 0, dirty = true, geo;
   let opener, savedOverflow = '', lastNumber = -1;
   let cache = new WeakMap();
@@ -134,17 +135,18 @@
   }
   function paint() {
     const p = clamp((scrollY - geo.top) / geo.h, 0, total);
-    let i = starts.findLastIndex(start => p >= start);
+    let i = available.findLast(index => p >= starts[index]) ?? available[0];
     i = Math.max(0, i);
     const phase = clamp((p - starts[i]) / durations[i]);
-    const incoming = i < scenes.length - 1 ? ease(.86, 1, phase) : 0;
-    setActive(incoming > .5 ? i + 1 : i);
+    const next = available[available.indexOf(i) + 1];
+    const incoming = next !== undefined ? ease(.86, 1, phase) : 0;
+    setActive(incoming > .5 ? next : i);
     scenes.forEach((scene, j) => {
-      set(scene, 'visibility', j === i || (j === i + 1 && incoming > 0) ? 'visible' : 'hidden');
-      set(scene, 'opacity', j === i ? '1' : j === i + 1 ? incoming.toFixed(3) : '0');
+      set(scene, 'visibility', j === i || (j === next && incoming > 0) ? 'visible' : 'hidden');
+      set(scene, 'opacity', j === i ? '1' : j === next ? incoming.toFixed(3) : '0');
     });
     sceneMotion(i, phase);
-    if (incoming > 0) sceneMotion(i + 1, 0);
+    if (incoming > 0) sceneMotion(next, 0);
     const seconds = Math.floor(starts[active] * 4);
     const stamp = `00:${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}:00`;
     const time = root.querySelector('[data-film-time]');
@@ -153,6 +155,7 @@
   function frame() { raf = 0; if (!enabled || document.hidden || menu.open) return; if (dirty) measure(); paint(); }
   function schedule() { if (!raf && enabled && !document.hidden && !menu.open) raf = requestAnimationFrame(frame); }
   function goTo(i, behavior = 'smooth') {
+    if (!available.includes(i)) i = available[0];
     if (!enabled) { scenes[i].scrollIntoView({ behavior: 'instant' }); return; }
     if (dirty) measure();
     const phase = i === 9 ? .84 : i === 1 ? .06 : i === 0 ? 0 : .4;
@@ -162,7 +165,7 @@
   const hashScene = () => location.hash === '#contact' ? 9 : scenes.findIndex(s => s.id && '#' + s.id === location.hash);
   function configure() {
     const previous = active;
-    enabled = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 600;
+    enabled = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
     cancelAnimationFrame(raf); raf = 0;
     root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
     cache = new WeakMap();
@@ -203,9 +206,47 @@
     e.preventDefault(); history.replaceState(null, '', hash); goTo(i);
   }));
   addEventListener('hashchange', () => { const i = hashScene(); if (i >= 0) goTo(i); });
+  // Reuse the public CMS projection; never fetch private gallery data here.
+  document.addEventListener('portfolio:content', ({detail}) => {
+    const c = detail?.content; if (!c) return;
+    const safe = value => { try { const u = new URL(value, location.origin); return !u.username && !u.password && (u.protocol === 'https:' || u.origin === location.origin) ? u.href : ''; } catch { return ''; } };
+    if (Array.isArray(c.dailyGaze)) {
+      const photos = c.dailyGaze.filter(p => p.visible !== false);
+      const featured = photos.some(p => p.featured) ? photos.filter(p => p.featured) : photos;
+      const figures = featured.slice(0,6).map((photo,i) => {
+        const figure=document.createElement('figure'), wrap=document.createElement('div'), img=document.createElement('img'), caption=document.createElement('figcaption');
+        const variants=(photo.derivatives||[]).filter(d => safe(d.url) && Number(d.width)>0);
+        img.src=safe(variants[0]?.url||photo.preview); img.alt=photo.alt||photo.title||'The Daily Gaze photograph'; img.loading='lazy'; img.decoding='async';
+        if(variants.length){img.srcset=variants.map(d=>`${safe(d.url)} ${Number(d.width)}w`).join(', ');img.sizes='(max-width:700px) 64vw, 33vw';}
+        caption.textContent=`${String(i+1).padStart(2,'0')} · ${photo.title||'Moment'}`; wrap.append(img); figure.append(wrap,caption); return figure;
+      });
+      parts.strip.replaceChildren(...figures); parts.total=photos.length; lastNumber=-1;
+      parts.number.textContent=String(photos.length); q(1,'.gaze-readout em').textContent=`/ ${photos.length}`;
+      q(0,'.opening-metrics>span:nth-child(2) strong').textContent=String(photos.length);
+    }
+    if(Array.isArray(c.projects)){
+      const projects=c.projects.filter(p=>p.visible!==false);
+      for(const cell of parts.work){const match=projects.find(p=>safe(p.url)===cell.href);cell.hidden=!match;if(match){cell.querySelector('.work-cell-caption strong').textContent=match.title;cell.querySelector('.work-cell-caption>span').textContent=match.tags;}}
+      q(0,'.opening-metrics>span:first-child strong').textContent=String(parts.work.filter(p=>!p.hidden).length);
+    }
+    if(Array.isArray(c.career)){
+      const jobs=c.career.slice().reverse();
+      parts.jobs.forEach((el,i)=>{const job=jobs[i];el.hidden=!job;if(job){el.querySelector('small').textContent=job.year;el.querySelector('strong').textContent=job.title;el.querySelector('div>span').textContent=job.company;}});
+    }
+    if(c.contact){
+      const email=c.contact.email;if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email||'')){const a=q(9,'a[href^="mailto:"]');a.href='mailto:'+email;a.textContent=email;}
+      const phone=c.contact.whatsappSriLanka;if(/^\d{7,20}$/.test(phone||'')){const a=q(9,'a[href^="https://wa.me/"]');a.href='https://wa.me/'+phone;a.textContent=c.contact.whatsappSriLankaDisplay||phone;}
+    }
+    const visibility={1:'showGaze',4:'showWork',5:'showCareer',7:'showEcosystem',9:'showContact'};
+    for(const [index,key] of Object.entries(visibility))scenes[index].hidden=c.settings?.[key]===false;
+    available=scenes.map((_,i)=>i).filter(i=>!scenes[i].hidden);
+    let offset=0; starts=durations.map((d,i)=>{const start=offset;if(available.includes(i))offset+=d;return start;});total=offset;
+    nav.forEach((b,i)=>b.hidden=!available.includes(i));menuItems.forEach((b,i)=>b.hidden=!available.includes(i));
+    dirty=true; if(enabled)schedule();else measure();
+  });
   addEventListener('scroll', schedule, { passive: true });
   addEventListener('resize', () => {
-    const allowed = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 600;
+    const allowed = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
     if (allowed !== enabled) configure(); else { dirty = true; if (enabled) schedule(); else measure(); }
   }, { passive: true });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else schedule(); });

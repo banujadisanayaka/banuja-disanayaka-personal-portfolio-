@@ -112,6 +112,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
             <span class="signature-lime" aria-hidden="true"></span>
           </div>
           <small class="credits-copy">© 2026 BANUJA DISANAYAKA</small>
+          <nav class="credits-more" aria-label="More about Banuja"><a href="/about/">Full story ↗</a><a href="/resume/">Résumé ↗</a></nav>
         </div>
       </article>
 
