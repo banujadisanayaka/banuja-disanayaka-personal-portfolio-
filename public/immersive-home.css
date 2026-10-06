@@ -474,3 +474,29 @@ body.immersive-home .motion-toggle{
   .experience-timeline,.experience-scroll-note{display:none!important}
   .gaze-reel,.work-reel,.world-sphere{transform:none!important}
 }
+
+
+.experience.is-static{height:auto!important}
+.experience.is-static .experience-stage{position:relative!important;height:auto!important;min-height:0!important;overflow:visible}
+.experience.is-static .experience-topline,
+.experience.is-static .experience-menu-toggle,
+.experience.is-static .experience-scene-count,
+.experience.is-static .experience-timeline,
+.experience.is-static .experience-scroll-note,
+.experience.is-static .experience-utility{display:none!important}
+.experience.is-static .experience-scene{
+  position:relative!important;min-height:100svh;opacity:1!important;transform:none!important;
+  pointer-events:auto!important;z-index:auto!important
+}
+.experience.is-static .opening-portrait,
+.experience.is-static .opening-title,
+.experience.is-static .opening-proof,
+.experience.is-static .gaze-reel,
+.experience.is-static .work-reel,
+.experience.is-static .journey-route,
+.experience.is-static .journey-arc,
+.experience.is-static .world-sphere,
+.experience.is-static .contact-ledger,
+.experience.is-static .contact-signoff{
+  transform:none!important;opacity:1!important
+}
