@@ -17,22 +17,22 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
   const route = [...career].reverse().filter((_, i, list) => i === 0 || i === 2 || i === list.length-1);
   const routeArt = `<div class="journey-route"><p class="route-label">EXPERIENCE / A CONTINUING LINE</p><ol>${route.map((item,i)=>`<li><span class="route-number">0${i+1}</span><div><small>${esc(item.year)}</small><strong>${esc(item.title)}</strong><span>${esc(item.company)}</span></div></li>`).join('')}</ol></div>`;
   const scenes = [
-    {name:'Identity',word:'PERSPECTIVE',theme:'moss',kicker:'01 / AN INDEPENDENT MIND',
+    {name:'Identity',anchor:'',word:'PERSPECTIVE',theme:'moss',kicker:'01 / AN INDEPENDENT MIND',
       heading:`<h1><span data-text="profile.firstName">${esc(profile.firstName)}</span><em data-text="profile.lastName">${esc(profile.lastName)}</em></h1>`,
       copy:'People. Systems. Visual stories.',note:esc(profile.location),href:'#work',action:'Explore selected work',
       art:`<div class="portrait-frame" data-depth>${picture('portrait','Banuja Disanayaka in a navy suit, standing in a studio.','',true)}</div>`,label:'THE PERSON / BANUJA DISANAYAKA'},
-    {name:'Work',word:'MAKE IT WORK',theme:'workproof',kicker:'02 / SELECTED WORK',section:'#work',
+    {name:'Work',anchor:'work',word:'MAKE IT WORK',theme:'workproof',kicker:'02 / SELECTED WORK',section:'#work',
       heading:'<h2>Ideas,<br>made <em>useful.</em></h2>',copy:'From everyday work to a working system.',note:'TFC ORDERS TRACKER',href:'/work/tfc-orders-tracker/',action:'Inside the project',
       art:workArt,label:`PROJECT LIBRARY / ${esc(primaryWork.title).toUpperCase()}`},
-    {name:'Gaze',word:'LOOK CLOSER',theme:'sage',kicker:'03 / THROUGH MY LENS',section:'#photography',
+    {name:'Gaze',anchor:'photography',word:'LOOK CLOSER',theme:'sage',kicker:'03 / THROUGH MY LENS',section:'#photography',
       heading:'<h2>The Daily<br><em>Gaze.</em></h2>',copy:'A closer look at the everyday.',note:'ORIGINAL PHOTOGRAPHY',href:'/daily-gaze/',action:'Enter the photographic journal',art:gazeArt,label:'Into the mist'},
-    {name:'Journey',word:'BECOMING',theme:'clay',kicker:'04 / THE PERSON BEHIND THE WORK',section:'#about',
+    {name:'Journey',anchor:'about',word:'BECOMING',theme:'clay',kicker:'04 / THE PERSON BEHIND THE WORK',section:'#about',
       heading:'<h2>A life of<br><em>looking closer.</em></h2>',copy:'Sri Lanka · Kuala Lumpur',note:'DESIGN / OPERATIONS / DIGITAL PRODUCTS',href:'/about/',action:'Read my full story',
       art:routeArt,label:'DESIGN → OPERATIONS → PRODUCT'},
-    {name:'VELORIA',word:'VELORIA',theme:'charcoal',kicker:'05 / A SHARED CREATIVE VISION',section:'#ecosystem',
+    {name:'VELORIA',anchor:'ecosystem',word:'VELORIA',theme:'charcoal',kicker:'05 / A SHARED CREATIVE VISION',section:'#ecosystem',
       heading:'<h2>Many voices.<br><em>One vision.</em></h2>',copy:'Room for ideas to become something.',note:'VELORIA / SIX CONNECTED DIVISIONS',href:'/work/veloria/',action:'Explore the brand architecture',
       art:constellation,label:'VELORIA / SIX CONNECTED DIVISIONS'},
-    {name:'Contact',word:'WHAT COMES NEXT',theme:'cream',kicker:'06 / YOUR NEXT IDEA',section:'#contact',
+    {name:'Contact',anchor:'contact',word:'WHAT COMES NEXT',theme:'cream',kicker:'06 / YOUR NEXT IDEA',section:'#contact',
       heading:'<h2>Let’s make<br>something <em>matter.</em></h2>',copy:'A conversation is a good beginning.',note:'BANUJA DISANAYAKA',href:'#contact',action:'Let’s talk',
       art:picture('personal','Banuja in an orange polo shirt at a celebration.'),label:'A PERSON, BEFORE A PORTFOLIO'}
   ];
@@ -42,7 +42,7 @@ export function sceneJourney(picture, gallery, profile, ecosystem, projects = []
       <div class="journey-canvas">
       <div class="journey-backgrounds" aria-hidden="true">${scenes.map(s=>`<div class="journey-background ${s.theme}"></div>`).join('')}</div>
       <div class="journey-signal" aria-hidden="true"><span></span><i></i></div>
-      ${scenes.map((s,i)=>`<article class="journey-panel ${s.theme}" data-journey-scene="${i}" data-scene-number="${String(i+1).padStart(2,'0')}"${s.section?` data-section="${s.section}"`:''} aria-labelledby="journey-title-${i}">
+      ${scenes.map((s,i)=>`<article class="journey-panel ${s.theme}" data-journey-scene="${i}" data-scene-number="${String(i+1).padStart(2,'0')}"${s.anchor?` id="${s.anchor}"`:``}${s.section?` data-section="${s.section}"`:''} aria-labelledby="journey-title-${i}">
         <div class="journey-environment environment-${i}" aria-hidden="true"><span></span><i></i><b></b></div>
         <span class="journey-word" aria-hidden="true">${s.word}</span>
         <div class="journey-heading" id="journey-title-${i}"><p class="journey-kicker">${s.kicker}</p>${s.heading}</div>
