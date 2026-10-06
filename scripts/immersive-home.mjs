@@ -94,7 +94,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <div><span>EMAIL</span><strong><a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a></strong></div>
           <div><span>WHATSAPP</span><strong><a href="https://wa.me/${esc(contact.whatsappSriLanka)}">${esc(contact.whatsappSriLankaDisplay)}</a></strong></div>
         </div>
-        <div class="signature">Banuja</div>
+        <div class="signature-mark" aria-label="Banuja handwritten signature"><img src="/assets/signature/banuja-signature.svg" alt="Banuja handwritten signature"></div>
       </article>
 
       <div class="film-bottombar">
