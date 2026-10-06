@@ -1,3 +1,4 @@
+import {projectBook} from './project-book.mjs';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 export function immersiveHome({picture,gallery,profile,ecosystem,projects,career,contact}) {
@@ -14,19 +15,19 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
     return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 76vw, 36vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" ${i<2?'fetchpriority="high"':'loading="lazy"'} decoding="async">`;
   };
 
-  const sceneNames=['Opening','Gaze','Reach','Act II','Work','Journey','Act III','VELORIA','Curiosity','Credits'];
+  const sceneNames=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
 
   return `
   <a class="experience-skip" href="#credits">Skip cinematic introduction</a>
   <section class="experience v3-film" data-experience aria-label="Banuja Disanayaka portfolio film">
     <div class="experience-stage">
       <div class="film-topbar"><span data-film-label>OPENING · SC 01</span><span>COLOMBO / SRI LANKA</span></div>
-      <button class="film-menu" type="button" data-open-scenes>SCENES</button>
+      <button class="film-menu" type="button" data-open-scenes aria-haspopup="dialog" aria-controls="experience-menu" aria-expanded="false">SCENES</button>
 
       <article class="film-scene opening-shot is-current" data-scene="0" id="opening">
-        <div class="opening-photo">${picture('portrait','Banuja Disanayaka portrait','',true)}</div>
-        <div class="opening-name"><span>Banuja</span><em>Disanayaka</em></div>
-        <div class="opening-copy"><b>What's more <i>curious?</i></b><span>People, systems and visual stories—made useful.</span></div>
+        <div class="opening-photo"><img src="/assets/v9/portrait-cutout-8a7c9e4c1dc9.webp" width="720" height="1080" alt="Banuja Disanayaka in a navy suit" fetchpriority="high" decoding="async"></div>
+        <h1 class="opening-name"><span>Banuja</span><em>Disanayaka</em></h1>
+        <div class="opening-copy"><b>People. Systems.<br><i>Visual stories.</i></b><span>Operations, design and photography.<br>A different way of looking.</span></div>
         <div class="opening-metrics">
           <span><strong>${work.length}</strong> PROJECTS</span>
           <span><strong>${photos.length}</strong> PHOTOGRAPHS</span>
@@ -41,10 +42,10 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <p>One frame at a time — the light, places and small details worth keeping.</p>
           <div class="gaze-tags">${(gazeTags.length?gazeTags:['Photography','Street','Travel','Moments']).map(tag=>`<span>+ ${esc(tag)}</span>`).join('')}</div>
         </div>
-        <div class="filmstrip" data-gaze-strip>
+        <div class="gaze-reel-window"><div class="filmstrip" data-gaze-strip>
           ${featured.map((g,i)=>`<figure><div>${photo(g,i)}</div><figcaption>${String(i+1).padStart(2,'0')} · ${esc(g.title||'Moment')}</figcaption></figure>`).join('')}
-          <span class="gaze-focus-ring" aria-hidden="true"></span>
-        </div>
+          </div></div>
+        <a class="gaze-visit film-action" href="/daily-gaze/">Explore the journal <span aria-hidden="true">↗</span></a>
         <div class="gaze-readout">
           <span>MOMENTS</span>
           <strong data-gaze-number>0</strong>
@@ -54,10 +55,8 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
       </article>
 
       <article class="film-scene reach-shot" data-scene="2">
-        <div class="reach-globe" aria-hidden="true">
-          <div class="globe-lines"></div><i></i><i></i><i></i><i></i><i></i>
-        </div>
-        <div class="reach-copy"><small>AUDIENCE · SC 03</small><h2>Two places.<br><em>One point of view.</em></h2><p>Sri Lanka and Malaysia shaped how I observe people, work and visual culture.</p></div>
+        <div class="reach-globe"><canvas data-world aria-label="Globe showing Sri Lanka and Malaysia"></canvas><div class="place-labels"><span>SRI LANKA · 6.9° N</span><span>MALAYSIA · 3.1° N</span></div></div>
+        <div class="reach-copy"><small>PLACES · SC 03</small><h2>Two places.<br><em>One point of view.</em></h2><p>Sri Lanka and Malaysia shaped how I observe people, work and visual culture.</p></div>
         <div class="reach-stat"><strong>02</strong><span>COUNTRIES<br>ONE CONTINUING LINE</span></div>
       </article>
 
@@ -67,21 +66,21 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
 
       <article class="film-scene work-shot" data-scene="4" id="work">
         <div class="work-wall">
-          ${work.map((p,i)=>`<a href="/work/${esc(p.slug)}/" class="work-cell c${i}"><small>TAKE ${String(i+1).padStart(2,'0')}</small><strong>${esc(p.title)}</strong><span>${esc(p.category)}</span></a>`).join('')}
+          ${work.map((p,i)=>`<a href="/work/${esc(p.slug)}/" class="work-cell c${i}">${projectBook(p,i)}<div class="work-cell-caption"><small>0${i+1} / ${esc(p.year)}</small><strong>${esc(p.title)}</strong><span>${esc(p.category)}</span></div></a>`).join('')}
         </div>
         <div class="work-caption"><small>WORK · SC 05</small><h2>Ideas, made<br><em>useful.</em></h2></div>
       </article>
 
       <article class="film-scene journey-shot" data-scene="5" id="about">
-        <div class="journey-grid" aria-hidden="true"></div>
+        
         <ol class="journey-list">
           ${jobs.map((j,i)=>`<li><b>${String(i+1).padStart(2,'0')}</b><div><small>${esc(j.year)}</small><strong>${esc(j.title)}</strong><span>${esc(j.company)}</span></div></li>`).join('')}
         </ol>
-        <div class="journey-copy"><small>PATH · SC 06</small><h2>Design →<br>Operations →<br><em>Product.</em></h2></div>
+        <div class="journey-copy"><small>PATH · SC 06</small><h2>Every role.<br><em>A new perspective.</em></h2><p>Five chapters that shaped how I work.</p></div>
       </article>
 
       <article class="film-scene intertitle" data-scene="6">
-        <div><small>CURIOSITY · ACT THREE</small><h2>Curiosity</h2><p>An insatiable drive to explore the unknown and uncover hidden truths in tech, science and beyond.</p></div>
+        <div><small>CURIOSITY · ACT THREE</small><h2>Curiosity</h2><p>A habit of noticing. A willingness to ask. A reason to make something better.</p></div>
       </article>
 
       <article class="film-scene veloria-shot" data-scene="7" id="ecosystem">
@@ -93,7 +92,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
       </article>
 
       <article class="film-scene curiosity-shot" data-scene="8">
-        <div class="curiosity-question"><small>AWARD · THE QUESTION</small><h2>Best Use<br>of <em>Observation.</em></h2><p>What happens when you keep looking long enough?</p></div>
+        <div class="curiosity-question"><small>THE WAY I WORK</small><h2>Look closer.<br><em>Build better.</em></h2><p>What happens when you keep looking long enough?</p></div>
         <div class="curiosity-answer"><span>Photography notices.</span><span>Operations reveals friction.</span><span>Design gives it shape.</span><span>Product connects the pieces.</span></div>
       </article>
 
@@ -117,17 +116,17 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
       </article>
 
       <div class="film-bottombar">
-        <span class="film-time" data-film-time>00:00:00:00</span>
-        <nav class="film-dots" aria-label="Scenes">${sceneNames.map((n,i)=>`<button type="button" data-scene-select="${i}" aria-label="${n}" aria-pressed="${i===0}"></button>`).join('')}</nav>
-        <div class="film-links"><button type="button" data-open-scenes-mini>SCENES</button><a href="/moments/">MOMENTS</a><a href="#credits">CONTACT</a></div>
+        <div class="film-status"><span class="film-time" data-film-time aria-hidden="true">00:00:00:00</span><span data-scene-status aria-live="polite">01 / OPENING</span></div>
+        <nav class="film-dots" aria-label="Scenes">${sceneNames.map((n,i)=>`<button type="button" data-scene-select="${i}" aria-label="${n}" aria-pressed="${i===0}"><span class="film-nav-index">${String(i+1).padStart(2,'0')}</span><span class="film-nav-title">${n}</span></button>`).join('')}</nav>
+        <div class="film-links"><button type="button" data-open-scenes-mini aria-haspopup="dialog" aria-controls="experience-menu" aria-expanded="false">SCENES</button><a href="/moments/">MOMENTS</a><a href="#credits">CONTACT</a></div>
       </div>
       <div class="experience-utility"></div>
     </div>
   </section>
 
-  <dialog class="experience-menu" id="experience-menu">
+  <dialog class="experience-menu" id="experience-menu" aria-labelledby="scene-menu-title">
     <div class="experience-menu-inner">
-      <div class="menu-meta"><span>TEN BEATS / ONE PERSPECTIVE</span><button type="button" data-close-scenes>Close ×</button></div>
+      <div class="menu-meta"><span id="scene-menu-title">TEN CHAPTERS / ONE PERSPECTIVE</span><button type="button" data-close-scenes autofocus>Close ×</button></div>
       <div class="menu-layout"><nav>
       ${sceneNames.map((n,i)=>`<button type="button" data-menu-scene="${i}"><span>${String(i+1).padStart(2,'0')}</span><strong>${n}</strong></button>`).join('')}
       </nav><aside><p>People.<br>Systems.<br><em>Visual stories.</em></p><div><a href="/daily-gaze/">The Daily Gaze ↗</a><a href="/moments/">Moments ↗</a><a href="/about/">About ↗</a><a href="/resume/">Résumé ↗</a></div></aside></div>

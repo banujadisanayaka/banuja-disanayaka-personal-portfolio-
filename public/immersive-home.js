@@ -1,250 +1,216 @@
 (() => {
   'use strict';
-  const root=document.querySelector('[data-experience]');
-  if(!root) return;
-
-  const stage=root.querySelector('.experience-stage');
-  const scenes=[...root.querySelectorAll('[data-scene]')];
-  const dots=[...root.querySelectorAll('[data-scene-select]')];
-  const time=root.querySelector('[data-film-time]');
-  const label=root.querySelector('[data-film-label]');
-  const menu=document.querySelector('#experience-menu');
-  const menuButtons=[...document.querySelectorAll('[data-menu-scene]')];
-  const openers=[root.querySelector('[data-open-scenes]'),root.querySelector('[data-open-scenes-mini]')].filter(Boolean);
-  const closer=menu?.querySelector('[data-close-scenes]');
-  const utility=root.querySelector('.experience-utility');
-  const motionToggle=document.querySelector('.motion-toggle');
-  const names=['OPENING','CHANNELS','AUDIENCE','CRAFTSMANSHIP','WORK','PATH','CURIOSITY','VELORIA','QUESTION','CREDITS'];
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const forced=matchMedia('(forced-colors: active)');
-  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-  const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t)};
-
-  let enabled=false,geo=null,value=0,target=0,active=-1,raf=0,last=0,dirty=true,initialized=false;
-
-  const parts=scenes.map(scene=>({
-    scene,
-    openingPhoto:scene.querySelector('.opening-photo'),
-    openingName:scene.querySelector('.opening-name'),
-    openingMetrics:scene.querySelector('.opening-metrics'),
-    filmstrip:scene.querySelector('.filmstrip'),
-    gazeIntro:scene.querySelector('.gaze-intro'),
-    gazeRing:scene.querySelector('.gaze-focus-ring'),
-    gazeReadout:scene.querySelector('.gaze-readout'),
-    gazeNumber:scene.querySelector('[data-gaze-number]'),
-    gazeTotal:Number((scene.querySelector('.gaze-readout em')?.textContent||'').replace(/\D/g,''))||0,
-    gazeNote:scene.querySelector('.gaze-channel-note'),
-    globe:scene.querySelector('.reach-globe'),
-    reachCopy:scene.querySelector('.reach-copy'),
-    reachStat:scene.querySelector('.reach-stat'),
-    intertitle:scene.querySelector('.intertitle>div'),
-    workWall:scene.querySelector('.work-wall'),
-    workCells:[...scene.querySelectorAll('.work-cell')],
-    workCaption:scene.querySelector('.work-caption'),
-    journeyList:scene.querySelector('.journey-list'),
-    journeyItems:[...scene.querySelectorAll('.journey-list li')],
-    journeyCopy:scene.querySelector('.journey-copy'),
-    veloriaOrbit:scene.querySelector('.veloria-orbit'),
-    nodes:[...scene.querySelectorAll('.orbit-node')],
-    veloriaCopy:scene.querySelector('.veloria-copy'),
-    curiosityQ:scene.querySelector('.curiosity-question'),
-    curiosityA:[...scene.querySelectorAll('.curiosity-answer span')],
-    creditsRows:[...scene.querySelectorAll('.credits-list>div')],
-    signature:scene.querySelector('.signature-stage'),
-    signatureLime:scene.querySelector('.signature-lime')
-  }));
-
-  function motionAllowed(){return document.documentElement.dataset.motion!=='off'&&!reduced.matches&&!forced.matches}
-  function placeMotion(){if(motionToggle&&utility&&motionToggle.parentElement!==utility){utility.append(motionToggle);motionToggle.hidden=false}}
-
-  function measure(){
-    const h=stage.clientHeight,w=stage.clientWidth;
-    const step=h*(w<=700?.92:1.0);
-    const top=root.getBoundingClientRect().top+scrollY;
-    geo={h,w,step,top};
-    root.style.height=(h+step*(scenes.length-1))+'px';
-    dirty=false;
+  const root = document.querySelector('[data-experience]');
+  if (!root) return;
+  const stage = root.querySelector('.experience-stage');
+  const scenes = [...root.querySelectorAll('[data-scene]')];
+  const nav = [...root.querySelectorAll('[data-scene-select]')];
+  const menu = document.querySelector('#experience-menu');
+  const menuItems = [...menu.querySelectorAll('[data-menu-scene]')];
+  const openers = [...root.querySelectorAll('[data-open-scenes],[data-open-scenes-mini]')];
+  const motion = document.querySelector('.motion-toggle');
+  if (motion) { root.querySelector('.experience-utility').append(motion); motion.hidden = false; }
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const forced = matchMedia('(forced-colors: active)');
+  const names = nav.map(b => b.getAttribute('aria-label'));
+  // Each chapter has time to tell its story; the reel needs several scroll beats.
+  const durations = [1.6, 3.6, 1.8, .9, 2.3, 2.4, .9, 1.8, 1.4, 1.8];
+  const starts = durations.map((_, i) => durations.slice(0, i).reduce((a, b) => a + b, 0));
+  const total = durations.reduce((a, b) => a + b, 0);
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const ease = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
+  let enabled = false, initialized = false, active = -1, raf = 0, dirty = true, geo;
+  let opener, savedOverflow = '', lastNumber = -1;
+  let cache = new WeakMap();
+  function set(el, key, value) {
+    if (!el) return;
+    let old = cache.get(el);
+    if (!old) { old = {}; cache.set(el, old); }
+    if (old[key] !== value) { el.style[key] = value; old[key] = value; }
   }
-
-  function setActive(i){
-    if(active===i)return;
-    active=i;
-    scenes.forEach((s,j)=>{const on=i===j;s.classList.toggle('is-current',on);s.setAttribute('aria-hidden',String(!on));s.inert=!on});
-    dots.forEach((b,j)=>b.setAttribute('aria-pressed',String(i===j)));
-    if(label) label.textContent=`${names[i]} · SC ${String(i+1).padStart(2,'0')}`;
+  const q = (i, selector) => scenes[i].querySelector(selector);
+  const parts = {
+    photo: q(0, '.opening-photo'), name: q(0, '.opening-name'),
+    intro: q(1, '.gaze-intro'), strip: q(1, '.filmstrip'), window: q(1, '.gaze-reel-window'),
+    readout: q(1, '.gaze-readout'), number: q(1, '[data-gaze-number]'), note: q(1, '.gaze-channel-note'),
+    total: Number(q(1, '.gaze-readout em').textContent.replace(/\D/g, '')),
+    work: [...scenes[4].querySelectorAll('.work-cell')],
+    jobs: [...scenes[5].querySelectorAll('.journey-list li')],
+    answers: [...scenes[8].querySelectorAll('.curiosity-answer span')],
+    credits: [...scenes[9].querySelectorAll('.credits-list>div')],
+    signature: q(9, '.signature-stage'), lime: q(9, '.signature-lime')
+  };
+  const canvas = q(2, '[data-world]'), ctx = canvas.getContext('2d');
+  let land = [], globeSize = 0, globePhase = -1;
+  function drawWorld(phase = .4) {
+    if (!ctx || !globeSize) return;
+    if (Math.abs(phase - globePhase) < .006) return;
+    globePhase = phase;
+    const size = globeSize, r = size * .46, center = size / 2;
+    const lon0 = (82 + phase * 18) * Math.PI / 180, lat0 = 15 * Math.PI / 180;
+    const project = (lon, lat) => {
+      const l = lon * Math.PI / 180 - lon0, a = lat * Math.PI / 180;
+      return [center + r * Math.cos(a) * Math.sin(l), center - r * (Math.cos(lat0) * Math.sin(a) - Math.sin(lat0) * Math.cos(a) * Math.cos(l)), Math.sin(lat0) * Math.sin(a) + Math.cos(lat0) * Math.cos(a) * Math.cos(l)];
+    };
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = '#111a12'; ctx.beginPath(); ctx.arc(center, center, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#45552b'; ctx.lineWidth = .6; ctx.stroke();
+    // Real land coordinates from public-domain Natural Earth, projected orthographically.
+    for (const [lon, lat] of land) {
+      const [x, y, z] = project(lon, lat);
+      if (z <= 0) continue;
+      ctx.fillStyle = `rgba(197,237,35,${(.2 + z * .7).toFixed(2)})`;
+      ctx.beginPath(); ctx.arc(x, y, Math.max(.75, size / 340), 0, Math.PI * 2); ctx.fill();
+    }
+    for (const [lon, lat] of [[79.86, 6.93], [101.69, 3.14]]) {
+      const [x, y, z] = project(lon, lat);
+      if (z <= 0) continue;
+      ctx.fillStyle = '#f0ece1'; ctx.strokeStyle = '#c5ed23'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.stroke();
+    }
   }
+  fetch('/assets/data/land-points.json').then(r => r.ok ? r.json() : []).then(points => {
+    land = points; globePhase = -1;
+    if (!enabled || active === 2) drawWorld();
+  }).catch(() => {});
 
-  function set(el,prop,val){if(el)el.style[prop]=val}
-
-  function paint(p){
-    const {h,w}=geo;
-    const current=clamp(Math.round(p),0,scenes.length-1);
-    setActive(current);
-
-    scenes.forEach((scene,i)=>{
-      const d=i-p,dist=Math.abs(d);
-      const enter=clamp(d,0,1),leave=clamp(-d,0,1);
-      const opacity=clamp(1-smooth(.34,.82,dist));
-      const z=-dist*100;
-      const y=enter*h*.065-leave*h*.035;
-      const scale=1-enter*.025+leave*.025;
-      set(scene,'opacity',opacity.toFixed(4));
-      set(scene,'transform',`translate3d(0,${y.toFixed(2)}px,${z.toFixed(1)}px) scale(${scale.toFixed(4)})`);
-      set(scene,'zIndex',String(30-Math.round(dist*4)));
-
-      const part=parts[i];
-      const phase=p-i;
-
-      if(i===0){
-        const t=clamp(phase,0,1);
-        set(part.openingPhoto,'transform',`translate3d(${(-t*w*.05).toFixed(2)}px,${(-t*h*.04).toFixed(2)}px,0) scale(${(1+t*.18).toFixed(4)})`);
-        set(part.openingName,'transform',`translate3d(${(t*w*.07).toFixed(2)}px,${(-t*h*.07).toFixed(2)}px,0) scale(${(1+t*.1).toFixed(4)})`);
-        set(part.openingMetrics,'opacity',(1-t*.92).toFixed(4));
-      }
-      if(i===1){
-        const introOut=smooth(-.58,-.08,phase);
-        const filmIn=smooth(-.48,-.03,phase);
-        const filmOut=smooth(.58,.86,phase);
-        const filmVis=clamp(filmIn*(1-filmOut*.88));
-        const travel=(phase+.08)*h*.52;
-        const focus=smooth(-.16,.06,phase)*(1-smooth(.34,.60,phase));
-        const read=smooth(-.08,.14,phase)*(1-smooth(.58,.84,phase));
-        const countProgress=clamp((phase+.34)/.86,0,1);
-
-        set(part.gazeIntro,'opacity',(1-introOut).toFixed(4));
-        set(part.gazeIntro,'transform',`translateX(-50%) translate3d(0,${(-introOut*h*.04).toFixed(2)}px,0) scale(${(1+introOut*.05).toFixed(4)})`);
-
-        set(part.filmstrip,'opacity',filmVis.toFixed(4));
-        set(part.filmstrip,'transform',`translateX(-50%) translate3d(0,${(-travel).toFixed(2)}px,0) rotate(${(-2.2+phase*3.4).toFixed(2)}deg) scale(${(.96+filmIn*.04).toFixed(4)})`);
-
-        set(part.gazeRing,'opacity',focus.toFixed(4));
-        set(part.gazeRing,'transform',`rotate(${(-10+focus*2).toFixed(2)}deg) scale(${(.92+focus*.08).toFixed(4)})`);
-
-        set(part.gazeReadout,'opacity',read.toFixed(4));
-        set(part.gazeReadout,'transform',`translate3d(0,${((1-read)*18).toFixed(2)}px,0)`);
-        set(part.gazeNote,'opacity',read.toFixed(4));
-
-        if(part.gazeNumber){
-          const milestones=[Math.max(1,Math.round(part.gazeTotal*.25)),Math.max(1,Math.round(part.gazeTotal*.5)),Math.max(1,Math.round(part.gazeTotal*.75)),part.gazeTotal];
-          const idx=Math.min(3,Math.floor(countProgress*4));
-          part.gazeNumber.textContent=String(milestones[idx]||part.gazeTotal||0);
-        }
-      }
-      if(i===2){
-        set(part.globe,'transform',`rotate(${(phase*22).toFixed(2)}deg) scale(${(.96+clamp(1-Math.abs(phase),0,1)*.04).toFixed(4)})`);
-        set(part.reachCopy,'transform',`translate3d(${(-phase*w*.025).toFixed(2)}px,0,0)`);
-        set(part.reachStat,'transform',`translate3d(0,${(phase*h*.035).toFixed(2)}px,0)`);
-      }
-      if(i===3||i===6){
-        const inner=scene.firstElementChild;
-        if(inner){
-          const t=clamp(Math.abs(phase),0,1);
-          set(inner,'transform',`scale(${(1-t*.12).toFixed(4)})`);
-          set(inner,'opacity',clamp(1-t*.78).toFixed(4));
-        }
-      }
-      if(i===4){
-        set(part.workWall,'transform',`translate3d(0,${(-phase*h*.045).toFixed(2)}px,0) rotate(${(-3+phase*5).toFixed(2)}deg)`);
-        part.workCells.forEach((cell,j)=>{
-          const delay=j*.07;
-          const reveal=clamp((phase+.72-delay)/.42,0,1);
-          const exit=clamp((phase-.25-delay)/.55,0,1);
-          const side=j%2?1:-1;
-          set(cell,'transform',`translate3d(${(((1-reveal)*side*w*.05)-(exit*side*w*.035)).toFixed(2)}px,${((1-reveal)*h*.06-exit*h*.025).toFixed(2)}px,0) rotate(${(((1-reveal)*side*5)+(exit*side*3)).toFixed(2)}deg)`);
-          set(cell,'opacity',clamp(reveal*(1-exit*.55)).toFixed(4));
-        });
-      }
-      if(i===5){
-        part.journeyItems.forEach((item,j)=>{
-          const reveal=clamp((phase+.68-j*.14)/.38,0,1);
-          const exit=clamp((phase-.42-j*.07)/.5,0,1);
-          set(item,'opacity',clamp(reveal*(1-exit*.5)).toFixed(4));
-          set(item,'transform',`translate3d(${((1-reveal)*w*.04).toFixed(2)}px,${((1-reveal)*15-exit*8).toFixed(2)}px,0)`);
-        });
-      }
-      if(i===7){
-        set(part.veloriaOrbit,'transform',`rotate(${(phase*15).toFixed(2)}deg) scale(${(.95+clamp(1-Math.abs(phase),0,1)*.05).toFixed(4)})`);
-        part.nodes.forEach((n,j)=>set(n,'transform',`translate3d(${(Math.sin((j+1)*1.2+phase)*phase*w*.012).toFixed(2)}px,${(Math.cos((j+1)*1.4+phase)*phase*h*.01).toFixed(2)}px,0)`));
-      }
-      if(i===8){
-        part.curiosityA.forEach((row,j)=>{
-          const reveal=clamp((phase+.66-j*.11)/.34,0,1);
-          set(row,'opacity',reveal.toFixed(4));
-          set(row,'transform',`translate3d(${((1-reveal)*w*.04).toFixed(2)}px,0,0)`);
-        });
-      }
-      if(i===9){
-        part.creditsRows.forEach((row,j)=>{
-          const reveal=clamp((phase+.82-j*.07)/.28,0,1);
-          set(row,'opacity',reveal.toFixed(4));
-          set(row,'transform',`translate3d(0,${((1-reveal)*12).toFixed(2)}px,0)`);
-        });
-        if(part.signature){
-          const draw=clamp((phase+.58)/.38,0,1);
-          const lime=clamp((phase+.18)/.18,0,1);
-          set(part.signature,'opacity',draw.toFixed(4));
-          set(part.signature,'clipPath',`inset(0 ${((1-draw)*100).toFixed(2)}% 0 0)`);
-          set(part.signature,'transform',`translate(-50%,-50%) translate3d(0,${((1-draw)*10).toFixed(2)}px,0) scale(${(.94+draw*.06).toFixed(4)})`);
-          set(part.signatureLime,'opacity',lime.toFixed(4));
-        }
-      }
+  function measure() {
+    const h = stage.clientHeight, w = stage.clientWidth;
+    geo = { h, w, top: root.getBoundingClientRect().top + scrollY,
+      reelTravel: Math.max(0, parts.strip.scrollHeight - parts.window.clientHeight) };
+    if (enabled) root.style.height = `${h * (total + 1)}px`;
+    globeSize = canvas.clientWidth;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = Math.round(globeSize * dpr); canvas.height = Math.round(globeSize * dpr);
+    ctx?.setTransform(dpr, 0, 0, dpr, 0, 0); globePhase = -1;
+    dirty = false;
+    if (!enabled) drawWorld();
+  }
+  function setActive(i) {
+    if (active === i) return;
+    // Never make the focused subtree inert before returning focus to the timeline.
+    if (scenes.some((s, j) => j !== i && s.contains(document.activeElement))) nav[i].focus({ preventScroll: true });
+    active = i;
+    scenes.forEach((s, j) => { s.classList.toggle('is-current', i === j); s.setAttribute('aria-hidden', String(i !== j)); s.inert = i !== j; });
+    nav.forEach((b, j) => b.setAttribute('aria-pressed', String(i === j)));
+    menuItems.forEach((b, j) => i === j ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+    root.querySelector('[data-film-label]').textContent = `${names[i].toUpperCase()} · SC ${String(i + 1).padStart(2, '0')}`;
+    root.querySelector('[data-scene-status]').textContent = `${String(i + 1).padStart(2, '0')} / ${names[i].toUpperCase()}`;
+  }
+  function reveal(elements, t, spacing = .035) {
+    elements.forEach((el, i) => {
+      const progress = ease(i * spacing, .12 + i * spacing, t);
+      set(el, 'opacity', progress.toFixed(3));
+      set(el, 'transform', `translate3d(0,${((1 - progress) * 24).toFixed(1)}px,0)`);
     });
-
-    if(time){
-      const totalSeconds=p*5.8;
-      const sec=Math.floor(totalSeconds);
-      const frame=Math.floor((totalSeconds-sec)*24);
-      time.textContent=`00:${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}:${String(frame).padStart(2,'0')}`;
+  }
+  function sceneMotion(i, t) {
+    if (i === 0) {
+      const exit = ease(.5, 1, t);
+      set(parts.photo, 'transform', `scale(${(1 + exit * .045).toFixed(4)})`);
+      set(parts.name, 'transform', `translate3d(0,${(-exit * 20).toFixed(1)}px,0)`);
+    } else if (i === 1) {
+      const title = 1 - ease(.18, .29, t), reel = ease(.26, .35, t);
+      set(parts.intro, 'opacity', title.toFixed(3));
+      set(parts.intro, 'transform', `translate3d(0,${((1 - title) * -24).toFixed(1)}px,0)`);
+      set(parts.strip, 'opacity', reel.toFixed(3));
+      const travel = ease(.31, .86, t) * geo.reelTravel;
+      set(parts.strip, 'transform', `translateX(-50%) translate3d(0,${((1 - reel) * 60 - travel).toFixed(1)}px,0)`);
+      set(parts.readout, 'opacity', reel.toFixed(3)); set(parts.note, 'opacity', reel.toFixed(3));
+      const number = parts.total;
+      if (number !== lastNumber) { parts.number.textContent = String(number); lastNumber = number; }
+    } else if (i === 2) drawWorld(t);
+    else if (i === 4) reveal(parts.work, t);
+    else if (i === 5) reveal(parts.jobs, t, .045);
+    else if (i === 8) reveal(parts.answers, t, .04);
+    else if (i === 9) {
+      reveal(parts.credits, t, .03);
+      const draw = ease(.35, .65, t);
+      set(parts.signature, 'clipPath', `inset(0 ${((1 - draw) * 100).toFixed(2)}% 0 0)`);
+      set(parts.signature, 'opacity', draw.toFixed(3));
+      set(parts.lime, 'opacity', ease(.7, .82, t).toFixed(3));
     }
   }
-
-  function frame(now){
-    raf=0;
-    if(!enabled||document.hidden)return;
-    if(dirty||!geo)measure();
-    target=clamp((scrollY-geo.top)/geo.step,0,scenes.length-1);
-    const compact=geo.w<=700;
-    if(compact)value=target;
-    else{
-      const dt=last?Math.min((now-last)/1000,.05):1/60;
-      value+=(target-value)*(1-Math.exp(-dt/.055));
-    }
-    last=now;
-    paint(value);
-    if(!compact&&Math.abs(value-target)>.0003)schedule();else last=0;
+  function paint() {
+    const p = clamp((scrollY - geo.top) / geo.h, 0, total);
+    let i = starts.findLastIndex(start => p >= start);
+    i = Math.max(0, i);
+    const phase = clamp((p - starts[i]) / durations[i]);
+    const incoming = i < scenes.length - 1 ? ease(.86, 1, phase) : 0;
+    setActive(incoming > .5 ? i + 1 : i);
+    scenes.forEach((scene, j) => {
+      set(scene, 'visibility', j === i || (j === i + 1 && incoming > 0) ? 'visible' : 'hidden');
+      set(scene, 'opacity', j === i ? '1' : j === i + 1 ? incoming.toFixed(3) : '0');
+    });
+    sceneMotion(i, phase);
+    if (incoming > 0) sceneMotion(i + 1, 0);
+    const seconds = Math.floor(starts[active] * 4);
+    const stamp = `00:${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}:00`;
+    const time = root.querySelector('[data-film-time]');
+    if (time.textContent !== stamp) time.textContent = stamp;
   }
-  function schedule(){if(!raf&&enabled&&!document.hidden)raf=requestAnimationFrame(frame)}
-  function goTo(i,behavior='smooth'){if(!geo)return;scrollTo({top:geo.top+geo.step*clamp(i,0,scenes.length-1),behavior});schedule()}
-
-  function configure(){
-    enabled=motionAllowed();
-    root.classList.toggle('is-live',enabled);
-    root.classList.toggle('is-static',!enabled);
-    if(enabled){
-      dirty=true;measure();
-      const hashIndex=scenes.findIndex(s=>s.id&&'#'+s.id===location.hash);
-      value=target=hashIndex>=0?hashIndex:clamp((scrollY-geo.top)/geo.step,0,scenes.length-1);
-      if(hashIndex>=0&&!initialized)scrollTo({top:geo.top+geo.step*hashIndex,behavior:'instant'});
-      paint(value);schedule();
-    }else{
-      root.style.removeProperty('height');
-      scenes.forEach(s=>{s.inert=false;s.removeAttribute('aria-hidden');s.style.removeProperty('opacity');s.style.removeProperty('transform');s.style.removeProperty('z-index')});
-    }
-    initialized=true;
+  function frame() { raf = 0; if (!enabled || document.hidden || menu.open) return; if (dirty) measure(); paint(); }
+  function schedule() { if (!raf && enabled && !document.hidden && !menu.open) raf = requestAnimationFrame(frame); }
+  function goTo(i, behavior = 'smooth') {
+    if (!enabled) { scenes[i].scrollIntoView({ behavior: 'instant' }); return; }
+    if (dirty) measure();
+    const phase = i === 9 ? .84 : i === 1 ? .06 : i === 0 ? 0 : .4;
+    scrollTo({ top: geo.top + (starts[i] + durations[i] * phase) * geo.h, behavior });
+    schedule();
   }
-
-  dots.forEach((b,i)=>b.addEventListener('click',()=>goTo(i)));
-  menuButtons.forEach((b,i)=>b.addEventListener('click',()=>{menu?.close();requestAnimationFrame(()=>goTo(i))}));
-  const showMenu=()=>{if(!menu?.open)menu.showModal()};
-  openers.forEach(b=>b.addEventListener('click',showMenu));
-  closer?.addEventListener('click',()=>menu?.close());
-  menu?.addEventListener('click',e=>{if(e.target===menu)menu.close()});
-
-  addEventListener('scroll',schedule,{passive:true});
-  addEventListener('resize',()=>{dirty=true;schedule()},{passive:true});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAnimationFrame(raf);else{last=0;schedule()}});
-  reduced.addEventListener('change',configure);forced.addEventListener('change',configure);
-  new MutationObserver(configure).observe(document.documentElement,{attributes:true,attributeFilter:['data-motion']});
-  placeMotion();
+  const hashScene = () => location.hash === '#contact' ? 9 : scenes.findIndex(s => s.id && '#' + s.id === location.hash);
+  function configure() {
+    const previous = active;
+    enabled = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 600;
+    cancelAnimationFrame(raf); raf = 0;
+    root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
+    cache = new WeakMap();
+    scenes.forEach((s, i) => {
+      s.removeAttribute('style'); s.querySelectorAll('[style]').forEach(el => el.removeAttribute('style'));
+      s.inert = false; s.removeAttribute('aria-hidden');
+      if (enabled) s.style.zIndex = String(i + 1);
+    });
+    if (!enabled) root.style.removeProperty('height');
+    active = -1; dirty = true; measure();
+    if (enabled) {
+      if (!initialized && hashScene() >= 0) goTo(hashScene(), 'instant');
+      else if (initialized && previous >= 0) goTo(previous, 'instant');
+      paint();
+    } else if (initialized && previous >= 0) scenes[previous].scrollIntoView({ behavior: 'instant' });
+    initialized = true;
+  }
+  function closeMenu() {
+    if (!menu.open) return;
+    menu.close(); document.documentElement.style.overflow = savedOverflow;
+    openers.forEach(b => b.setAttribute('aria-expanded', 'false'));
+    opener?.focus({ preventScroll: true }); schedule();
+  }
+  openers.forEach(b => b.addEventListener('click', () => {
+    opener = b; savedOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden'; menu.showModal();
+    openers.forEach(el => el.setAttribute('aria-expanded', 'true'));
+  }));
+  menu.querySelector('[data-close-scenes]').addEventListener('click', closeMenu);
+  menu.addEventListener('cancel', e => { e.preventDefault(); closeMenu(); });
+  menu.addEventListener('click', e => { if (e.target === menu) closeMenu(); });
+  nav.forEach((b, i) => b.addEventListener('click', () => goTo(i)));
+  menuItems.forEach((b, i) => b.addEventListener('click', () => { closeMenu(); goTo(i); }));
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const hash = a.getAttribute('href');
+    const i = hash === '#contact' ? 9 : scenes.findIndex(s => s.id && '#' + s.id === hash);
+    if (i < 0) return;
+    e.preventDefault(); history.replaceState(null, '', hash); goTo(i);
+  }));
+  addEventListener('hashchange', () => { const i = hashScene(); if (i >= 0) goTo(i); });
+  addEventListener('scroll', schedule, { passive: true });
+  addEventListener('resize', () => {
+    const allowed = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 600;
+    if (allowed !== enabled) configure(); else { dirty = true; if (enabled) schedule(); else measure(); }
+  }, { passive: true });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else schedule(); });
+  reduced.addEventListener('change', configure); forced.addEventListener('change', configure);
+  new MutationObserver(configure).observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
+  document.fonts.ready.then(() => { dirty = true; schedule(); });
   configure();
 })();

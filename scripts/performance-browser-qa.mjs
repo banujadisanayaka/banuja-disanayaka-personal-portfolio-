@@ -11,9 +11,10 @@ async function measure(url, label) {
   const context = await browser.newContext({viewport:{width:390,height:844}, isMobile:true, hasTouch:true, deviceScaleFactor:2});
   const page = await context.newPage();
   await page.goto(url, {waitUntil:'networkidle'});
+  const immersive = await page.locator('[data-experience]').count() > 0;
   const scenes = await page.locator('.scene-journey').count() > 0;
-  await page.locator(scenes ? '.scene-journey.is-scrubbed' : '.v10-story.is-cinematic').waitFor();
-  const geometry = scenes ? await page.locator('.scene-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:(el.querySelector('.journey-canvas')||el.querySelector('.journey-stage')).clientHeight*.9,range:4.9})) : await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight,range:1.9}));
+  await page.locator(immersive ? '.experience.is-live' : scenes ? '.scene-journey.is-scrubbed' : '.v10-story.is-cinematic').waitFor();
+  const geometry = immersive ? await page.locator('.experience').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.experience-stage').clientHeight,range:18.5})) : scenes ? await page.locator('.scene-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:(el.querySelector('.journey-canvas')||el.querySelector('.journey-stage')).clientHeight*.9,range:4.9})) : await page.locator('.story-journey').evaluate(el => ({top:el.getBoundingClientRect().top+scrollY,height:el.querySelector('.story-visual').clientHeight,range:1.9}));
   const cdp = await context.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', {rate:4});
   await cdp.send('Performance.enable');
@@ -46,7 +47,7 @@ async function measure(url, label) {
   for (const fraction of [.58,.72,.86,1,1.14,1.28,1.42]) {
     await page.evaluate(({g,f}) => scrollTo({top:g.top+g.height*f,behavior:'instant'}),{g:geometry,f:fraction});
     await page.waitForTimeout(60);
-    positions.push((await page.locator(scenes ? '.journey-stage' : '[data-beat="1"]>div').boundingBox()).y);
+    positions.push((await page.locator(immersive ? '.experience-stage' : scenes ? '.journey-stage' : '[data-beat="1"]>div').boundingBox()).y);
   }
   result.copyDriftPx = +(Math.max(...positions)-Math.min(...positions)).toFixed(2);
   console.log('PERFORMANCE_MEASURED '+JSON.stringify(result));
@@ -56,6 +57,20 @@ async function measure(url, label) {
     assert.ok(result.layouts <= 12, `Scroll triggered ${result.layouts} layouts; budget is 12`);
     assert.ok(result.p95FrameMs <= 34, `p95 scripted frame interval was ${result.p95FrameMs}ms; corrected Stage 2 gate is 34ms`);
     assert.ok(result.framesOver50ms <= 3, `Scroll produced ${result.framesOver50ms} intervals over 50ms; corrected Stage 2 gate is 3`);
+    if(immersive){
+      const bar=await page.locator('.film-bottombar').boundingBox();assert.ok(bar.width<=390,'Timeline fits');
+      await page.getByRole('button',{name:'Credits',exact:true}).click();
+      await page.waitForFunction(()=>document.querySelector('[data-scene="9"]').getAttribute('aria-hidden')==='false');
+      await page.getByRole('button',{name:'Opening',exact:true}).click();
+      await page.waitForFunction(()=>document.querySelector('[data-scene="0"]').getAttribute('aria-hidden')==='false');
+      await page.waitForTimeout(800);
+      assert.equal(await page.locator('.film-scene[aria-hidden=true]:not([inert])').count(),0);
+      const writes=await page.evaluate(()=>new Promise(resolve=>{let n=0;const observer=new MutationObserver(records=>n+=records.length);observer.observe(document.querySelector('.experience'),{subtree:true,attributes:true,childList:true});setTimeout(()=>{observer.disconnect();resolve(n)},300)}));
+      assert.equal(writes,0,'Paused stage stays idle');
+      await page.getByRole('button',{name:'Animation effects',exact:true}).click();
+      await page.locator('.experience.is-static').waitFor();assert.equal(await page.locator('.film-scene[inert]').count(),0);
+      await page.screenshot({path:'qa-artifacts/v10/mobile-story-performance.png'});
+    }else{
     const beforeControls=await page.locator('.journey-controls').boundingBox();
     assert.ok(beforeControls.width<=390,'Story controls fit the mobile viewport');
     await page.getByRole('button',{name:'Scene 6: Contact',exact:true}).click();
@@ -86,6 +101,7 @@ async function measure(url, label) {
     );
     assert.equal(await motionToggle.getAttribute('aria-pressed'),'false','Keyboard toggle reports motion off');
     assert.equal(await page.locator('.journey-panel[aria-hidden="false"]').count(),6);
+    }
   }
   await context.close();
   console.log('PERFORMANCE_RESULT '+JSON.stringify(result));

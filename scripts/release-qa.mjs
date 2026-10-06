@@ -3,11 +3,12 @@ import fs from 'node:fs';
 import {sanitizeContent, publicProjection} from '../server/content-schema.mjs';
 import {withV9Defaults} from '../server/v9-content.mjs';
 const read=p=>fs.readFileSync(p,'utf8');
+const immersive=read('public/index.html').includes('data-experience');
 const defaults=JSON.parse(read('public/content-default.json'));
 assert.equal(defaults.dailyGaze.length,115);
 assert.equal(new Set(defaults.dailyGaze.map(p=>p.id)).size,115);
 const routes=['public/index.html','public/daily-gaze/index.html','public/resume/index.html','public/about/index.html',...['tfc-orders-tracker','class-tracker','second-brain','banu-2','veloria'].map(p=>`public/work/${p}/index.html`)];
-for(const path of routes){const html=read(path);assert.equal((html.match(/<h1[ >]/g)||[]).length,1,path+' has one main heading');assert.match(html,/<main id="main"/);assert.match(html,/rel="canonical"/);assert.match(html,/name="description"/);assert.doesNotMatch(html,/PORTRAIT ASSET SLOT|drive\.google|thumbnail\?id|scanline|<canvas|AI DESIGNER/i);for(const [,url]of html.matchAll(/(?:href|src)="(\/[^"?#]*)"/g)){const target='public'+url;assert.ok(fs.existsSync(target)||url==='/favicon.svg',`${path} links to missing ${url}`)}}
+for(const path of routes){const html=read(path);const markup=immersive&&path==='public/index.html'?html.replace(/<canvas data-world aria-label="Globe showing Sri Lanka and Malaysia"><\/canvas>/,''):html;assert.equal((html.match(/<h1[ >]/g)||[]).length,1,path+' has one main heading');assert.match(html,/<main id="main"/);assert.match(html,/rel="canonical"/);assert.match(html,/name="description"/);assert.doesNotMatch(markup,/PORTRAIT ASSET SLOT|drive\.google|thumbnail\?id|scanline|<canvas|AI DESIGNER/i);for(const [,url]of html.matchAll(/(?:href|src)="(\/[^"?#]*)"/g)){const target='public'+url;assert.ok(fs.existsSync(target)||url==='/favicon.svg',`${path} links to missing ${url}`)}}
 assert.ok(!fs.existsSync('public/review/stage2'),'Prototype review media must stay out of the production publish directory');
 for(const path of routes){
   const html=read(path);
@@ -27,9 +28,11 @@ assert.match(read('public/v9-site.css'),/prefers-reduced-motion/);assert.match(r
 console.log('V9 release QA passed: source links, 115 photographs, metadata, non-destructive migration, visibility and URL boundaries.');
 
 const about=read('public/about/index.html');
-for(const file of ['public/index.html','public/about/index.html','public/resume/index.html']){assert.match(read(file),/Thurston College, Colombo 07/);assert.match(read(file),/2011–2021/);assert.match(read(file),/G.C.E. O\/L/)}
+for(const file of [...(immersive?[]:['public/index.html']),'public/about/index.html','public/resume/index.html']){assert.match(read(file),/Thurston College, Colombo 07/);assert.match(read(file),/2011–2021/);assert.match(read(file),/G.C.E. O\/L/)}
 for(const slug of ['tfc-orders-tracker','class-tracker','second-brain','banu-2','veloria']){const html=read(`public/work/${slug}/index.html`);assert.equal((html.match(/data-panel=/g)||[]).length,4);for(const id of ['context','workflow','experience','architecture','reflection'])assert.ok(html.includes(`id="${id}"`));const words=html.replace(/<[^>]*>/g,' ').split(/\s+/).length;assert.ok(words>900,`${slug} has a substantive case study`)}
 assert.match(about,/Akashna as CEO/);
 assert.match(read('public/v9-motion.js'),/pointercancel/);
 assert.doesNotMatch(read('public/v9-motion.js'),/setInterval|innerHTML|localStorage/);
 console.log('Expanded education, personal story and five complete project narratives passed.');
+
+if(immersive){const html=read('public/index.html');assert.equal((html.match(/data-scene="/g)||[]).length,10);assert.equal((html.match(/class="work-cell /g)||[]).length,5);assert.equal((html.match(/<canvas/g)||[]).length,1);assert.match(html,/href="\/about\/"/);assert.ok(JSON.parse(read('public/assets/data/land-points.json')).length>1000,'Geographic points are available');}
