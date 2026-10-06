@@ -156,7 +156,7 @@
           const lime=clamp((phase+.18)/.18,0,1);
           set(part.signature,'opacity',draw.toFixed(4));
           set(part.signature,'clipPath',`inset(0 ${((1-draw)*100).toFixed(2)}% 0 0)`);
-          set(part.signature,'transform',`translate3d(0,${((1-draw)*12).toFixed(2)}px,0) rotate(${(-35+draw*4).toFixed(2)}deg) scale(${(.92+draw*.08).toFixed(4)})`);
+          set(part.signature,'transform',`translate(-50%,-50%) translate3d(0,${((1-draw)*10).toFixed(2)}px,0) scale(${(.94+draw*.06).toFixed(4)})`);
           set(part.signatureLime,'opacity',lime.toFixed(4));
         }
       }
