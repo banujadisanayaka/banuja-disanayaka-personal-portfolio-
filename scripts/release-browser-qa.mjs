@@ -24,6 +24,25 @@ try{
  for(const [width,height]of sizes){const context=await browser.newContext({viewport:{width,height}});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   for(const path of paths){await openRelease(page,path);assert.equal(await page.locator('h1').count(),1);assert.ok(await page.locator('h1').isVisible());const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(overflow,false,`${path} overflows at ${width}×${height}`);const broken=await page.locator('img').evaluateAll(imgs=>imgs.filter(i=>i.complete&&i.currentSrc&&!i.naturalWidth).map(i=>i.src));assert.deepEqual(broken,[],`Broken images at ${path}`);}
   await openRelease(page,'/');const name=await page.locator('h1').evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,width:el.clientWidth}));assert.ok(name.left>=0&&name.right<=width+1&&name.scroll<=name.width+1,'Name fits');if(width<=700){const menu=page.getByRole('button',{name:/Menu/});await menu.waitFor({state:'visible'});await menu.click();assert.equal(await menu.getAttribute('aria-expanded'),'true');await page.keyboard.press('Escape');assert.equal(await menu.getAttribute('aria-expanded'),'false');}
+  const chapterLauncher=page.getByRole('button',{name:/^Menu/});
+  await chapterLauncher.click();
+  const chapterMenu=page.locator('#chapter-menu');
+  assert.ok(await chapterMenu.isVisible(),'Chapter menu opens');
+  const menuBounds=await chapterMenu.boundingBox();
+  assert.ok(menuBounds.width<=width+1&&menuBounds.height<=height+1,'Chapter menu fits viewport');
+  for(let i=0;i<8;i++){await page.keyboard.press('Tab');assert.ok(await chapterMenu.evaluate(el=>el.contains(document.activeElement)),'Chapter menu traps keyboard focus');}
+  await page.keyboard.press('Escape');
+  assert.equal(await chapterMenu.isVisible(),false);
+  assert.ok(await chapterLauncher.evaluate(el=>el===document.activeElement),'Escape restores the menu trigger');
+  await chapterLauncher.click();
+  await chapterMenu.locator('[data-chapter-select="2"]').click();
+  assert.equal(await chapterMenu.isVisible(),false,'Selecting a chapter closes the menu');
+  if(await page.locator('.scene-journey.is-scrubbed').count()){
+    await page.waitForFunction(()=>document.querySelector('.scene-journey').dataset.activeScene==='2');
+    assert.ok(await page.locator('[data-journey-select="2"]').evaluate(el=>el===document.activeElement),'Chapter selection restores focus to its timeline control');
+  }else{
+    assert.ok(await page.locator('#journey-title-2').evaluate(el=>el===document.activeElement),'Static chapter selection focuses its heading');
+  }
   await page.locator('#about .about-actions').scrollIntoViewIfNeeded();
   const aboutBounds=await page.locator('#about').evaluate(section=>{
     const box=section.getBoundingClientRect(),actions=section.querySelector('.about-actions').getBoundingClientRect();
