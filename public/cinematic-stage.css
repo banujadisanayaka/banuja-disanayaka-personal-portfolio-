@@ -168,6 +168,8 @@
 
 /* Artwork feels placed in a stage, not inside a generic card. */
 .scene-home .is-scrubbed .journey-art{
+  width:440px;
+  height:560px;
   background:transparent;
   border:0;
   box-shadow:none;
@@ -176,6 +178,11 @@
   z-index:5;
   transform-style:preserve-3d;
 }
+.scene-home [data-journey-scene="1"] .journey-art{width:520px;height:590px}
+.scene-home [data-journey-scene="2"] .journey-art{width:500px;height:590px}
+.scene-home [data-journey-scene="3"] .journey-art{width:500px;height:560px}
+.scene-home [data-journey-scene="4"] .journey-art{width:560px;height:610px}
+.scene-home [data-journey-scene="5"] .journey-art{width:420px;height:550px}
 .scene-home .is-scrubbed .journey-art-inner{
   height:100%;
   overflow:visible;
@@ -473,6 +480,15 @@
     left:7%;
     top:13.5%;
     width:86%;
+  }
+  .scene-home .is-scrubbed .journey-art,
+  .scene-home [data-journey-scene="1"] .journey-art,
+  .scene-home [data-journey-scene="2"] .journey-art,
+  .scene-home [data-journey-scene="3"] .journey-art,
+  .scene-home [data-journey-scene="4"] .journey-art,
+  .scene-home [data-journey-scene="5"] .journey-art{
+    width:292px;
+    height:360px;
   }
   .scene-home .is-scrubbed .journey-heading h1,
   .scene-home .is-scrubbed .journey-heading h2{
