@@ -136,7 +136,7 @@
   const chapterMenu=document.querySelector('#chapter-menu');
   const chapterItems=[...document.querySelectorAll('[data-chapter-select]')];
   let dockFrames=[];
-  function updateDock(){const frame=dockFrames[Math.max(0,selected)];if(!dockIndicator||!frame)return;style(dockIndicator,'width',frame.width+'px');style(dockIndicator,'height',frame.height+'px');style(dockIndicator,'transform',`translate3d(${frame.x}px,${frame.y}px,0)`);}
+  function updateDock(){const frame=dockFrames[Math.max(0,selected)];if(!dockIndicator||!frame)return;style(dockIndicator,'height',frame.height+'px');style(dockIndicator,'transform',`translate3d(${frame.x}px,${frame.y}px,0) scaleX(${frame.width})`);}
   function measure(){
     const w=canvas.clientWidth,h=canvas.clientHeight,compact=w<=700;
     geometry={w,h,compact,step:h*.9,top:root.getBoundingClientRect().top+scrollY};

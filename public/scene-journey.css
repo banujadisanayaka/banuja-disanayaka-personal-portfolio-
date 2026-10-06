@@ -548,7 +548,7 @@ html[data-motion=off] .scene-journey *{transition:none!important;animation:none!
 .journey-buttons button::after{display:none}
 .journey-buttons button[aria-pressed=true]{opacity:1;background:transparent;box-shadow:none}
 .journey-buttons button>span:first-child{font-size:11px;color:inherit!important}
-.journey-dock-indicator{background:#e7cc8814;border-radius:0;box-shadow:inset 0 2px #e7cc88}
+.journey-dock-indicator{width:1px;transform-origin:left center;transition:transform .34s cubic-bezier(.22,.8,.24,1);background:#e7cc8814;border-radius:0;box-shadow:inset 0 2px #e7cc88}
 .journey-controls .journey-progress{left:0;right:0;bottom:-3px;height:1px;background:#e7cc881f}
 .journey-controls .journey-progress span{background:currentColor}
 .is-scrubbed[data-active-scene="1"] .journey-buttons,
