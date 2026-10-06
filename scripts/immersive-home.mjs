@@ -86,15 +86,22 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
       </article>
 
       <article class="film-scene credits-shot" data-scene="9" id="credits">
-        <div class="credits-title"><small>CREDITS · SC 10</small><h2>Banuja<br>Disanayaka</h2></div>
-        <div class="credits-list">
-          <div><span>WORK</span><strong>Product · Design · Operations</strong></div>
-          <div><span>PHOTOGRAPHY</span><strong><a href="/daily-gaze/">The Daily Gaze ↗</a></strong></div>
-          <div><span>CLIENT GALLERIES</span><strong><a href="/moments/">Moments ↗</a></strong></div>
-          <div><span>EMAIL</span><strong><a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a></strong></div>
-          <div><span>WHATSAPP</span><strong><a href="https://wa.me/${esc(contact.whatsappSriLanka)}">${esc(contact.whatsappSriLankaDisplay)}</a></strong></div>
+        <div class="credits-roll">
+          <small class="credits-kicker">A BANUJA DISANAYAKA PICTURE</small>
+          <div class="credits-list">
+            <div><span>WORK</span><strong>Product · Design · Operations</strong></div>
+            <div><span>PHOTOGRAPHY</span><strong><a href="/daily-gaze/">The Daily Gaze ↗</a></strong></div>
+            <div><span>CLIENT GALLERIES</span><strong><a href="/moments/">Moments ↗</a></strong></div>
+            <div><span>EMAIL</span><strong><a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a></strong></div>
+            <div><span>WHATSAPP</span><strong><a href="https://wa.me/${esc(contact.whatsappSriLanka)}">${esc(contact.whatsappSriLankaDisplay)}</a></strong></div>
+          </div>
+          <small class="made-in">MADE IN SRI LANKA</small>
+          <div class="signature-stage" aria-label="Banuja handwritten signature">
+            <span class="signature-white" aria-hidden="true"></span>
+            <span class="signature-lime" aria-hidden="true"></span>
+          </div>
+          <small class="credits-copy">© 2026 BANUJA DISANAYAKA</small>
         </div>
-        <div class="signature-mark" aria-label="Banuja handwritten signature"><img src="/assets/signature/banuja-signature.svg" alt="Banuja handwritten signature"></div>
       </article>
 
       <div class="film-bottombar">
