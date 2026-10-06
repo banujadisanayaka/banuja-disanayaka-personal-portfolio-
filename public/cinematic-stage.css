@@ -602,3 +602,94 @@
 @media(prefers-reduced-motion:reduce){
   .scene-home .journey-buttons button::before{transition:none}
 }
+
+
+/* Mobile scene readability polish from device recording. */
+@media(max-width:700px){
+  .scene-home [data-journey-scene="3"] .journey-art{
+    width:326px!important;
+    height:420px!important;
+  }
+  .scene-home [data-journey-scene="3"] .journey-route{
+    padding:20px 17px;
+  }
+  .scene-home [data-journey-scene="3"] .route-label{
+    margin-bottom:19px;
+    font-size:8px;
+    letter-spacing:.13em;
+  }
+  .scene-home [data-journey-scene="3"] .journey-route li{
+    gap:13px;
+    padding-bottom:19px;
+  }
+  .scene-home [data-journey-scene="3"] .route-number{
+    flex-basis:25px;
+    height:25px;
+    font-size:9px;
+  }
+  .scene-home [data-journey-scene="3"] .journey-route strong{
+    font-size:17px;
+    line-height:1.08;
+  }
+  .scene-home [data-journey-scene="3"] .journey-route small,
+  .scene-home [data-journey-scene="3"] .journey-route li div>span{
+    font-size:9px;
+  }
+
+  .scene-home [data-journey-scene="4"] .journey-art{
+    width:340px!important;
+    height:420px!important;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-center{
+    left:25%;
+    right:25%;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-center strong{
+    font-size:21px;
+    letter-spacing:.13em;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-center em{
+    font-size:12px;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-node{
+    min-height:54px;
+    padding:9px 3px;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-node strong{
+    font-size:13px;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-node small{
+    font-size:8px;
+  }
+  .scene-home [data-journey-scene="4"] .constellation-node>span{
+    font-size:8px;
+  }
+
+  .scene-home [data-journey-scene="5"] .journey-art{
+    width:300px!important;
+    height:390px!important;
+  }
+
+  /* On a phone the film line should read as part of the composition, not as an app toolbar. */
+  .scene-home .journey-utility{
+    bottom:49px;
+  }
+  .scene-home .journey-skip{
+    display:none!important;
+  }
+  .scene-home .motion-toggle.in-journey{
+    border:0!important;
+    background:transparent!important;
+    padding:4px 0!important;
+    min-height:28px!important;
+    color:#8d998f!important;
+    box-shadow:none!important;
+    font-size:7px!important;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+  }
+  .scene-home .motion-toggle.in-journey .motion-indicator{
+    width:5px;
+    height:5px;
+  }
+}
