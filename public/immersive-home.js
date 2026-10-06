@@ -28,8 +28,12 @@
     openingName:scene.querySelector('.opening-name'),
     openingMetrics:scene.querySelector('.opening-metrics'),
     filmstrip:scene.querySelector('.filmstrip'),
-    gazeCaption:scene.querySelector('.gaze-caption'),
-    gazeCount:scene.querySelector('.gaze-count'),
+    gazeIntro:scene.querySelector('.gaze-intro'),
+    gazeRing:scene.querySelector('.gaze-focus-ring'),
+    gazeReadout:scene.querySelector('.gaze-readout'),
+    gazeNumber:scene.querySelector('[data-gaze-number]'),
+    gazeTotal:Number((scene.querySelector('.gaze-readout em')?.textContent||'').replace(/\D/g,''))||0,
+    gazeNote:scene.querySelector('.gaze-channel-note'),
     globe:scene.querySelector('.reach-globe'),
     reachCopy:scene.querySelector('.reach-copy'),
     reachStat:scene.querySelector('.reach-stat'),
@@ -98,9 +102,33 @@
         set(part.openingMetrics,'opacity',(1-t*.92).toFixed(4));
       }
       if(i===1){
-        set(part.filmstrip,'transform',`translate3d(0,${(-phase*h*.44).toFixed(2)}px,0) rotate(${(-1.5+phase*4).toFixed(2)}deg)`);
-        set(part.gazeCaption,'transform',`translate3d(0,${(-phase*h*.055).toFixed(2)}px,0)`);
-        set(part.gazeCount,'transform',`translate3d(0,${(phase*h*.035).toFixed(2)}px,0)`);
+        const introOut=smooth(-.58,-.08,phase);
+        const filmIn=smooth(-.48,-.03,phase);
+        const filmOut=smooth(.58,.86,phase);
+        const filmVis=clamp(filmIn*(1-filmOut*.88));
+        const travel=(phase+.08)*h*.52;
+        const focus=smooth(-.16,.06,phase)*(1-smooth(.34,.60,phase));
+        const read=smooth(-.08,.14,phase)*(1-smooth(.58,.84,phase));
+        const countProgress=clamp((phase+.34)/.86,0,1);
+
+        set(part.gazeIntro,'opacity',(1-introOut).toFixed(4));
+        set(part.gazeIntro,'transform',`translateX(-50%) translate3d(0,${(-introOut*h*.04).toFixed(2)}px,0) scale(${(1+introOut*.05).toFixed(4)})`);
+
+        set(part.filmstrip,'opacity',filmVis.toFixed(4));
+        set(part.filmstrip,'transform',`translateX(-50%) translate3d(0,${(-travel).toFixed(2)}px,0) rotate(${(-2.2+phase*3.4).toFixed(2)}deg) scale(${(.96+filmIn*.04).toFixed(4)})`);
+
+        set(part.gazeRing,'opacity',focus.toFixed(4));
+        set(part.gazeRing,'transform',`rotate(${(-10+focus*2).toFixed(2)}deg) scale(${(.92+focus*.08).toFixed(4)})`);
+
+        set(part.gazeReadout,'opacity',read.toFixed(4));
+        set(part.gazeReadout,'transform',`translate3d(0,${((1-read)*18).toFixed(2)}px,0)`);
+        set(part.gazeNote,'opacity',read.toFixed(4));
+
+        if(part.gazeNumber){
+          const milestones=[Math.max(1,Math.round(part.gazeTotal*.25)),Math.max(1,Math.round(part.gazeTotal*.5)),Math.max(1,Math.round(part.gazeTotal*.75)),part.gazeTotal];
+          const idx=Math.min(3,Math.floor(countProgress*4));
+          part.gazeNumber.textContent=String(milestones[idx]||part.gazeTotal||0);
+        }
       }
       if(i===2){
         set(part.globe,'transform',`rotate(${(phase*22).toFixed(2)}deg) scale(${(.96+clamp(1-Math.abs(phase),0,1)*.04).toFixed(4)})`);
