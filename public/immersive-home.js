@@ -216,7 +216,7 @@
       const figures = featured.slice(0,6).map((photo,i) => {
         const figure=document.createElement('figure'), wrap=document.createElement('div'), img=document.createElement('img'), caption=document.createElement('figcaption');
         const variants=(photo.derivatives||[]).filter(d => safe(d.url) && Number(d.width)>0);
-        img.src=safe(variants[0]?.url||photo.preview); img.alt=photo.alt||photo.title||'The Daily Gaze photograph'; img.loading='lazy'; img.decoding='async';
+        img.src=safe(variants[0]?.url||photo.preview); img.alt=photo.alt||photo.title||'The Daily Gaze photograph'; img.width=Number(photo.width)||960; img.height=Number(photo.height)||1200; img.loading='eager'; img.fetchPriority='low'; img.decoding='async';
         if(variants.length){img.srcset=variants.map(d=>`${safe(d.url)} ${Number(d.width)}w`).join(', ');img.sizes='(max-width:700px) 64vw, 33vw';}
         caption.textContent=`${String(i+1).padStart(2,'0')} · ${photo.title||'Moment'}`; wrap.append(img); figure.append(wrap,caption); return figure;
       });

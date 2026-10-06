@@ -12,7 +12,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   const photo = (g,i=0) => {
     const src=g?.derivatives?.[0]?.url||g?.preview||'';
     const set=Array.isArray(g?.derivatives)?g.derivatives.map(d=>`${esc(d.url)} ${d.width}w`).join(', '):'';
-    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 76vw, 36vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" ${i<2?'fetchpriority="high"':'loading="lazy"'} decoding="async">`;
+    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 76vw, 36vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" loading="eager" fetchpriority="low" decoding="async">`;
   };
 
   const sceneNames=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
