@@ -48,7 +48,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   <section class="experience" id="opening" data-experience aria-label="Banuja Disanayaka portfolio experience">
     <div class="experience-stage">
       <div class="experience-topline" aria-hidden="true">
-        <span>PORTFOLIO / 2026</span><span>SAPUGASKANDA · SRI LANKA</span>
+        <span>PORTFOLIO / 2026</span><span>BASED IN SRI LANKA</span>
       </div>
 
       <button class="experience-menu-toggle" type="button" data-open-scenes aria-haspopup="dialog" aria-controls="experience-menu">
