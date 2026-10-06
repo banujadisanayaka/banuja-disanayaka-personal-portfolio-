@@ -308,7 +308,7 @@ body.immersive-home .motion-toggle{
 }
 .world-node span,.world-node strong,.world-node small{display:block}
 .world-node span{color:var(--exp-gold);font-size:7px;letter-spacing:.12em}
-.world-node strong{margin-top:5px;font:400 18px/1 Georgia,serif}
+.world-node strong{margin-top:5px;font:400 18px/1 Georgia,serif;white-space:nowrap}
 .world-node small{margin-top:5px;color:#7b867e;font-size:8px;line-height:1.3}
 .world-node-0{left:1%;top:14%}.world-node-1{right:-1%;top:18%}.world-node-2{left:-6%;top:48%}.world-node-3{right:-5%;top:49%}.world-node-4{left:8%;bottom:8%}.world-node-5{right:7%;bottom:5%}
 .gold-dot{color:var(--exp-gold)}
@@ -435,7 +435,7 @@ body.immersive-home .motion-toggle{
 
   .world-sphere{left:20%;top:22%;width:83vw}
   .sphere-core{width:82px}.sphere-core strong{font-size:34px}.sphere-core span{bottom:15px;font-size:5px}
-  .world-node{width:98px;padding:7px}.world-node span{font-size:5px}.world-node strong{font-size:12px}.world-node small{font-size:5.5px}
+  .world-node{width:98px;padding:7px}.world-node span{font-size:5px}.world-node strong{font-size:11px;white-space:nowrap}.world-node small{font-size:5.5px}
   .world-node-0{left:-8%;top:7%}.world-node-1{right:-8%;top:11%}.world-node-2{left:-18%;top:46%}.world-node-3{right:-18%;top:48%}.world-node-4{left:-5%;bottom:3%}.world-node-5{right:-4%;bottom:0}
 
   .contact-frame{left:24px;top:16%;width:84vw}
