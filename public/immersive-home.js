@@ -13,8 +13,9 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
   const names = nav.map(b => b.getAttribute('aria-label'));
-  // Each chapter has time to tell its story; the reel needs several scroll beats.
-  const durations = [1.6, 3.6, 1.8, .9, 2.3, 2.4, .9, 1.8, 1.4, 1.8];
+  // The opening pair is intentionally brisk: establish identity, run the reel,
+  // then reach the wider story before the experience starts to feel held.
+  const durations = [1.35, 2.9, 1.8, .9, 2.3, 2.4, .9, 1.8, 1.4, 1.8];
   let starts = durations.map((_, i) => durations.slice(0, i).reduce((a, b) => a + b, 0));
   let total = durations.reduce((a, b) => a + b, 0);
   // Lay out every chapter label once. Visibility changes preserve text geometry
