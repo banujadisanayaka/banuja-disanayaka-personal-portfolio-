@@ -171,3 +171,36 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
   backface-visibility:hidden;
   will-change:transform,opacity,clip-path;
 }
+
+
+/* Resilience: if the immersive runtime is unavailable, keep the portfolio readable.
+   The live controller promotes this same markup back into the pinned film experience. */
+.experience:not(.is-live) {
+  height:auto!important;
+}
+.experience:not(.is-live) .experience-stage{
+  position:relative!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+.experience:not(.is-live) .film-topbar,
+.experience:not(.is-live) .film-menu,
+.experience:not(.is-live) .film-bottombar,
+.experience:not(.is-live) .experience-utility,
+.experience:not(.is-live) .signal-rig{
+  display:none!important;
+}
+.experience:not(.is-live) .film-scene{
+  position:relative!important;
+  inset:auto!important;
+  min-height:100svh;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  pointer-events:auto!important;
+  z-index:auto!important;
+}
+.experience:not(.is-live) .film-scene[inert]{
+  pointer-events:auto!important;
+}
