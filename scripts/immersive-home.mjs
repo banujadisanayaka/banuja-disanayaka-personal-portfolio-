@@ -18,14 +18,14 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   const sceneNames=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
 
   return `
-  <a class="experience-skip" href="#credits">Skip cinematic introduction</a>
+  <a class="experience-skip" href="#contact">Skip cinematic introduction</a>
   <section class="experience v3-film" data-experience aria-label="Banuja Disanayaka portfolio film">
     <div class="experience-stage">
       <div class="signal-rig" aria-hidden="true">
         <div class="signal-gate"></div><div class="signal-circle"></div><div class="signal-dot"></div>
         <canvas class="signal-map"></canvas>
       </div>
-      <div class="film-topbar"><span data-film-label>OPENING · SC 01</span><span>COLOMBO / SRI LANKA</span></div>
+      <div class="film-topbar"><span data-film-label>OPENING · SC 01</span><span>BASED IN SRI LANKA</span></div>
       <button class="film-menu" type="button" data-open-scenes aria-haspopup="dialog" aria-controls="experience-menu" aria-expanded="false">SCENES</button>
 
       <article class="film-scene opening-shot is-current" data-scene="0" id="opening">
@@ -100,7 +100,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
         <div class="curiosity-answer"><span>Photography notices.</span><span>Operations reveals friction.</span><span>Design gives it shape.</span><span>Product connects the pieces.</span></div>
       </article>
 
-      <article class="film-scene credits-shot" data-scene="9" id="credits">
+      <article class="film-scene credits-shot" data-scene="9" id="contact">
         <div class="credits-roll">
           <small class="credits-kicker">A BANUJA DISANAYAKA PICTURE</small>
           <div class="credits-list">
@@ -125,7 +125,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
       <div class="film-bottombar">
         <div class="film-status"><span class="film-time" data-film-time aria-hidden="true">00:00:00:00</span><span data-scene-status aria-live="polite">01 / OPENING</span></div>
         <nav class="film-dots" aria-label="Scenes">${sceneNames.map((n,i)=>`<button type="button" data-scene-select="${i}" aria-label="${n}" aria-pressed="${i===0}"><span class="film-nav-index">${String(i+1).padStart(2,'0')}</span><span class="film-nav-title">${n}</span></button>`).join('')}</nav>
-        <div class="film-links"><button type="button" data-open-scenes-mini aria-haspopup="dialog" aria-controls="experience-menu" aria-expanded="false">SCENES</button><a href="/moments/">MOMENTS</a><a href="#credits">CONTACT</a></div>
+        <div class="film-links"><button type="button" data-open-scenes-mini aria-haspopup="dialog" aria-controls="experience-menu" aria-expanded="false">SCENES</button><a href="/moments/">MOMENTS</a><a href="#contact">CONTACT</a></div>
       </div>
       <div class="experience-utility"></div>
     </div>
