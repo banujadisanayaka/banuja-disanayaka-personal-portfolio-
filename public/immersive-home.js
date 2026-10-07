@@ -302,8 +302,8 @@
     const p=clamp((scrollY-geo.top)/geo.h,0,total);
     const i=available.findLast(index=>p>=starts[index])??available[0];
     const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
-    const u=next!==undefined?clamp((phase-.62)/.38):0;
-    setActive(u>.60?next:i);
+    const u=next!==undefined?clamp((phase-.7)/.3):0;
+    setActive(u>.65?next:i);
     // Masked controls must not receive focus while the camera is between scenes.
     if(u>0 && scenes.some(scene=>scene.contains(document.activeElement)))nav[active].focus({preventScroll:true});
     scenes.forEach((scene,j)=>{const inactive=u>0||j!==i;if(scene.inert!==inactive)scene.inert=inactive;});
