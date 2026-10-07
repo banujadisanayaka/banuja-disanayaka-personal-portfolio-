@@ -483,7 +483,7 @@
   addEventListener('resize', () => {
     const allowed = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
     if (allowed !== enabled) configure();
-    else if (!enabled || stage.clientWidth !== geo.w || stage.clientHeight !== geo.h) {
+    else if (!enabled || stage.clientWidth !== geo.w || stage.clientHeight !== geo.h || map.width !== Math.round(geo.w * Math.min(devicePixelRatio || 1, 2))) {
       // Mobile toolbar resizing can leave the small-viewport stage unchanged.
       // In that case retain its canvas buffers and geometry instead of reallocating.
       dirty = true; if (enabled) schedule(); else measure();
