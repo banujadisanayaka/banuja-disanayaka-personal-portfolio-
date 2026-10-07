@@ -388,7 +388,7 @@
     scrollTo({ top: geo.top + (starts[i] + durations[i] * phase) * geo.h, behavior });
     schedule();
   }
-  const hashScene = () => location.hash === '#contact' ? 9 : scenes.findIndex(s => s.id && '#' + s.id === location.hash);
+  const hashScene = () => ['#contact','#credits'].includes(location.hash) ? 9 : scenes.findIndex(s => s.id && '#' + s.id === location.hash);
   function configure() {
     const previous = active;
     enabled = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
@@ -429,7 +429,7 @@
   menuItems.forEach((b, i) => b.addEventListener('click', () => { closeMenu(); goTo(i); }));
   document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
     const hash = a.getAttribute('href');
-    const i = hash === '#contact' ? 9 : scenes.findIndex(s => s.id && '#' + s.id === hash);
+    const i = ['#contact','#credits'].includes(hash) ? 9 : scenes.findIndex(s => s.id && '#' + s.id === hash);
     if (i < 0) return;
     e.preventDefault(); history.replaceState(null, '', hash); goTo(i);
   }));
