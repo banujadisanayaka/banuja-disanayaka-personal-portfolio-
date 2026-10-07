@@ -164,10 +164,10 @@ export const stories = {
 };
 
 export const education = [
-  {title:'Graphic Design',school:'YES College, Malaysia',years:'2023–2026',detail:'Diploma studies that connect visual communication, creative practice and design development.'},
-  {title:'Graphic Design',school:'NSBM',years:'2022–2023',detail:'A foundation in communicating ideas through visual design, supported by the supplied diploma certificate.'},
-  {title:'Software Engineering Foundation',school:'Curtin',years:'2022–2023',detail:'Foundation study in software engineering and information technology, alongside my interest in building digital tools.'},
-  {title:'G.C.E. O/L',school:'Thurston College, Colombo 07',years:'2011–2021',detail:'My school years in Colombo, before moving into graphic design, software foundations and professional work.'}
+  {title:'Diploma in Graphic Designing',school:'YES College, Malaysia',years:'2023–Jun 2026',detail:'Diploma study in visual communication, creative practice and design development.'},
+  {title:'Advanced Diploma in Graphic Designing',school:'NSBM Green University, Sri Lanka',years:'2022–2023',detail:'Advanced study in communicating ideas through visual design, supported by the supplied qualification.'},
+  {title:'Foundation in Software Engineering',school:'Curtin University',years:'2022–2023',detail:'Foundation study in software engineering and information technology, alongside my interest in building digital tools.'},
+  {title:'G.C.E. O/L',school:'Thurstan College, Colombo 07',years:'2011–2021',detail:'My school years in Colombo, before moving into graphic design, software foundations and professional work.'}
 ];
 
 export const perspectives = [
