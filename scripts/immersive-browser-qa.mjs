@@ -6,7 +6,8 @@ const preview=path=>{const url=new URL(path);url.searchParams.set('ntl-drawer-st
 const browser=await chromium.launch();
 await mkdir('qa-artifacts/immersive',{recursive:true});
 const names=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
-const durations=[1.6,3.6,1.8,.9,2.3,2.4,.9,1.8,1.4,1.8];
+const durations=[1.35,2.9,1.8,.9,2.3,2.4,.9,1.8,1.4,1.8];
+const starts=durations.map((_,i)=>durations.slice(0,i).reduce((a,b)=>a+b,0));
 async function fits(page,selector){
  const r=await page.locator(selector).evaluate(el=>{const b=el.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:el.scrollWidth,width:el.clientWidth,viewport:innerWidth,height:innerHeight}});
  assert.ok(r.left>=-1&&r.right<=r.viewport+1&&r.scroll<=r.width+1,`${selector} fits ${JSON.stringify(r)}`);
@@ -34,7 +35,7 @@ try {
   await jump(page,1);assert.ok(Number(await page.locator('.gaze-intro').evaluate(el=>getComputedStyle(el).opacity))>.95);
   const geometry=await page.locator('.experience').evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,h:el.querySelector('.experience-stage').clientHeight}));
   for(const phase of [.4,.6,.84,.6,.4]){
-   await page.evaluate(({g,p})=>scrollTo({top:g.top+g.h*(1.6+3.6*p),behavior:'instant'}),{g:geometry,p:phase});await page.waitForTimeout(80);
+   await page.evaluate(({g,p})=>scrollTo({top:g.top+g.h*p,behavior:'instant'}),{g:geometry,p:starts[1]+durations[1]*phase});await page.waitForTimeout(80);
    assert.ok(Number(await page.locator('.filmstrip').evaluate(el=>getComputedStyle(el).opacity))>.95);
   }
   // Slow boundaries, fast forward and reverse remain opaque and maintain a native pinned stage.
