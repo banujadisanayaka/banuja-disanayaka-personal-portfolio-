@@ -154,3 +154,20 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
 .signature-pen{stroke-dasharray:1;stroke-dashoffset:1}
 .experience:not(.is-live) .signature-pen{stroke-dashoffset:0!important}
 @media(forced-colors:active){.signature-performance{filter:none}.signature-performance image{filter:none}}
+
+/* Keep the few large moving surfaces on compositor-friendly layers. Avoid
+   promoting every child card/node so mobile GPU memory stays bounded. */
+.is-live .opening-photo,
+.is-live .opening-name,
+.is-live .gaze-intro,
+.is-live .gaze-reel-window,
+.is-live .filmstrip,
+.is-live .reach-globe,
+.is-live .work-wall,
+.is-live .journey-list,
+.is-live .veloria-orbit,
+.is-live .signature-stage,
+.is-live .signal-rig{
+  backface-visibility:hidden;
+  will-change:transform,opacity,clip-path;
+}
