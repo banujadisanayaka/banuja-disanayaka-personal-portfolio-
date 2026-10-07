@@ -39,13 +39,20 @@
     host.replaceChildren(...labels); return labels;
   });
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
-  const ease = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
+  const ease = (a, b, v) => {
+    const t = clamp((v - a) / (b - a));
+    return t*t*t*(t*(t*6-15)+10);
+  };
   let available = scenes.map((_,i) => i);
   let enabled = false, initialized = false, active = -1, raf = 0, dirty = true, geo;
   let opener, savedOverflow = '', lastNumber = -1;
   let cache = new WeakMap(), pendingStyles = null;
-  // Camera moves settle with zero velocity and acceleration at both ends.
-  const cameraEase = v => { const t = clamp(v); return t*t*t*(t*(t*6-15)+10); };
+  // Camera handoffs use a C3-continuous curve: velocity, acceleration and jerk
+  // all settle to zero at both ends, so direction changes feel less mechanical.
+  const cameraEase = v => {
+    const t = clamp(v);
+    return t*t*t*t*(35 + t*(-84 + t*(70 - 20*t)));
+  };
   function set(el, key, value) {
     if (!el) return;
     // Compose the base pose and transition before touching live styles. Each
@@ -86,7 +93,7 @@
   const depthBuckets = Array.from({length:24},()=>[]);
   function drawWorld(phase = .4) {
     if (!ctx || !globeSize) return;
-    phase = Math.round(phase * 160) / 160;
+    phase = Math.round(phase * 240) / 240;
     if (phase === globePhase) return;
     globePhase = phase;
     const size = globeSize, r = size * .46, center = size / 2;
@@ -272,18 +279,18 @@
     copy[i].forEach(el=>{
       // The title already left before the film reel. Preserve its hidden mask.
       if(i===1 && el===parts.intro)return;
-      const out=ease(0,.24,u);
+      const out=cameraEase(clamp(u/.34));
       set(el,'clipPath',`inset(0 0 ${f(out*100)}% 0)`);
       set(el,'transform',`translate3d(0,${f(-out*geo.h*.14)}px,0)`);
     });
     copy[next].forEach(el=>{
-      const enter=ease(.08,1,u);
+      const enter=cameraEase(clamp((u-.04)/.96));
       set(el,'clipPath','none');
       set(el,'transform',`translate3d(0,${f((1-enter)*geo.h*.08)}px,0) scale(${f(.38+.62*enter)})`);
     });
     if(i===0)set(parts.photo,'transform',`translate3d(${f(-camera*geo.w*.13)}px,${f(camera*geo.h*.07)}px,0) scale(${f(1.04+camera*.55)})`);
-    if(i===1){set(parts.strip,'transform',`translateX(-50%) translate3d(${f(camera*geo.w*.1)}px,${f(-geo.reelTravel-camera*geo.h*.55)}px,0) scale(${f(1+camera*.3)})`);}
-    if(i===2)set(parts.globe,'transform',`translate3d(${f(-camera*geo.w*.12)}px,0,0) scale(${f(1+camera*.4)}) rotate(${f(camera*32)}deg)`);
+    if(i===1){set(parts.strip,'transform',`translateX(-50%) translate3d(${f(camera*geo.w*.075)}px,${f(-geo.reelTravel-camera*geo.h*.46)}px,0) scale(${f(1+camera*.22)})`);}
+    if(i===2)set(parts.globe,'transform',`translate3d(${f(-camera*geo.w*.09)}px,0,0) scale(${f(1+camera*.32)}) rotate(${f(camera*26)}deg)`);
     if(next===2)set(parts.globe,'transform',`scale(${f(.35+.65*ease(.1,1,u))}) rotate(${f(mix(-30,-12,camera))}deg)`);
     if(next===4)parts.work.forEach((el,j)=>{const e=ease(.2+j*.04,1,u);set(el,'transform',`translate3d(${f((j-2)*(1-e)*geo.w*.14)}px,${f((1-e)*geo.h*.45)}px,${f((1-e)*-500)}px) rotateY(${f((1-e)*(j%2?25:-25))}deg)`);});
     if(i===4)parts.work.forEach((el,j)=>set(el,'transform',`translate3d(${f((j-2)*camera*geo.w*.28)}px,${f(-(j%2?12:-12)-camera*geo.h*(.2+j*.07))}px,${f(camera*360)}px) rotateY(${f((j-2)*camera*12)}deg)`));
@@ -295,8 +302,8 @@
     const p=clamp((scrollY-geo.top)/geo.h,0,total);
     const i=available.findLast(index=>p>=starts[index])??available[0];
     const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
-    const u=next!==undefined?clamp((phase-.7)/.3):0;
-    setActive(u>.65?next:i);
+    const u=next!==undefined?clamp((phase-.62)/.38):0;
+    setActive(u>.60?next:i);
     // Masked controls must not receive focus while the camera is between scenes.
     if(u>0 && scenes.some(scene=>scene.contains(document.activeElement)))nav[active].focus({preventScroll:true});
     scenes.forEach((scene,j)=>{const inactive=u>0||j!==i;if(scene.inert!==inactive)scene.inert=inactive;});
@@ -310,7 +317,7 @@
       set(scene,'visibility',visible?'visible':'hidden');set(scene,'opacity','1');
       let clip='inset(0 0 0 0)';
       if(j===next&&u>0){
-        const aperture=ease(.05,.8,u),a=anchor(i,phase),b=anchor(next,0);
+        const aperture=cameraEase(clamp((u-.02)/.86)),a=anchor(i,phase),b=anchor(next,0);
         if(next===2)clip=`circle(${f(aperture*Math.hypot(geo.w,geo.h))}px at ${f(b.x)}px ${f(b.y)}px)`;
         else {const cx=mix(a.x,geo.w/2,aperture),half=geo.w*.55*aperture;clip=`inset(0 ${f(Math.max(0,geo.w-cx-half))}px 0 ${f(Math.max(0,cx-half))}px)`;}
       }
