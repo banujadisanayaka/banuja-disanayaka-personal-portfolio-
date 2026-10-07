@@ -22,6 +22,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]){
   assert.equal(await page.locator('.signal-rig').count(),1,'One persistent rig');
   const rootOpacities=await page.locator('.film-scene').evaluateAll(els=>els.filter(el=>getComputedStyle(el).visibility==='visible').map(el=>getComputedStyle(el).opacity));
   assert.ok(rootOpacities.every(v=>v==='1'),'No crossfade ghosting');
+  assert.equal(await page.locator('.film-scene:not([inert])').count(),0,'Masked scene controls cannot receive focus');
   await page.screenshot({path:`${dir}/${viewport.width}-boundary-${i+1}-midpoint.png`});
   await seek(starts[i+1]+durations[i+1]*.1);await seek(midpoint);
   assert.deepEqual(await state(),before,`Boundary ${i+1} reconstructs exactly in reverse`);

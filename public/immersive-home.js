@@ -70,7 +70,6 @@
   const copy = scenes.map(scene => [...scene.children].filter(el => !el.matches('.opening-photo,.gaze-reel-window,.reach-globe,.work-wall,.journey-list,.veloria-orbit')));
   const mix = (a,b,t) => a+(b-a)*t;
   const f = v => Number(v).toFixed(3);
-  function attr(el,key,value) { if(el.getAttribute(key)!==value) el.setAttribute(key,value); }
   const canvas = q(2, '[data-world]'), ctx = canvas.getContext('2d');
   let land = [], globeSize = 0, globePhase = -1;
   function drawWorld(phase = .4) {
@@ -194,13 +193,13 @@
     const filmX=strip.x-strip.w/2, globeX=globe.x+globe.w/2, globeY=globe.y+globe.w/2;
     const base={x:w*.06,y:h*.55,r:3,gx:w*.06,gy:h*.15,gw:1,gh:h*.57,round:0};
     if(i===0)return {...base,...portrait,gx:portrait.x-28,gy:portrait.y-28,gw:56,gh:56,round:0};
-    if(i===1){const u=ease(.23,.34,t);return {...base,x:mix(w*.5,filmX,u),y:h*.48,gx:mix(w*.06,filmX,u),gy:mix(h*.25,geo.film.y,u),gw:mix(w*.88,strip.w,u),gh:mix(h*.4,geo.film.h,u)};}
+    if(i===1){const u=ease(.23,.34,t);return {...base,x:mix(w*.5,filmX,u),y:mix(h*.68,h*.48,u),gx:mix(w*.06,filmX,u),gy:mix(h*.25,geo.film.y,u),gw:mix(w*.88,strip.w,u),gh:mix(h*.4,geo.film.h,u)};}
     if(i===2)return {...base,x:globeX,y:globeY,r:globe.w*.46,gx:globeX-globe.w*.46,gy:globeY-globe.w*.46,gw:globe.w*.92,gh:globe.w*.92,round:50};
-    if(i===3||i===6)return {...base,x:w*.5,y:h*.46,gx:w*.075,gy:h*.32,gw:w*.85,gh:h*.28};
-    if(i===4)return {...base,x:w*.06,y:h*.29,gx:w*.06,gy:h*.29,gw:w*.88,gh:1};
+    if(i===3||i===6)return {...base,x:w*.5,y:h*.68,gx:w*.075,gy:h*.28,gw:w*.85,gh:h*.36};
+    if(i===4)return {...base,x:w*.06,y:h*.1,gx:w*.06,gy:h*.1,gw:w*.88,gh:1};
     if(i===5){const points=geo.jobs;if(!points.length)return base;const position=ease(0,.65,t)*(points.length-1),index=Math.min(points.length-2,Math.floor(position)),u=position-index;const a=points[Math.max(index,0)],b=points[Math.max(index+1,0)];return {...base,x:mix(a.x,b.x,u),y:mix(a.y,b.y,u),gx:a.x,gy:points[0].y,gw:1,gh:Math.max(1,points.at(-1).y-points[0].y)};}
     if(i===7)return {...base,x:w*(w<701?.5:.48),y:h*(w<701?.37:.49),gx:w*(w<701?.5:.48),gy:h*.25,gw:1,gh:h*.45};
-    if(i===8)return {...base,x:w*(w<701?.06:.58),y:h*.52,gx:w*(w<701?.06:.58),gy:h*.25,gw:1,gh:h*.44};
+    if(i===8)return {...base,x:w*(w<701?.035:.58),y:h*.52,gx:w*(w<701?.035:.58),gy:h*.25,gw:1,gh:h*.44};
     const sig=geo.signature;return {...base,x:sig.x+sig.w*.13,y:sig.y+sig.h*.65,gx:sig.x+sig.w*.13,gy:sig.y+sig.h*.65,gw:1,gh:1};
   }
   function drawRig(i,t,next,u) {
@@ -209,10 +208,10 @@
     set(gate,'transform',`translate3d(${f(s.gx)}px,${f(s.gy)}px,0) scale(${f(Math.max(1,s.gw)/200)},${f(Math.max(1,s.gh)/200)})`);
     set(gate,'borderRadius',`${f(s.round)}%`);
     set(circle,'transform',`translate3d(${f(s.x-s.r)}px,${f(s.y-s.r)}px,0) scale(${f(s.r/100)})`);
-    set(circle,'opacity',f(i===9?1-ease(.25,.4,t):1));
+    set(circle,'opacity',f(i===9?1-ease(.25,.4,t):i===0?ease(.2,.55,t):1));
     set(dot,'transform',`translate3d(${f(s.x)}px,${f(s.y)}px,0)`);
-    set(dot,'opacity',f(i===9?1-ease(.32,.45,t):1));
-    set(gate,'opacity',f(i===9?1-ease(.2,.32,t):.55));
+    set(dot,'opacity',f(i===9?1-ease(.32,.45,t):i===0?ease(.2,.55,t):1));
+    set(gate,'opacity',f(i===9?1-ease(.2,.32,t):i===0?.55*ease(.2,.55,t):.55));
     // Paint the path in one fixed-size canvas. SVG dash/transform mutations used
     // to invalidate layout on every path update under mobile throttling.
     if(!mapCtx)return;
@@ -269,6 +268,9 @@
     const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
     const u=next!==undefined?clamp((phase-.7)/.3):0;
     setActive(u>.65?next:i);
+    // Masked controls must not receive focus while the camera is between scenes.
+    if(u>0 && scenes.some(scene=>scene.contains(document.activeElement)))nav[active].focus({preventScroll:true});
+    scenes.forEach((scene,j)=>{const inactive=u>0||j!==i;if(scene.inert!==inactive)scene.inert=inactive;});
     // Reset both participants from timeline state on every paint: reverse/seek is exact.
     for(const j of [i,...(u>0?[next]:[])]){
       copy[j].forEach(el=>{set(el,'clipPath','none');set(el,'transform','none');});

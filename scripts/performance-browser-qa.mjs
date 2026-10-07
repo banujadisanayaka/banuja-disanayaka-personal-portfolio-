@@ -52,6 +52,17 @@ async function measure(url, label) {
   }
   result.copyDriftPx = +(Math.max(...positions)-Math.min(...positions)).toFixed(2);
   console.log('PERFORMANCE_MEASURED '+JSON.stringify(result));
+  if(label==='candidate' && result.layouts>12){
+    const details=[];let last=(await cdp.send('Performance.getMetrics')).metrics.find(m=>m.name==='LayoutCount').value;
+    for(let n=0;n<120;n++){
+      const p=.05+geometry.range*n/119;
+      await page.evaluate(({g,p})=>new Promise(resolve=>{scrollTo({top:g.top+g.height*p,behavior:'instant'});requestAnimationFrame(()=>requestAnimationFrame(resolve));}),{g:geometry,p});
+      const count=(await cdp.send('Performance.getMetrics')).metrics.find(m=>m.name==='LayoutCount').value;
+      if(count>last)details.push({p:+p.toFixed(3),layouts:count-last,scene:await page.locator('.film-scene.is-current').getAttribute('data-scene')});
+      last=count;
+    }
+    console.log('LAYOUT_DIAGNOSTIC '+JSON.stringify(details));
+  }
   if (label === 'candidate') {
     assert.ok(result.copyDriftPx <= 1, `Story copy moved ${result.copyDriftPx}px during native scroll`);
     assert.ok(result.styleMs <= 500, `Scroll spent ${result.styleMs}ms recalculating styles; budget is 500ms at 4× CPU slowdown`);
