@@ -19,6 +19,13 @@ try {
   const context=await browser.newContext({viewport}); const page=await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(preview(base+'/'),{waitUntil:'networkidle'}); await page.locator('.experience.is-live').waitFor();
   assert.equal(await page.locator('h1').count(),1);await fits(page,'h1');await fits(page,'.film-bottombar');
+  if(viewport.width>700){
+   const clearance=await page.locator('.film-topbar>span:last-child').evaluate(el=>{
+    const text=document.createRange();text.selectNodeContents(el);
+    return document.querySelector('.motion-toggle').getBoundingClientRect().left-text.getBoundingClientRect().right;
+   });
+   assert.ok(clearance>=16,'Location label clears the motion control');
+  }
   assert.equal(await page.locator('.chapter-scene').count(),0,'One animation owner');
   const titleBottom=(await page.locator('h1').boundingBox()).y+(await page.locator('h1').boundingBox()).height;assert.ok(titleBottom<(await page.locator('.opening-copy').boundingBox()).y,'Opening copy never overlaps the name');
   for(let i=0;i<names.length;i++){
@@ -52,6 +59,10 @@ try {
   await page.keyboard.press('Escape');assert.equal(await menu.getAttribute('aria-expanded'),'false');assert.ok(await menu.evaluate(el=>el===document.activeElement));assert.equal(await page.locator('html').evaluate(el=>el.style.overflow),'');
   await menu.click();await page.locator('[data-menu-scene="5"]').click();await page.waitForFunction(()=>document.querySelector('[data-scene="5"]').getAttribute('aria-hidden')==='false');
   await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();assert.equal(await page.locator('.film-scene[inert]').count(),0);
+  assert.ok(await page.locator('.motion-toggle').isVisible(),'Motion can be re-enabled from the readable document');
+  await page.locator('.motion-toggle').click();await page.locator('.experience.is-live').waitFor();
+  assert.equal(await page.locator('.motion-toggle').getAttribute('aria-pressed'),'true');
+  await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();
   await page.goto(preview(base+'/about/'),{waitUntil:'networkidle'});assert.equal(await page.locator('html').getAttribute('data-motion'),'off');
   await page.locator('[data-explorer]').getByRole('button',{name:/The observer/}).click();assert.ok(await page.locator('#perspective-photography').isVisible());
   assert.deepEqual(errors,[]);await context.close();console.log(`Immersive scenes, links, reversals, focus and persistent motion passed ${viewport.width}x${viewport.height}`);

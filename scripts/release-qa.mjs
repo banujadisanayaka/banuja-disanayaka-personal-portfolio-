@@ -5,6 +5,13 @@ import {withV9Defaults} from '../server/v9-content.mjs';
 const read=p=>fs.readFileSync(p,'utf8');
 const immersive=read('public/index.html').includes('data-experience');
 const defaults=JSON.parse(read('public/content-default.json'));
+assert.equal(defaults.career.length,6,'All six confirmed roles are retained');
+assert.deepEqual(defaults.career[0],{year:'Sep 2026 — Present',title:'Payment Processing Officer',company:'Port City BPO PVT LTD'});
+for(const path of ['public/index.html','public/about/index.html','public/resume/index.html']){
+  const html=read(path);
+  for(const text of ['Payment Processing Officer','Port City BPO PVT LTD','Sep 2026','The Food Company'])assert.ok(html.includes(text),path+' retains '+text);
+  assert.doesNotMatch(html,/Sudu Araliya/i,'Excluded employer stays excluded');
+}
 assert.equal(defaults.dailyGaze.length,115);
 assert.equal(new Set(defaults.dailyGaze.map(p=>p.id)).size,115);
 const routes=['public/index.html','public/daily-gaze/index.html','public/resume/index.html','public/about/index.html',...['tfc-orders-tracker','class-tracker','second-brain','banu-2','veloria'].map(p=>`public/work/${p}/index.html`)];

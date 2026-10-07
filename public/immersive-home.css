@@ -76,7 +76,7 @@ body.immersive-home{--film-bg:#060807;--film-ink:#f0ece1;--film-muted:#a7ada5;--
 .film-dots button::before{content:'';position:absolute;top:-1px;left:0;right:0;height:2px;background:var(--film-accent);transform:scaleX(0);transform-origin:left}
 .film-dots button[aria-pressed=true]{color:var(--film-accent)}.film-dots button[aria-pressed=true]::before{transform:scaleX(1)}.film-nav-index{display:block;font-size:8px}
 .film-links{display:flex;gap:24px;align-items:center;grid-row:1;grid-column:2}.film-links a,.film-links button{display:flex;align-items:center;min-height:30px;border:0;background:transparent;color:var(--film-ink);font:10px/1 ui-monospace,monospace;text-decoration:none;letter-spacing:.09em;cursor:pointer}
-.experience-utility{position:absolute;right:5%;top:14px;z-index:100}.film-topbar>span:last-child{padding-right:118px}
+.experience-utility{position:absolute;right:5%;top:14px;z-index:100}.film-topbar>span:last-child{padding-right:168px}
 body.immersive-home .motion-toggle{position:static!important;border:1px solid var(--film-line);background:var(--film-bg);color:var(--film-muted);font:9px/1 ui-monospace,monospace;min-height:34px;padding:8px 10px;border-radius:0}
 .experience-menu{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;overflow:auto;background:var(--film-bg);color:var(--film-ink)}.experience-menu::backdrop{background:var(--film-bg)}
 .experience-menu-inner{padding:26px 6% 50px}.menu-meta{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--film-line);padding-bottom:18px;font:11px/1.5 ui-monospace,monospace;letter-spacing:.1em;color:var(--film-muted)}.menu-meta button{min-height:44px;padding:10px;border:0;background:none;color:var(--film-ink);font:inherit;cursor:pointer}
@@ -187,8 +187,10 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
 .experience:not(.is-live) .film-topbar,
 .experience:not(.is-live) .film-menu,
 .experience:not(.is-live) .film-bottombar,
-.experience:not(.is-live) .experience-utility,
 .experience:not(.is-live) .signal-rig{
+  display:none!important;
+}
+.experience:not(.is-live):not(.is-static) .experience-utility{
   display:none!important;
 }
 .experience:not(.is-live) .film-scene{
