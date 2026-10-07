@@ -13,12 +13,17 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]){
  const url=new URL(base);url.searchParams.set('ntl-drawer-state','hidden');await page.goto(url.href,{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);await page.locator('.experience.is-live').waitFor();
  const g=await page.locator('.experience').evaluate(el=>({top:el.getBoundingClientRect().top+scrollY,h:el.querySelector('.experience-stage').clientHeight}));
  const seek=async(p)=>{
+   const started=Date.now();
    const actual=await page.evaluate(({g,p})=>new Promise(resolve=>{
      scrollTo({top:g.top+p*g.h,behavior:'instant'});
-     // Wait for scroll dispatch, the controller's rAF, and the committed frame.
-     requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(scrollY))));
+     // Native scroll lands immediately; the visual camera then settles independently.
+     requestAnimationFrame(()=>resolve(scrollY));
    }),{g,p});
    assert.ok(Math.abs(actual-(g.top+p*g.h))<1.1,`Native scroll reaches requested position: ${actual} vs ${g.top+p*g.h}`);
+   await page.waitForFunction(()=>document.querySelector('.experience')?._cameraState?.settled===true,null,{timeout:900});
+   const state=await page.locator('.experience').evaluate(el=>el._cameraState);
+   assert.ok(Math.abs(state.target-state.visual)<.0004,'Smoothed camera settles exactly on native scroll');
+   assert.ok(Date.now()-started<900,'Camera settling stays responsive');
  };
  const state=()=>page.locator('.experience').evaluate(el=>[...el.querySelectorAll('.film-scene,.film-scene [style],.signal-rig [style]')].filter(el=>!el.closest('.film-scene')||getComputedStyle(el.closest('.film-scene')).visibility==='visible').map(el=>({tag:el.className?.baseVal??el.className,style:el.getAttribute('style')})));
  // Regression probes from the phone recording: no title resurrection over the
