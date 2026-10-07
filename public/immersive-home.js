@@ -50,6 +50,7 @@
   // Visual progress follows native scroll through a very short critically-damped
   // camera. This removes uneven mobile scroll stepping without intercepting input.
   let cameraP = 0, cameraV = 0, cameraReady = false, cameraLast = 0;
+  let cameraTargetPrev = 0, cameraTargetDir = 0;
   root._cameraState = { target: 0, visual: 0, velocity: 0, settled: true };
   // Camera handoffs use a C3-continuous curve: velocity, acceleration and jerk
   // all settle to zero at both ends, so direction changes feel less mechanical.
@@ -306,24 +307,35 @@
     const target = rawProgress();
     if (!cameraReady) {
       cameraP = target; cameraV = 0; cameraReady = true; cameraLast = now;
+      cameraTargetPrev = target; cameraTargetDir = 0;
       Object.assign(root._cameraState,{target,visual:cameraP,velocity:cameraV,settled:true});
       return true;
     }
     const dt = clamp((now-cameraLast)/1000 || 1/60, 1/240, .028);
     cameraLast = now;
+    const targetStep = target-cameraTargetPrev;
+    const targetDir = Math.abs(targetStep) > .00004 ? Math.sign(targetStep) : 0;
+    // Kill inherited velocity as soon as the user's direction changes. This avoids
+    // the tiny rubber-band overshoot that can otherwise appear on fast reversals.
+    if (targetDir && cameraTargetDir && targetDir !== cameraTargetDir) cameraV = 0;
+    if (targetDir) cameraTargetDir = targetDir;
+    cameraTargetPrev = target;
+
     const delta = cameraP-target;
     // A large programmatic seek should land immediately. Human swipes remain well
     // below this per-frame distance and still receive smoothing.
     if (Math.abs(delta) > .9) {
       cameraP = target; cameraV = 0;
     } else {
-      const omega = geo.w <= 700 ? 40 : 34;
+      const targetSpeed = Math.abs(targetStep)/Math.max(dt,1/240);
+      const urgency = clamp(targetSpeed/5);
+      const omega = geo.w <= 700 ? mix(46,56,urgency) : mix(38,46,urgency);
       const decay = Math.exp(-omega*dt);
       const temp = (cameraV + omega*delta)*dt;
       cameraP = target + (delta + temp)*decay;
       cameraV = (cameraV - omega*temp)*decay;
     }
-    const settled = Math.abs(cameraP-target) < .00028 && Math.abs(cameraV) < .003;
+    const settled = Math.abs(cameraP-target) < .00045 && Math.abs(cameraV) < .006;
     if (settled) { cameraP = target; cameraV = 0; }
     Object.assign(root._cameraState,{target,visual:cameraP,velocity:cameraV,settled});
     return settled;
@@ -371,7 +383,7 @@
     if (!enabled) { scenes[i].scrollIntoView({ behavior: 'instant' }); return; }
     if (dirty) measure();
     const phase = i === 9 ? .84 : i === 1 ? .06 : i === 0 ? 0 : .4;
-    if (behavior === 'instant') cameraReady = false;
+    if (behavior === 'instant') { cameraReady = false; cameraTargetDir = 0; }
     scrollTo({ top: geo.top + (starts[i] + durations[i] * phase) * geo.h, behavior });
     schedule();
   }
@@ -467,7 +479,7 @@
   }, { passive: true });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { cancelAnimationFrame(raf); raf = 0; cameraLast = 0; }
-    else { cameraReady = false; schedule(); }
+    else { cameraReady = false; cameraTargetDir = 0; schedule(); }
   });
   reduced.addEventListener('change', configure); forced.addEventListener('change', configure);
   new MutationObserver(configure).observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
