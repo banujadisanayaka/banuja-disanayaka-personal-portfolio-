@@ -122,7 +122,7 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
 .work-cell .project-book .book{height:100%;position:absolute;inset:0}.work-cell .cover-title{font-size:clamp(14px,2vw,29px)}.work-cell .cover-top{font-size:5px;letter-spacing:.03em;padding-bottom:6px}.work-cell .cover-bottom{font-size:8px;padding-top:6px}.work-cell .cover-bottom small{font-size:5px;letter-spacing:0}.work-cell .project-book{flex-shrink:0}
 @media(max-width:700px){.work-cell .cover-title{font-size:15px;letter-spacing:-.6px}.work-cell .cover-top{font-size:3px;padding-bottom:4px}.work-cell .cover-bottom{font-size:5px;padding-top:4px}.work-cell .cover-bottom small{font-size:3px}.work-cell .project-book{max-width:98px}}
 .work-cell .inside-page,.work-cell .page-fan{display:none}
-.credits-more{display:flex;justify-content:center;gap:24px;margin-top:18px}.credits-more a{color:var(--film-muted);font:10px/1.5 ui-monospace,monospace;text-decoration:none;min-height:30px;padding:6px 0}
+.credits-more{display:flex;justify-content:center;gap:6px 24px;flex-wrap:wrap;margin-top:18px}.credits-more a{color:var(--film-muted);font:10px/1.5 ui-monospace,monospace;text-decoration:none;min-height:30px;padding:6px 0}
 @media(max-width:700px) and (max-height:760px){
  .opening-name{bottom:calc(var(--rail) + 170px)}.opening-copy b{font-size:18px}
  .journey-list{top:34%}.journey-list li{padding:9px 0;flex:1 0 auto}.journey-list strong{font-size:16px;margin:3px 0}.journey-list span{display:block;line-height:1.2}.journey-list small{line-height:1.2}
