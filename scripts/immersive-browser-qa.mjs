@@ -29,6 +29,8 @@ try {
    await page.screenshot({path:`qa-artifacts/immersive/${viewport.width}-scene-${i+1}.png`});
   }
   assert.equal(await page.locator('.journey-list li').count(),5);
+  assert.equal(await page.locator('.credits-more a[href*="linkedin.com"]').count(),1);
+  assert.equal(await page.locator('.credits-more a[href*="github.com"]').count(),1);
   assert.equal(await page.locator('.work-cell').count(),5);
   for(const href of await page.locator('.work-cell').evaluateAll(els=>els.map(el=>el.getAttribute('href'))))assert.ok((await page.request.get(base+href)).ok(),href);
   // The intro must remain readable, then all six real photographs traverse the viewport.
