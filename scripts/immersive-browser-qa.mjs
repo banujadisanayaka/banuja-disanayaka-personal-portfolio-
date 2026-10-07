@@ -28,7 +28,7 @@ try {
    const bounds=await fits(page,selector);const rail=await page.locator('.film-bottombar').boundingBox();assert.ok(bounds.bottom<=rail.y+1,`${selector} clears controls`);
    await page.screenshot({path:`qa-artifacts/immersive/${viewport.width}-scene-${i+1}.png`});
   }
-  assert.equal(await page.locator('.journey-list li').count(),5);
+  assert.equal(await page.locator('.journey-list li').count(),6);
   assert.equal(await page.locator('.credits-more a[href*="linkedin.com"]').count(),1);
   assert.equal(await page.locator('.credits-more a[href*="github.com"]').count(),1);
   assert.equal(await page.locator('.work-cell').count(),5);
