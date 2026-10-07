@@ -12,7 +12,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   const photo = (g,i=0) => {
     const src=g?.derivatives?.[0]?.url||g?.preview||'';
     const set=Array.isArray(g?.derivatives)?g.derivatives.map(d=>`${esc(d.url)} ${d.width}w`).join(', '):'';
-    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 76vw, 36vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" loading="eager" fetchpriority="low" decoding="async">`;
+    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 76vw, 36vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" ${i<2?'loading="eager"':'loading="lazy"'} fetchpriority="low" decoding="async">`;
   };
 
   const sceneNames=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
@@ -31,11 +31,11 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
       <article class="film-scene opening-shot is-current" data-scene="0" id="opening">
         <div class="opening-photo"><img src="/assets/v9/portrait-cutout-8a7c9e4c1dc9.webp" width="720" height="1080" alt="Banuja Disanayaka in a navy suit" fetchpriority="high" decoding="async"></div>
         <h1 class="opening-name"><span>Banuja</span><em>Disanayaka</em></h1>
-        <div class="opening-copy"><b>People. Systems.<br><i>Visual stories.</i></b><span>Operations, design and photography.<br>A different way of looking.</span></div>
+        <div class="opening-copy"><b>People. Systems.<br><i>Visual stories.</i></b><span>Operations, product, design and photography.<br>A different way of looking.</span></div>
         <div class="opening-metrics">
           <span><strong>${work.length}</strong> PROJECTS</span>
           <span><strong>${photos.length}</strong> PHOTOGRAPHS</span>
-          <span><strong>${worlds.length}</strong> WORLDS</span>
+          <span><strong>${worlds.length}</strong> VELORIA WORLDS</span>
         </div>
       </article>
 
@@ -118,7 +118,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
             </svg>
           </div>
           <small class="credits-copy">© 2026 BANUJA DISANAYAKA</small>
-          <nav class="credits-more" aria-label="More about Banuja"><a href="/about/">Full story ↗</a><a href="/resume/">Résumé ↗</a><a href="https://www.linkedin.com/in/banuja-disanayaka-730904278" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://github.com/banujadisanayaka" rel="noopener noreferrer">GitHub ↗</a></nav>
+          <nav class="credits-more" aria-label="More about Banuja"><a href="/about/">Full story ↗</a><a href="/resume/">Résumé ↗</a><a href="https://www.linkedin.com/in/banuja-disanayaka-730904278" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://www.instagram.com/banuja_disanayaka/" rel="noopener noreferrer">Instagram ↗</a><a href="https://github.com/banujadisanayaka" rel="noopener noreferrer">GitHub ↗</a></nav>
         </div>
       </article>
 
