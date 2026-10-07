@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 const base=process.env.BROWSER_QA_BASE_URL||'http://127.0.0.1:4173';
-const durations=[1.6,3.6,1.8,.9,2.3,2.4,.9,1.8,1.4,1.8];
+const durations=[1.35,2.9,1.8,.9,2.3,2.4,.9,1.8,1.4,1.8];
 const starts=durations.map((_,i)=>durations.slice(0,i).reduce((a,b)=>a+b,0));
 const dir='qa-artifacts/continuous-motion';await mkdir(dir,{recursive:true});
 const browser=await chromium.launch();const results=[];
