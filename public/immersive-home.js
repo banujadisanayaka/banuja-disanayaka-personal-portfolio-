@@ -92,6 +92,9 @@
   const copy = scenes.map(scene => [...scene.children].filter(el => !el.matches('.opening-photo,.gaze-reel-window,.reach-globe,.work-wall,.journey-list,.veloria-orbit')));
   const mix = (a,b,t) => a+(b-a)*t;
   const f = v => Number(v).toFixed(3);
+  // Scale errors multiply across large surfaces: .001 can move a text edge by
+  // a whole pixel. Keep zoom geometry precise at slow/high-refresh scroll rates.
+  const scaleValue = v => Number(v).toFixed(6);
   const canvas = q(2, '[data-world]'), ctx = canvas.getContext('2d');
   let land = [], globeSize = 0, globePhase = -1, mapPose = '';
   const radians = Math.PI / 180, tilt = 15 * radians;
@@ -99,7 +102,7 @@
   const depthBuckets = Array.from({length:24},()=>[]);
   function drawWorld(phase = .4) {
     if (!ctx || !globeSize) return;
-    phase = Math.round(phase * 240) / 240;
+    phase = Math.round(phase * 4096) / 4096;
     if (phase === globePhase) return;
     globePhase = phase;
     const size = globeSize, r = size * .46, center = size / 2;
@@ -147,8 +150,11 @@
     if (enabled) root.style.height = `${h * (total + 1)}px`;
     globeSize = canvas.clientWidth;
     const dpr = Math.min(devicePixelRatio || 1, 2);
-    canvas.width = Math.round(globeSize * dpr); canvas.height = Math.round(globeSize * dpr);
-    ctx?.setTransform(dpr, 0, 0, dpr, 0, 0); globePhase = -1;
+    const globePixels = Math.round(globeSize * dpr);
+    if (canvas.width !== globePixels || canvas.height !== globePixels) {
+      canvas.width = globePixels; canvas.height = globePixels;
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0); globePhase = -1;
+    }
     // Cache untransformed layout geometry only on resize/content change, never in paint.
     const box = el => {
       let x=0,y=0,node=el;
@@ -190,7 +196,7 @@
   }
   function sceneMotion(i, t) {
     if (i === 0) {
-      set(parts.photo,'transform',`scale(${f(1+.04*ease(0,.65,t))})`);
+      set(parts.photo,'transform',`scale(${scaleValue(1+.04*ease(0,.65,t))})`);
       set(parts.name,'transform','translate3d(0,0,0)');
     } else if (i === 1) {
       const title=1-ease(.17,.27,t), reel=ease(.23,.34,t);
@@ -200,7 +206,7 @@
       set(parts.strip,'opacity','1');
       set(parts.window,'clipPath',`inset(0 ${f((1-reel)*50)}% 0 ${f((1-reel)*50)}%)`);
       const travel=ease(.31,.68,t)*geo.reelTravel;
-      set(parts.strip,'transform',`translateX(-50%) translate3d(0,${f((1-reel)*geo.h*.3-travel)}px,0) scale(${f(.8+.2*reel)})`);
+      set(parts.strip,'transform',`translateX(-50%) translate3d(0,${f((1-reel)*geo.h*.3-travel)}px,0) scale(${scaleValue(.8+.2*reel)})`);
       set(parts.readout,'opacity',f(reel));set(parts.note,'opacity',f(reel));
       if(parts.total!==lastNumber){parts.number.textContent=String(parts.total);lastNumber=parts.total;}
     } else if(i===2) {
@@ -240,9 +246,9 @@
   function drawRig(i,t,next,u) {
     const a=anchor(i,t),b=next===undefined?a:anchor(next,0),v=ease(0,1,u),s={};
     for(const key of Object.keys(a))s[key]=mix(a[key],b[key],v);
-    set(gate,'transform',`translate3d(${f(s.gx)}px,${f(s.gy)}px,0) scale(${f(Math.max(1,s.gw)/200)},${f(Math.max(1,s.gh)/200)})`);
+    set(gate,'transform',`translate3d(${f(s.gx)}px,${f(s.gy)}px,0) scale(${scaleValue(Math.max(1,s.gw)/200)},${scaleValue(Math.max(1,s.gh)/200)})`);
     set(gate,'borderRadius',`${f(s.round)}%`);
-    set(circle,'transform',`translate3d(${f(s.x-s.r)}px,${f(s.y-s.r)}px,0) scale(${f(s.r/100)})`);
+    set(circle,'transform',`translate3d(${f(s.x-s.r)}px,${f(s.y-s.r)}px,0) scale(${scaleValue(s.r/100)})`);
     set(circle,'opacity',f(i===9?1-ease(.25,.4,t):i===0?ease(.2,.55,t):1));
     set(dot,'transform',`translate3d(${f(s.x)}px,${f(s.y)}px,0)`);
     set(dot,'opacity',f(i===9?1-ease(.32,.45,t):i===0?ease(.2,.55,t):1));
@@ -292,16 +298,16 @@
     copy[next].forEach(el=>{
       const enter=cameraEase(clamp((u-.04)/.96));
       set(el,'clipPath','none');
-      set(el,'transform',`translate3d(0,${f((1-enter)*geo.h*.08)}px,0) scale(${f(.38+.62*enter)})`);
+      set(el,'transform',`translate3d(0,${f((1-enter)*geo.h*.08)}px,0) scale(${scaleValue(.38+.62*enter)})`);
     });
-    if(i===0)set(parts.photo,'transform',`translate3d(${f(-camera*geo.w*.13)}px,${f(camera*geo.h*.07)}px,0) scale(${f(1.04+camera*.55)})`);
-    if(i===1){set(parts.strip,'transform',`translateX(-50%) translate3d(${f(camera*geo.w*.075)}px,${f(-geo.reelTravel-camera*geo.h*.46)}px,0) scale(${f(1+camera*.22)})`);}
-    if(i===2)set(parts.globe,'transform',`translate3d(${f(-camera*geo.w*.09)}px,0,0) scale(${f(1+camera*.32)}) rotate(${f(camera*26)}deg)`);
-    if(next===2)set(parts.globe,'transform',`scale(${f(.35+.65*ease(.1,1,u))}) rotate(${f(mix(-30,-12,camera))}deg)`);
+    if(i===0)set(parts.photo,'transform',`translate3d(${f(-camera*geo.w*.13)}px,${f(camera*geo.h*.07)}px,0) scale(${scaleValue(1.04+camera*.55)})`);
+    if(i===1){set(parts.strip,'transform',`translateX(-50%) translate3d(${f(camera*geo.w*.075)}px,${f(-geo.reelTravel-camera*geo.h*.46)}px,0) scale(${scaleValue(1+camera*.22)})`);}
+    if(i===2)set(parts.globe,'transform',`translate3d(${f(-camera*geo.w*.09)}px,0,0) scale(${scaleValue(1+camera*.32)}) rotate(${f(camera*26)}deg)`);
+    if(next===2)set(parts.globe,'transform',`scale(${scaleValue(.35+.65*ease(.1,1,u))}) rotate(${f(mix(-30,-12,camera))}deg)`);
     if(next===4)parts.work.forEach((el,j)=>{const e=ease(.2+j*.04,1,u);set(el,'transform',`translate3d(${f((j-2)*(1-e)*geo.w*.14)}px,${f((1-e)*geo.h*.45)}px,${f((1-e)*-500)}px) rotateY(${f((1-e)*(j%2?25:-25))}deg)`);});
     if(i===4)parts.work.forEach((el,j)=>set(el,'transform',`translate3d(${f((j-2)*camera*geo.w*.28)}px,${f(-(j%2?12:-12)-camera*geo.h*(.2+j*.07))}px,${f(camera*360)}px) rotateY(${f((j-2)*camera*12)}deg)`));
     if(i===5)parts.jobs.forEach((el,j)=>set(el,'transform',`translate3d(0,${f(-camera*geo.h*(.4+j*.07))}px,0)`));
-    if(i===7)parts.worlds.forEach((el,j)=>set(el,'transform',`translate3d(${f((j%2?-1:1)*camera*geo.w*.12)}px,${f(-camera*geo.h*.15)}px,0) scale(${f(1-camera*.25)})`));
+    if(i===7)parts.worlds.forEach((el,j)=>set(el,'transform',`translate3d(${f((j%2?-1:1)*camera*geo.w*.12)}px,${f(-camera*geo.h*.15)}px,0) scale(${scaleValue(1-camera*.25)})`));
   }
   const rawProgress = () => clamp((scrollY-geo.top)/geo.h,0,total);
   function stepCamera(now) {
@@ -476,7 +482,12 @@
   addEventListener('scroll', schedule, { passive: true });
   addEventListener('resize', () => {
     const allowed = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
-    if (allowed !== enabled) configure(); else { dirty = true; if (enabled) schedule(); else measure(); }
+    if (allowed !== enabled) configure();
+    else if (!enabled || stage.clientWidth !== geo.w || stage.clientHeight !== geo.h) {
+      // Mobile toolbar resizing can leave the small-viewport stage unchanged.
+      // In that case retain its canvas buffers and geometry instead of reallocating.
+      dirty = true; if (enabled) schedule(); else measure();
+    }
   }, { passive: true });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { cancelAnimationFrame(raf); raf = 0; cameraLast = 0; }

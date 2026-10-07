@@ -26,6 +26,21 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]){
    assert.ok(Date.now()-started<900,'Camera settling stays responsive');
  };
  const state=()=>page.locator('.experience').evaluate(el=>[...el.querySelectorAll('.film-scene,.film-scene [style],.signal-rig [style]')].filter(el=>!el.closest('.film-scene')||getComputedStyle(el.closest('.film-scene')).visibility==='visible').map(el=>({tag:el.className?.baseVal??el.className,style:el.getAttribute('style')})));
+ // Tiny scroll increments must move the portrait smoothly instead of holding
+ // a rounded scale and then jumping an entire pixel on a large surface.
+ const zooms=[];
+ for(let n=0;n<7;n++){
+  await seek(durations[0]*(.4+n*.002));
+  zooms.push(await page.locator('.opening-photo').evaluate(el=>new DOMMatrixReadOnly(getComputedStyle(el).transform).a));
+ }
+ assert.ok(zooms.every((v,n)=>n===0||(v>zooms[n-1]&&v-zooms[n-1]<.0005)),'Slow portrait zoom has no scale plateaus or jumps');
+ const reallocations=await page.evaluate(()=>new Promise(resolve=>{
+  let count=0;const observer=new MutationObserver(records=>count+=records.length);
+  document.querySelectorAll('.signal-map,[data-world]').forEach(el=>observer.observe(el,{attributes:true,attributeFilter:['width','height']}));
+  dispatchEvent(new Event('resize'));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{observer.disconnect();resolve(count);}));
+ }));
+ assert.equal(reallocations,0,'Unchanged viewport geometry keeps canvas buffers');
  // Regression probes from the phone recording: no title resurrection over the
  // reel, and no pose discontinuities at the globe arrival or project departure.
  for(const phase of [.69,.701,.74,.85]){
