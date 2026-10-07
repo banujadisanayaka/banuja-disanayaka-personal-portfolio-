@@ -156,7 +156,7 @@
   function sceneMotion(i, t) {
     if (i === 0) {
       set(parts.photo,'transform',`scale(${f(1+.04*ease(0,.65,t))})`);
-      set(parts.name,'transform','none');
+      set(parts.name,'transform','translate3d(0,0,0)');
     } else if (i === 1) {
       const title=1-ease(.17,.27,t), reel=ease(.23,.34,t);
       set(parts.intro,'opacity','1');
@@ -177,11 +177,11 @@
         set(el,'opacity','1');set(el,'clipPath','none');
         set(el,'transform',`translate3d(${f((1-enter)*(j-2)*geo.w*.1)}px,${f((1-enter)*geo.h*.65-travel*(j%2?12:-12))}px,${f((1-enter)*-450)}px) rotateY(${f((1-enter)*(j%2?22:-22))}deg)`);
       });
-    } else if(i===5) reveal(parts.jobs,t,.045);
-    else if(i===7) reveal(parts.worlds,t,.04);
-    else if(i===8) reveal(parts.answers,t,.04);
+    } else if(i===5) reveal(parts.jobs,t+.35,.045);
+    else if(i===7) reveal(parts.worlds,t+.35,.04);
+    else if(i===8) reveal(parts.answers,t+.35,.04);
     else if(i===9) {
-      reveal(parts.credits,t,.03);
+      reveal(parts.credits,t+.35,.03);
       set(parts.signature,'opacity','1');set(parts.signature,'clipPath','none');
       set(parts.pen,'strokeDashoffset',f(1-ease(.32,.83,t)));
     }
@@ -224,10 +224,10 @@
         mapCtx.lineTo(mix(points[j-1].x,points[j].x,v),mix(points[j-1].y,points[j].y,v));
       }mapCtx.stroke();
     }
-    if(i===7){
+    if(i===7||next===7){
       mapCtx.globalAlpha=.55;
       geo.worlds.forEach((dest,j)=>{
-        const progress=ease(j*.04,.2+j*.04,t)*(1-u);
+        const progress=ease(j*.04,.2+j*.04,i===7?1:u)*(i===7?1-u:1);
         mapCtx.beginPath();mapCtx.moveTo(s.x,s.y);
         // Sample the same cubic so partial paths end at the moving signal tip.
         for(let n=1;n<=32;n++){
@@ -273,8 +273,8 @@
     scenes.forEach((scene,j)=>{const inactive=u>0||j!==i;if(scene.inert!==inactive)scene.inert=inactive;});
     // Reset both participants from timeline state on every paint: reverse/seek is exact.
     for(const j of [i,...(u>0?[next]:[])]){
-      copy[j].forEach(el=>{set(el,'clipPath','none');set(el,'transform','none');});
-      sceneMotion(j,j===i?phase:0);
+      copy[j].forEach(el=>{set(el,'clipPath','none');set(el,'transform','translate3d(0,0,0)');});
+      sceneMotion(j,j===i?phase:-.35*(1-u));
     }
     scenes.forEach((scene,j)=>{
       const visible=j===i||(j===next&&u>0);
@@ -311,6 +311,7 @@
       s.inert = false; s.removeAttribute('aria-hidden');
       if (enabled) s.style.zIndex = String(i + 1);
     });
+    if (enabled) copy.flat().forEach(el=>set(el,'transform','translate3d(0,0,0)'));
     if (!enabled) root.style.removeProperty('height');
     active = -1; dirty = true; measure();
     if (enabled) {
