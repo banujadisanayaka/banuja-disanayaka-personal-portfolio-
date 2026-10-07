@@ -118,7 +118,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
             </svg>
           </div>
           <small class="credits-copy">© 2026 BANUJA DISANAYAKA</small>
-          <nav class="credits-more" aria-label="More about Banuja"><a href="/about/">Full story ↗</a><a href="/resume/">Résumé ↗</a></nav>
+          <nav class="credits-more" aria-label="More about Banuja"><a href="/about/">Full story ↗</a><a href="/resume/">Résumé ↗</a><a href="https://www.linkedin.com/in/banuja-disanayaka-730904278" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://github.com/banujadisanayaka" rel="noopener noreferrer">GitHub ↗</a></nav>
         </div>
       </article>
 
