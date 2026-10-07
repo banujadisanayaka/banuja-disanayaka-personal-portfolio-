@@ -47,6 +47,10 @@
   let enabled = false, initialized = false, active = -1, raf = 0, dirty = true, geo;
   let opener, savedOverflow = '', lastNumber = -1;
   let cache = new WeakMap(), pendingStyles = null;
+  // Visual progress follows native scroll through a very short critically-damped
+  // camera. This removes uneven mobile scroll stepping without intercepting input.
+  let cameraP = 0, cameraV = 0, cameraReady = false, cameraLast = 0;
+  root._cameraState = { target: 0, visual: 0, velocity: 0, settled: true };
   // Camera handoffs use a C3-continuous curve: velocity, acceleration and jerk
   // all settle to zero at both ends, so direction changes feel less mechanical.
   const cameraEase = v => {
@@ -297,9 +301,35 @@
     if(i===5)parts.jobs.forEach((el,j)=>set(el,'transform',`translate3d(0,${f(-camera*geo.h*(.4+j*.07))}px,0)`));
     if(i===7)parts.worlds.forEach((el,j)=>set(el,'transform',`translate3d(${f((j%2?-1:1)*camera*geo.w*.12)}px,${f(-camera*geo.h*.15)}px,0) scale(${f(1-camera*.25)})`));
   }
-  function paint() {
+  const rawProgress = () => clamp((scrollY-geo.top)/geo.h,0,total);
+  function stepCamera(now) {
+    const target = rawProgress();
+    if (!cameraReady) {
+      cameraP = target; cameraV = 0; cameraReady = true; cameraLast = now;
+      Object.assign(root._cameraState,{target,visual:cameraP,velocity:cameraV,settled:true});
+      return true;
+    }
+    const dt = clamp((now-cameraLast)/1000 || 1/60, 1/240, .028);
+    cameraLast = now;
+    const delta = cameraP-target;
+    // A large programmatic seek should land immediately. Human swipes remain well
+    // below this per-frame distance and still receive smoothing.
+    if (Math.abs(delta) > .9) {
+      cameraP = target; cameraV = 0;
+    } else {
+      const omega = geo.w <= 700 ? 40 : 34;
+      const decay = Math.exp(-omega*dt);
+      const temp = (cameraV + omega*delta)*dt;
+      cameraP = target + (delta + temp)*decay;
+      cameraV = (cameraV - omega*temp)*decay;
+    }
+    const settled = Math.abs(cameraP-target) < .00028 && Math.abs(cameraV) < .003;
+    if (settled) { cameraP = target; cameraV = 0; }
+    Object.assign(root._cameraState,{target,visual:cameraP,velocity:cameraV,settled});
+    return settled;
+  }
+  function paint(p) {
     pendingStyles = new Map();
-    const p=clamp((scrollY-geo.top)/geo.h,0,total);
     const i=available.findLast(index=>p>=starts[index])??available[0];
     const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
     const u=next!==undefined?clamp((phase-.7)/.3):0;
@@ -327,13 +357,21 @@
     const finalStyles=pendingStyles;pendingStyles=null;
     for(const [el,style] of finalStyles)for(const key in style)set(el,key,style[key]);
   }
-  function frame() { raf = 0; if (!enabled || document.hidden || menu.open) return; if (dirty) measure(); paint(); }
+  function frame(now) {
+    raf = 0;
+    if (!enabled || document.hidden || menu.open) return;
+    if (dirty) measure();
+    const settled = stepCamera(now);
+    paint(cameraP);
+    if (!settled) schedule();
+  }
   function schedule() { if (!raf && enabled && !document.hidden && !menu.open) raf = requestAnimationFrame(frame); }
   function goTo(i, behavior = 'smooth') {
     if (!available.includes(i)) i = available[0];
     if (!enabled) { scenes[i].scrollIntoView({ behavior: 'instant' }); return; }
     if (dirty) measure();
     const phase = i === 9 ? .84 : i === 1 ? .06 : i === 0 ? 0 : .4;
+    if (behavior === 'instant') cameraReady = false;
     scrollTo({ top: geo.top + (starts[i] + durations[i] * phase) * geo.h, behavior });
     schedule();
   }
@@ -355,7 +393,8 @@
     if (enabled) {
       if (!initialized && hashScene() >= 0) goTo(hashScene(), 'instant');
       else if (initialized && previous >= 0) goTo(previous, 'instant');
-      paint();
+      cameraReady = false;
+      paint(rawProgress());
     } else if (initialized && previous >= 0) scenes[previous].scrollIntoView({ behavior: 'instant' });
     initialized = true;
   }
@@ -426,7 +465,10 @@
     const allowed = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
     if (allowed !== enabled) configure(); else { dirty = true; if (enabled) schedule(); else measure(); }
   }, { passive: true });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else schedule(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; cameraLast = 0; }
+    else { cameraReady = false; schedule(); }
+  });
   reduced.addEventListener('change', configure); forced.addEventListener('change', configure);
   new MutationObserver(configure).observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
   document.fonts.ready.then(() => { dirty = true; schedule(); });
