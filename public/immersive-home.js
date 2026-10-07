@@ -43,9 +43,18 @@
   let available = scenes.map((_,i) => i);
   let enabled = false, initialized = false, active = -1, raf = 0, dirty = true, geo;
   let opener, savedOverflow = '', lastNumber = -1;
-  let cache = new WeakMap();
+  let cache = new WeakMap(), pendingStyles = null;
+  // Camera moves settle with zero velocity and acceleration at both ends.
+  const cameraEase = v => { const t = clamp(v); return t*t*t*(t*(t*6-15)+10); };
   function set(el, key, value) {
     if (!el) return;
+    // Compose the base pose and transition before touching live styles. Each
+    // property is committed once, avoiding reset/rewrite pairs every frame.
+    if (pendingStyles) {
+      let style = pendingStyles.get(el);
+      if (!style) { style = {}; pendingStyles.set(el, style); }
+      style[key] = value; return;
+    }
     let old = cache.get(el);
     if (!old) { old = {}; cache.set(el, old); }
     if (old[key] !== value) { el.style[key] = value; old[key] = value; }
@@ -71,27 +80,38 @@
   const mix = (a,b,t) => a+(b-a)*t;
   const f = v => Number(v).toFixed(3);
   const canvas = q(2, '[data-world]'), ctx = canvas.getContext('2d');
-  let land = [], globeSize = 0, globePhase = -1;
+  let land = [], globeSize = 0, globePhase = -1, mapPose = '';
+  const radians = Math.PI / 180, tilt = 15 * radians;
+  const sinTilt = Math.sin(tilt), cosTilt = Math.cos(tilt);
+  const depthBuckets = Array.from({length:24},()=>[]);
   function drawWorld(phase = .4) {
     if (!ctx || !globeSize) return;
     phase = Math.round(phase * 160) / 160;
     if (phase === globePhase) return;
     globePhase = phase;
     const size = globeSize, r = size * .46, center = size / 2;
-    const lon0 = (82 + phase * 18) * Math.PI / 180, lat0 = 15 * Math.PI / 180;
+    const lon0 = (82 + phase * 18) * radians;
+    const sinLon = Math.sin(lon0), cosLon = Math.cos(lon0);
     const project = (lon, lat) => {
       const l = lon * Math.PI / 180 - lon0, a = lat * Math.PI / 180;
-      return [center + r * Math.cos(a) * Math.sin(l), center - r * (Math.cos(lat0) * Math.sin(a) - Math.sin(lat0) * Math.cos(a) * Math.cos(l)), Math.sin(lat0) * Math.sin(a) + Math.cos(lat0) * Math.cos(a) * Math.cos(l)];
+      return [center + r * Math.cos(a) * Math.sin(l), center - r * (cosTilt * Math.sin(a) - sinTilt * Math.cos(a) * Math.cos(l)), sinTilt * Math.sin(a) + cosTilt * Math.cos(a) * Math.cos(l)];
     };
     ctx.clearRect(0, 0, size, size);
     ctx.fillStyle = '#111a12'; ctx.beginPath(); ctx.arc(center, center, r, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#45552b'; ctx.lineWidth = .6; ctx.stroke();
     // Real land coordinates from public-domain Natural Earth, projected orthographically.
-    for (const [lon, lat] of land) {
-      const [x, y, z] = project(lon, lat);
+    depthBuckets.forEach(bucket=>{bucket.length=0;});
+    for (const [x0,y0,z0] of land) {
+      const depth=x0*cosLon+y0*sinLon, z=sinTilt*z0+cosTilt*depth;
       if (z <= 0) continue;
-      ctx.fillStyle = `rgba(197,237,35,${(.2 + z * .7).toFixed(2)})`;
-      ctx.beginPath(); ctx.arc(x, y, Math.max(.75, size / 340), 0, Math.PI * 2); ctx.fill();
+      depthBuckets[Math.min(23,Math.floor(z*24))].push(center+r*(y0*cosLon-x0*sinLon),center-r*(cosTilt*z0-sinTilt*depth));
+    }
+    const dotRadius=Math.max(.75,size/340);
+    for(let n=0;n<depthBuckets.length;n++){
+      const points=depthBuckets[n];if(!points.length)continue;
+      ctx.fillStyle=`rgba(197,237,35,${(.2+(n+.5)/24*.7).toFixed(3)})`;ctx.beginPath();
+      for(let j=0;j<points.length;j+=2){ctx.moveTo(points[j]+dotRadius,points[j+1]);ctx.arc(points[j],points[j+1],dotRadius,0,Math.PI*2);}
+      ctx.fill();
     }
     for (const [lon, lat] of [[79.86, 6.93], [101.69, 3.14]]) {
       const [x, y, z] = project(lon, lat);
@@ -102,7 +122,8 @@
     }
   }
   fetch('/assets/data/land-points.json').then(r => r.ok ? r.json() : []).then(points => {
-    land = points; globePhase = -1;
+    // Convert coordinates once; apply just one longitude rotation per frame.
+    land = points.map(([lon,lat])=>{const a=lat*radians,l=lon*radians,c=Math.cos(a);return [c*Math.cos(l),c*Math.sin(l),Math.sin(a)];}); globePhase = -1;
     if (enabled) schedule(); else drawWorld();
   }).catch(() => {});
 
@@ -127,6 +148,7 @@
     geo.signature = box(parts.signature);
     map.width=Math.round(w*dpr);map.height=Math.round(h*dpr);
     mapCtx?.setTransform(dpr,0,0,dpr,0,0);
+    mapPose = '';
     dirty = false;
     if (!enabled) drawWorld();
   }
@@ -215,6 +237,9 @@
     // Paint the path in one fixed-size canvas. SVG dash/transform mutations used
     // to invalidate layout on every path update under mobile throttling.
     if(!mapCtx)return;
+    const pose=i===5||i===7||next===7?`${i}:${f(t)}:${f(u)}`:'empty';
+    if(pose===mapPose)return;
+    mapPose=pose;
     mapCtx.clearRect(0,0,geo.w,geo.h);mapCtx.strokeStyle='#c5ed23';mapCtx.lineWidth=1;
     if(i===5 && geo.jobs.length){
       const points=geo.jobs, progress=ease(0,.65,t)*(1-u)*(points.length-1);
@@ -242,8 +267,11 @@
 
   function transition(i,next,u) {
     if(next===undefined||u<=0)return;
+    const camera=cameraEase(u);
     // The outgoing title clears before any incoming title is uncovered.
     copy[i].forEach(el=>{
+      // The title already left before the film reel. Preserve its hidden mask.
+      if(i===1 && el===parts.intro)return;
       const out=ease(0,.24,u);
       set(el,'clipPath',`inset(0 0 ${f(out*100)}% 0)`);
       set(el,'transform',`translate3d(0,${f(-out*geo.h*.14)}px,0)`);
@@ -253,16 +281,17 @@
       set(el,'clipPath','none');
       set(el,'transform',`translate3d(0,${f((1-enter)*geo.h*.08)}px,0) scale(${f(.38+.62*enter)})`);
     });
-    if(i===0)set(parts.photo,'transform',`translate3d(${f(-u*geo.w*.13)}px,${f(u*geo.h*.07)}px,0) scale(${f(1.04+u*.55)})`);
-    if(i===1){set(parts.strip,'transform',`translateX(-50%) translate3d(${f(u*geo.w*.1)}px,${f(-geo.reelTravel-u*geo.h*.55)}px,0) scale(${f(1+u*.3)})`);}
-    if(i===2)set(parts.globe,'transform',`translate3d(${f(-u*geo.w*.12)}px,0,0) scale(${f(1+u*.4)}) rotate(${f(u*32)}deg)`);
-    if(next===2)set(parts.globe,'transform',`scale(${f(.35+.65*ease(.1,1,u))}) rotate(${f((1-u)*-30)}deg)`);
+    if(i===0)set(parts.photo,'transform',`translate3d(${f(-camera*geo.w*.13)}px,${f(camera*geo.h*.07)}px,0) scale(${f(1.04+camera*.55)})`);
+    if(i===1){set(parts.strip,'transform',`translateX(-50%) translate3d(${f(camera*geo.w*.1)}px,${f(-geo.reelTravel-camera*geo.h*.55)}px,0) scale(${f(1+camera*.3)})`);}
+    if(i===2)set(parts.globe,'transform',`translate3d(${f(-camera*geo.w*.12)}px,0,0) scale(${f(1+camera*.4)}) rotate(${f(camera*32)}deg)`);
+    if(next===2)set(parts.globe,'transform',`scale(${f(.35+.65*ease(.1,1,u))}) rotate(${f(mix(-30,-12,camera))}deg)`);
     if(next===4)parts.work.forEach((el,j)=>{const e=ease(.2+j*.04,1,u);set(el,'transform',`translate3d(${f((j-2)*(1-e)*geo.w*.14)}px,${f((1-e)*geo.h*.45)}px,${f((1-e)*-500)}px) rotateY(${f((1-e)*(j%2?25:-25))}deg)`);});
-    if(i===4)parts.work.forEach((el,j)=>set(el,'transform',`translate3d(${f((j-2)*u*geo.w*.28)}px,${f(-u*geo.h*(.2+j*.07))}px,${f(u*360)}px) rotateY(${f((j-2)*u*12)}deg)`));
-    if(i===5)parts.jobs.forEach((el,j)=>set(el,'transform',`translate3d(0,${f(-u*geo.h*(.4+j*.07))}px,0)`));
-    if(i===7)parts.worlds.forEach((el,j)=>set(el,'transform',`translate3d(${f((j%2?-1:1)*u*geo.w*.12)}px,${f(-u*geo.h*.15)}px,0) scale(${f(1-u*.25)})`));
+    if(i===4)parts.work.forEach((el,j)=>set(el,'transform',`translate3d(${f((j-2)*camera*geo.w*.28)}px,${f(-(j%2?12:-12)-camera*geo.h*(.2+j*.07))}px,${f(camera*360)}px) rotateY(${f((j-2)*camera*12)}deg)`));
+    if(i===5)parts.jobs.forEach((el,j)=>set(el,'transform',`translate3d(0,${f(-camera*geo.h*(.4+j*.07))}px,0)`));
+    if(i===7)parts.worlds.forEach((el,j)=>set(el,'transform',`translate3d(${f((j%2?-1:1)*camera*geo.w*.12)}px,${f(-camera*geo.h*.15)}px,0) scale(${f(1-camera*.25)})`));
   }
   function paint() {
+    pendingStyles = new Map();
     const p=clamp((scrollY-geo.top)/geo.h,0,total);
     const i=available.findLast(index=>p>=starts[index])??available[0];
     const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
@@ -288,6 +317,8 @@
       set(scene,'clipPath',clip);
     });
     transition(i,next,u);drawRig(i,phase,next,u);
+    const finalStyles=pendingStyles;pendingStyles=null;
+    for(const [el,style] of finalStyles)for(const key in style)set(el,key,style[key]);
   }
   function frame() { raf = 0; if (!enabled || document.hidden || menu.open) return; if (dirty) measure(); paint(); }
   function schedule() { if (!raf && enabled && !document.hidden && !menu.open) raf = requestAnimationFrame(frame); }
