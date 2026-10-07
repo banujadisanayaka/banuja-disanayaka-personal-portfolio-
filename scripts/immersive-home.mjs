@@ -80,7 +80,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
         <ol class="journey-list">
           ${jobs.map((j,i)=>`<li><b>${String(i+1).padStart(2,'0')}</b><div><small>${esc(j.year)}</small><strong>${esc(j.title)}</strong><span>${esc(j.company)}</span></div></li>`).join('')}
         </ol>
-        <div class="journey-copy"><small>PATH · SC 06</small><h2>Every role.<br><em>A new perspective.</em></h2><p>Five chapters that shaped how I work.</p></div>
+        <div class="journey-copy"><small>PATH · SC 06</small><h2>Every role.<br><em>A new perspective.</em></h2><p>Six chapters that shaped how I work.</p></div>
       </article>
 
       <article class="film-scene intertitle" data-scene="6">
