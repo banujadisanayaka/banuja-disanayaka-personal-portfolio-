@@ -28,7 +28,7 @@ assert.match(read('public/v9-site.css'),/prefers-reduced-motion/);assert.match(r
 console.log('V9 release QA passed: source links, 115 photographs, metadata, non-destructive migration, visibility and URL boundaries.');
 
 const about=read('public/about/index.html');
-for(const file of [...(immersive?[]:['public/index.html']),'public/about/index.html','public/resume/index.html']){assert.match(read(file),/Thurston College, Colombo 07/);assert.match(read(file),/2011–2021/);assert.match(read(file),/G.C.E. O\/L/)}
+for(const file of [...(immersive?[]:['public/index.html']),'public/about/index.html','public/resume/index.html']){assert.match(read(file),/Thurstan College, Colombo 07/);assert.match(read(file),/2011–2021/);assert.match(read(file),/G.C.E. O\/L/)}
 for(const slug of ['tfc-orders-tracker','class-tracker','second-brain','banu-2','veloria']){const html=read(`public/work/${slug}/index.html`);assert.equal((html.match(/data-panel=/g)||[]).length,4);for(const id of ['context','workflow','experience','architecture','reflection'])assert.ok(html.includes(`id="${id}"`));const words=html.replace(/<[^>]*>/g,' ').split(/\s+/).length;assert.ok(words>900,`${slug} has a substantive case study`)}
 assert.match(about,/Akashna as CEO/);
 assert.match(read('public/v9-motion.js'),/pointercancel/);
