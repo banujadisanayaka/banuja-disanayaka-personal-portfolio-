@@ -49,7 +49,11 @@ const sathiw=fs.readFileSync('public/moments/sathiw-7th-birthday/index.html','ut
 assert.match(sathiw,/name="robots" content="noindex,nofollow,noarchive,noimageindex"/);
 const sitemap=fs.readFileSync('public/sitemap.xml','utf8');
 assert.ok(sitemap.includes(origin+'/moments/'),'Sitemap includes the public Moments collection');
-assert.ok(sitemap.includes('<image:title>')&&sitemap.includes('<image:caption>'),'Image sitemap carries titles and captions');
+const gallery=JSON.parse(fs.readFileSync('content/gallery.json','utf8'));
+const sitemapImages=[...sitemap.matchAll(/<image:loc>(.*?)<\/image:loc>/g)].map(match=>match[1]);
+assert.deepEqual(sitemapImages,gallery.map(photo=>origin+photo.preview),'Image sitemap includes every public gallery photograph');
+assert.ok(!/<image:(?:title|caption|geo_location|license)>/.test(sitemap),'Image sitemap omits deprecated Google tags');
+assert.ok(!sitemap.includes('/moments/sathiw-7th-birthday/'),'Private client gallery stays out of the public sitemap');
 assert.ok(!sitemap.includes('<lastmod>'),'Sitemap does not manufacture lastmod dates on every build');
 for (const file of ['public/robots.txt','public/sitemap.xml']) {
   const source=fs.readFileSync(file,'utf8');
@@ -57,4 +61,4 @@ for (const file of ['public/robots.txt','public/sitemap.xml']) {
   assert.ok(!source.includes(legacyOrigin),file+' does not reference the retired origin');
 }
 assert.match(fs.readFileSync('public/404.html','utf8'),/name="robots" content="noindex, follow"/);
-console.log('SEO passed: nine canonical routes, consistent social metadata, named author, linked project entities, breadcrumbs and noindex 404.');
+console.log('SEO passed: ten public routes, 115 public gallery images, consistent social metadata, named author, linked project entities, breadcrumbs and noindex 404.');
