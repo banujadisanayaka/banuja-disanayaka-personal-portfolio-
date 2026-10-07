@@ -23,7 +23,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
     <div class="experience-stage">
       <div class="signal-rig" aria-hidden="true">
         <div class="signal-gate"></div><div class="signal-circle"></div><div class="signal-dot"></div>
-        <svg class="signal-map" preserveAspectRatio="none"><path class="signal-spine" pathLength="1"/>${Array.from({length:6},()=>'<path class="signal-branch" pathLength="1"/>').join('')}</svg>
+        <canvas class="signal-map"></canvas>
       </div>
       <div class="film-topbar"><span data-film-label>OPENING · SC 01</span><span>COLOMBO / SRI LANKA</span></div>
       <button class="film-menu" type="button" data-open-scenes aria-haspopup="dialog" aria-controls="experience-menu" aria-expanded="false">SCENES</button>

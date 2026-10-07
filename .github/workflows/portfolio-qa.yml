@@ -163,6 +163,7 @@ jobs:
           path: |
             qa-artifacts/v10/
             qa-artifacts/immersive/
+            qa-artifacts/continuous-motion/
           if-no-files-found: ignore
           retention-days: 7
 

@@ -66,7 +66,7 @@
   const rig = root.querySelector('.signal-rig');
   const gate = rig.querySelector('.signal-gate'), circle = rig.querySelector('.signal-circle');
   const dot = rig.querySelector('.signal-dot'), map = rig.querySelector('.signal-map');
-  const spine = rig.querySelector('.signal-spine'), branches = [...rig.querySelectorAll('.signal-branch')];
+  const mapCtx = map.getContext('2d');
   const copy = scenes.map(scene => [...scene.children].filter(el => !el.matches('.opening-photo,.gaze-reel-window,.reach-globe,.work-wall,.journey-list,.veloria-orbit')));
   const mix = (a,b,t) => a+(b-a)*t;
   const f = v => Number(v).toFixed(3);
@@ -126,10 +126,8 @@
     geo.jobs = parts.jobs.filter(el=>!el.hidden).map(el=>{const b=box(el);return {x:b.x+3,y:b.y+b.h/2};});
     geo.worlds = parts.worlds.map(el=>{const b=box(el);return {x:b.x+3,y:b.y+8};});
     geo.signature = box(parts.signature);
-    attr(map,'viewBox',`0 0 ${w} ${h}`);
-    attr(spine,'d',geo.jobs.length?`M${geo.jobs.map(p=>`${f(p.x)} ${f(p.y)}`).join(' L')}`:'M0 0 L0 1');
-    const hub=anchor(7,0);
-    branches.forEach((path,j)=>{const dest=geo.worlds[j];if(dest)attr(path,'d',`M${f(hub.x)} ${f(hub.y)} C${f(hub.x)} ${f(dest.y)} ${f(dest.x-18)} ${f(dest.y)} ${f(dest.x)} ${f(dest.y)}`);});
+    map.width=Math.round(w*dpr);map.height=Math.round(h*dpr);
+    mapCtx?.setTransform(dpr,0,0,dpr,0,0);
     dirty = false;
     if (!enabled) drawWorld();
   }
@@ -192,11 +190,11 @@
   // Anchor states share one dot, one circle and one gate throughout all ten scenes.
   // They inhabit real content coordinates, so resize does not sever the connection.
   function anchor(i,t) {
-    const {w,h,strip,globe}=geo, portrait={x:w*.64,y:h*.34};
+    const {w,h,strip,globe}=geo, portrait={x:w*(w<701?.55:.72),y:h*.25};
     const filmX=strip.x-strip.w/2, globeX=globe.x+globe.w/2, globeY=globe.y+globe.w/2;
     const base={x:w*.06,y:h*.55,r:3,gx:w*.06,gy:h*.15,gw:1,gh:h*.57,round:0};
     if(i===0)return {...base,...portrait,gx:portrait.x-28,gy:portrait.y-28,gw:56,gh:56,round:0};
-    if(i===1){const u=ease(.23,.34,t);return {...base,x:mix(w*.5,filmX,u),y:h*.48,gx:mix(w*.5-24,filmX,u),gy:mix(h*.48-24,geo.film.y,u),gw:mix(48,strip.w,u),gh:mix(48,geo.film.h,u)};}
+    if(i===1){const u=ease(.23,.34,t);return {...base,x:mix(w*.5,filmX,u),y:h*.48,gx:mix(w*.06,filmX,u),gy:mix(h*.25,geo.film.y,u),gw:mix(w*.88,strip.w,u),gh:mix(h*.4,geo.film.h,u)};}
     if(i===2)return {...base,x:globeX,y:globeY,r:globe.w*.46,gx:globeX-globe.w*.46,gy:globeY-globe.w*.46,gw:globe.w*.92,gh:globe.w*.92,round:50};
     if(i===3||i===6)return {...base,x:w*.5,y:h*.46,gx:w*.075,gy:h*.32,gw:w*.85,gh:h*.28};
     if(i===4)return {...base,x:w*.06,y:h*.29,gx:w*.06,gy:h*.29,gw:w*.88,gh:1};
@@ -215,27 +213,46 @@
     set(dot,'transform',`translate3d(${f(s.x)}px,${f(s.y)}px,0)`);
     set(dot,'opacity',f(i===9?1-ease(.32,.45,t):1));
     set(gate,'opacity',f(i===9?1-ease(.2,.32,t):.55));
-    // A continuous path passes through all five jobs, then splits into six worlds.
-    const draw=i===5?ease(0,.65,t)*(1-u):0;
-    set(spine,'strokeDashoffset',f(1-draw));
-    branches.forEach((path,j)=>{
-      const dest=geo.worlds[j], progress=i===7?ease(j*.04,.2+j*.04,t)*(1-u):0;
-      set(path,'transform',`translate(${f(i===7?(s.x-a.x):0)}px,${f(i===7?(s.y-a.y):0)}px)`);
-      set(path,'strokeDashoffset',f(1-progress));
-    });
+    // Paint the path in one fixed-size canvas. SVG dash/transform mutations used
+    // to invalidate layout on every path update under mobile throttling.
+    if(!mapCtx)return;
+    mapCtx.clearRect(0,0,geo.w,geo.h);mapCtx.strokeStyle='#c5ed23';mapCtx.lineWidth=1;
+    if(i===5 && geo.jobs.length){
+      const points=geo.jobs, progress=ease(0,.65,t)*(1-u)*(points.length-1);
+      mapCtx.beginPath();mapCtx.moveTo(points[0].x,points[0].y);
+      for(let j=1;j<points.length;j++){
+        const v=clamp(progress-j+1);if(v===0)break;
+        mapCtx.lineTo(mix(points[j-1].x,points[j].x,v),mix(points[j-1].y,points[j].y,v));
+      }mapCtx.stroke();
+    }
+    if(i===7){
+      mapCtx.globalAlpha=.55;
+      geo.worlds.forEach((dest,j)=>{
+        const progress=ease(j*.04,.2+j*.04,t)*(1-u);
+        mapCtx.beginPath();mapCtx.moveTo(s.x,s.y);
+        // Sample the same cubic so partial paths end at the moving signal tip.
+        for(let n=1;n<=32;n++){
+          const v=Math.min(progress,n/32),k=1-v;
+          mapCtx.lineTo(k*k*k*s.x+3*k*k*v*s.x+3*k*v*v*(dest.x-18)+v*v*v*dest.x,
+            k*k*k*s.y+(3*k*k*v+3*k*v*v+v*v*v)*dest.y);
+          if(v>=progress)break;
+        }mapCtx.stroke();
+      });mapCtx.globalAlpha=1;
+    }
   }
+
   function transition(i,next,u) {
     if(next===undefined||u<=0)return;
     // The outgoing title clears before any incoming title is uncovered.
     copy[i].forEach(el=>{
-      const out=ease(0,.38,u);
+      const out=ease(0,.24,u);
       set(el,'clipPath',`inset(0 0 ${f(out*100)}% 0)`);
       set(el,'transform',`translate3d(0,${f(-out*geo.h*.14)}px,0)`);
     });
     copy[next].forEach(el=>{
-      const enter=ease(.38,1,u);
-      set(el,'clipPath',`inset(${f((1-enter)*100)}% 0 0 0)`);
-      set(el,'transform',`translate3d(0,${f((1-enter)*geo.h*.1)}px,0)`);
+      const enter=ease(.08,1,u);
+      set(el,'clipPath','none');
+      set(el,'transform',`translate3d(0,${f((1-enter)*geo.h*.08)}px,0) scale(${f(.38+.62*enter)})`);
     });
     if(i===0)set(parts.photo,'transform',`translate3d(${f(-u*geo.w*.13)}px,${f(u*geo.h*.07)}px,0) scale(${f(1.04+u*.55)})`);
     if(i===1){set(parts.strip,'transform',`translateX(-50%) translate3d(${f(u*geo.w*.1)}px,${f(-geo.reelTravel-u*geo.h*.55)}px,0) scale(${f(1+u*.3)})`);}
@@ -262,7 +279,7 @@
       set(scene,'visibility',visible?'visible':'hidden');set(scene,'opacity','1');
       let clip='inset(0 0 0 0)';
       if(j===next&&u>0){
-        const aperture=ease(.15,.9,u),a=anchor(i,phase),b=anchor(next,0);
+        const aperture=ease(.05,.8,u),a=anchor(i,phase),b=anchor(next,0);
         if(next===2)clip=`circle(${f(aperture*Math.hypot(geo.w,geo.h))}px at ${f(b.x)}px ${f(b.y)}px)`;
         else {const cx=mix(a.x,geo.w/2,aperture),half=geo.w*.55*aperture;clip=`inset(0 ${f(Math.max(0,geo.w-cx-half))}px 0 ${f(Math.max(0,cx-half))}px)`;}
       }
