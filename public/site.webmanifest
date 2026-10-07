@@ -1,18 +1,27 @@
 {
   "id": "/",
-  "name": "Banuja Disanayaka — Creative Systems Builder",
+  "name": "Banuja Disanayaka — People, Systems & Visual Stories",
   "short_name": "Banuja",
-  "description": "Portfolio of Banuja Disanayaka: design, product, photography and operational systems.",
+  "description": "Portfolio of Banuja Disanayaka across operations, product development, design and photography.",
   "lang": "en",
   "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
-  "background_color": "#07090d",
-  "theme_color": "#07090d",
-  "categories": ["portfolio", "design", "photography", "productivity"],
+  "background_color": "#050605",
+  "theme_color": "#050605",
+  "categories": [
+    "portfolio",
+    "design",
+    "photography",
+    "productivity"
+  ],
   "prefer_related_applications": false,
   "icons": [
     {
