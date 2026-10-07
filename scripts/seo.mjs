@@ -14,6 +14,8 @@ export function structuredData({title, description, path, projects}) {
     givenName:'Banuja', familyName:'Disanayaka', alternateName:'Banu',
     url:origin + '/about/', image:origin + '/assets/v9/portrait-960.webp',
     description:'Banuja Disanayaka is based in Sri Lanka, with experience across operations, product development, graphic design and photography in Sri Lanka and Malaysia.',
+    jobTitle:'Person in Charge (PIC)',
+    worksFor:{'@type':'Organization', name:'Sudu Araliya Fashion'},
     knowsAbout:['Operations', 'Product development', 'Graphic design', 'Photography'],
     sameAs:[
       'https://github.com/banujadisanayaka',
