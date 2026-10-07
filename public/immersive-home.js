@@ -457,7 +457,7 @@
       for(const cell of parts.work){const match=projects.find(p=>safe(p.url)===cell.href);cell.hidden=!match;if(match){cell.querySelector('.work-cell-caption strong').textContent=match.title;cell.querySelector('.work-cell-caption>span').textContent=match.tags;}}
       q(0,'.opening-metrics>span:first-child strong').textContent=String(parts.work.filter(p=>!p.hidden).length);
     }
-    if(Array.isArray(c.career)){
+    if(Array.isArray(c.career)&&c.career.length>=parts.jobs.length){
       const jobs=c.career.slice().reverse();
       parts.jobs.forEach((el,i)=>{const job=jobs[i];el.hidden=!job;if(job){el.querySelector('small').textContent=job.year;el.querySelector('strong').textContent=job.title;el.querySelector('div>span').textContent=job.company;}});
     }
