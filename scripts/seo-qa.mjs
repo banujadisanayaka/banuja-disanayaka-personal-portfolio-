@@ -26,6 +26,13 @@ for(const route of routes){
   if(route!=='/')assert.ok(graph.some(n=>n['@type']==='BreadcrumbList'));
   if(route.startsWith('/work/'))assert.ok(graph.some(n=>n['@type']==='CreativeWork'&&n.creator['@id']===person['@id']));
 }
+const moments=fs.readFileSync('public/moments/index.html','utf8');
+assert.match(moments,/name="robots" content="index,follow,max-image-preview:large"/);
+assert.match(moments,/rel="canonical" href="https:\/\/banujadisanayaka\.netlify\.app\/moments\/"/);
+assert.match(moments,/name="twitter:card" content="summary_large_image"/);
+const sathiw=fs.readFileSync('public/moments/sathiw-7th-birthday/index.html','utf8');
+assert.match(sathiw,/name="robots" content="noindex,nofollow,noarchive,noimageindex"/);
+assert.ok(fs.readFileSync('public/sitemap.xml','utf8').includes(origin+'/moments/'),'Sitemap includes the public Moments collection');
 for (const file of ['public/robots.txt','public/sitemap.xml']) {
   const source=fs.readFileSync(file,'utf8');
   assert.ok(source.includes(origin),file+' references the canonical origin');

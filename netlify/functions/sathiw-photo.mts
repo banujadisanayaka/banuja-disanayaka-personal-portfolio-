@@ -69,11 +69,15 @@ export default async (req) => {
   const download = url.searchParams.get("download") === "1";
   const headers = new Headers();
   headers.set("Content-Type", contentType);
+  headers.set("X-Robots-Tag", "noindex, nofollow, noarchive, noimageindex");
+  headers.set("Cross-Origin-Resource-Policy", "same-origin");
+  headers.set("Referrer-Policy", "no-referrer");
   headers.set("Cache-Control", download
     ? "private, max-age=0, must-revalidate"
     : "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400");
   if (download) {
-    headers.set("Content-Disposition", `attachment; filename="Sathiw_7th_Birthday_Photo_${id}.png"`);
+    const extension = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+    headers.set("Content-Disposition", `attachment; filename="Sathiw_7th_Birthday_Photo_${id}.${extension}"`);
   }
 
   if (req.method === "HEAD") return new Response(null, { status: 200, headers });

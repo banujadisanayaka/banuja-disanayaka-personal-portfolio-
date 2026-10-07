@@ -179,7 +179,7 @@
     if (toggle) {
       toggle.hidden = false;
       toggle.setAttribute('aria-pressed',String(enabled));
-      q('[data-motion-label]',toggle).textContent = enabled ? 'Motion on' : 'Motion off';
+      q('[data-motion-label]',toggle).textContent = enabled ? 'Motion effects on' : 'Motion effects off';
       // The operating-system preference always wins. The state remains readable.
       toggle.setAttribute('aria-disabled',String(reduced.matches || forced.matches));
     }

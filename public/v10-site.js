@@ -307,6 +307,7 @@
 // V10.3 chapter transformations
 (() => {
   'use strict';
+  if (document.querySelector('[data-experience]')) return;
   const html = document.documentElement;
   const scenes = ['#work','#photography','#about','#perspectives','#contact'].map(selector => document.querySelector(selector)).filter(Boolean);
   if (!scenes.length || !('IntersectionObserver' in window)) return;

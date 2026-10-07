@@ -15,6 +15,7 @@ const media = read('netlify/functions/admin-media.mjs');
 const http = read('server/http.mjs');
 const security = read('server/security.mjs');
 const netlify = read('netlify.toml');
+const sathiwPhoto = read('netlify/functions/sathiw-photo.mts');
 
 for (const [name, source] of [
   ['admin-login', login],
@@ -49,6 +50,9 @@ assert(/'x-robots-tag':\s*'noindex, nofollow, noarchive'/.test(http), 'JSON API 
 assert(/'referrer-policy':\s*'no-referrer'/.test(http), 'JSON API responses must avoid referrer disclosure');
 assert(/'cross-origin-resource-policy':\s*'same-origin'/.test(http), 'JSON API responses must remain same-origin resources');
 assert(/for\s*=\s*"\/api\/\*"[\s\S]*X-Robots-Tag\s*=\s*"noindex, nofollow, noarchive"/.test(netlify), 'Netlify must apply noindex to the API surface');
+assert(/for\s*=\s*"\/moments\/sathiw-7th-birthday\/\*"[\s\S]*X-Robots-Tag\s*=\s*"noindex, nofollow, noarchive, noimageindex"/.test(netlify), 'Client gallery must retain route-level noindex headers');
+assert(/X-Robots-Tag/.test(sathiwPhoto) && /noimageindex/.test(sathiwPhoto), 'Original client-photo responses must opt out of indexing');
+assert(/Cross-Origin-Resource-Policy/.test(sathiwPhoto) && /same-origin/.test(sathiwPhoto), 'Original client-photo responses must remain same-origin resources');
 
 assert(/HttpOnly/.test(security), 'session cookie must remain HttpOnly');
 assert(/Secure/.test(security), 'session cookie must remain Secure');

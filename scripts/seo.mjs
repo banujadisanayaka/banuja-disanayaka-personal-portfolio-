@@ -13,7 +13,9 @@ export function structuredData({title, description, path, projects}) {
     '@type':'Person', '@id':personId, name:'Banuja Disanayaka',
     givenName:'Banuja', familyName:'Disanayaka', alternateName:'Banu',
     url:origin + '/about/', image:origin + '/assets/v9/portrait-960.webp',
-    description:'Banuja Disanayaka works across operations, product development, graphic design and photography in Sri Lanka and Malaysia.',
+    description:'Banuja Disanayaka is based in Sri Lanka, with experience across operations, product development, graphic design and photography in Sri Lanka and Malaysia.',
+    jobTitle:'Payment Processing Officer',
+    worksFor:{'@type':'Organization', name:'Port City BPO PVT LTD'},
     knowsAbout:['Operations', 'Product development', 'Graphic design', 'Photography'],
     sameAs:[
       'https://github.com/banujadisanayaka',
