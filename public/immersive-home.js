@@ -396,8 +396,20 @@
   }
   const hashScene = () => ['#contact','#credits'].includes(location.hash) ? 9 : scenes.findIndex(s => s.id && '#' + s.id === location.hash);
   function configure() {
-    const previous = active;
-    enabled = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
+    let previous = active;
+    const nextEnabled = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
+    // Static mode has no active camera scene. Read the reader's current section
+    // before changing layout, including any native scrolling while motion was off.
+    if (nextEnabled && !enabled && initialized) {
+      const center = innerHeight / 2;
+      let nearest = Infinity;
+      for (const i of available) {
+        const rect = scenes[i].getBoundingClientRect();
+        const distance = Math.max(rect.top - center, center - rect.bottom, 0);
+        if (distance < nearest) { nearest = distance; previous = i; }
+      }
+    }
+    enabled = nextEnabled;
     cancelAnimationFrame(raf); raf = 0;
     root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
     cache = new WeakMap();

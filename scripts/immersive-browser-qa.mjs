@@ -62,6 +62,7 @@ try {
   assert.ok(await page.locator('.motion-toggle').isVisible(),'Motion can be re-enabled from the readable document');
   await page.locator('.motion-toggle').click();await page.locator('.experience.is-live').waitFor();
   assert.equal(await page.locator('.motion-toggle').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('[data-scene="5"]').getAttribute('aria-hidden'),'false','Restoring motion preserves the current reading section');
   await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();
   await page.goto(preview(base+'/about/'),{waitUntil:'networkidle'});assert.equal(await page.locator('html').getAttribute('data-motion'),'off');
   await page.locator('[data-explorer]').getByRole('button',{name:/The observer/}).click();assert.ok(await page.locator('#perspective-photography').isVisible());
@@ -111,6 +112,11 @@ try {
    return {metadataUpdated,removed:!first.isConnected};
   },payload.content);
   assert.deepEqual(edits,{metadataUpdated:true,removed:true},'Metadata updates and unpublishing still apply');
+  await jump(page,9);
+  await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();
+  await page.locator('[data-scene="4"]').scrollIntoViewIfNeeded();
+  await page.locator('.motion-toggle').click();await page.locator('.experience.is-live').waitFor();
+  assert.equal(await page.locator('[data-scene="4"]').getAttribute('aria-hidden'),'false','Static reading position survives motion restoration');
   await jump(page,5);
   assert.equal(await page.locator('.reading-progress span').evaluate(el=>el.style.transform),'','Homepage does not animate its hidden legacy bar');
   await page.goto(preview(base+'/daily-gaze/'),{waitUntil:'networkidle'});
