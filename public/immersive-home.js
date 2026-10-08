@@ -447,14 +447,40 @@
     if (Array.isArray(c.dailyGaze)) {
       const photos = c.dailyGaze.filter(p => p.visible !== false);
       const featured = photos.some(p => p.featured) ? photos.filter(p => p.featured) : photos;
+      // Keep decoded images alive across CMS refreshes, including reordering.
+      const existing = new Map([...parts.strip.children].map(figure => [figure.dataset.photoId, figure]));
+      const set = (el, name, value) => { if (el.getAttribute(name) !== String(value)) el.setAttribute(name, value); };
       const figures = featured.slice(0,6).map((photo,i) => {
-        const figure=document.createElement('figure'), wrap=document.createElement('div'), img=document.createElement('img'), caption=document.createElement('figcaption');
+        const id=String(photo.id||photo.preview||'');
+        let figure=existing.get(id); existing.delete(id);
+        if(!figure){
+          figure=document.createElement('figure');
+          const wrap=document.createElement('div'); wrap.append(document.createElement('img'));
+          figure.append(wrap,document.createElement('figcaption'));
+        }
+        set(figure,'data-photo-id',id);
+        const img=figure.querySelector('img'), caption=figure.querySelector('figcaption');
         const variants=(photo.derivatives||[]).filter(d => safe(d.url) && Number(d.width)>0);
-        img.src=safe(variants[0]?.url||photo.preview); img.alt=photo.alt||photo.title||'The Daily Gaze photograph'; img.width=Number(photo.width)||960; img.height=Number(photo.height)||1200; img.loading='eager'; img.fetchPriority='low'; img.decoding='async';
-        if(variants.length){img.srcset=variants.map(d=>`${safe(d.url)} ${Number(d.width)}w`).join(', ');img.sizes='(max-width:700px) 64vw, 33vw';}
-        caption.textContent=`${String(i+1).padStart(2,'0')} · ${photo.title||'Moment'}`; wrap.append(img); figure.append(wrap,caption); return figure;
+        set(img,'alt',photo.alt||photo.title||'The Daily Gaze photograph');
+        set(img,'width',Number(photo.width)||960);set(img,'height',Number(photo.height)||1200);
+        set(img,'loading','eager');set(img,'fetchpriority','low');set(img,'decoding','async');
+        if(variants.length){
+          set(img,'sizes','(max-width:700px) 64vw, 33vw');
+          const srcset=variants.map(d=>`${safe(d.url)} ${Number(d.width)}w`).join(', ');
+          const current=(img.getAttribute('srcset')||'').split(',').filter(Boolean).map(candidate=>{
+            const [url,width]=candidate.trim().split(/\s+/);return `${safe(url)} ${width}`;
+          }).join(', ');
+          if(current!==srcset)set(img,'srcset',srcset);
+        }else{img.removeAttribute('srcset');img.removeAttribute('sizes');}
+        const src=safe(variants[0]?.url||photo.preview);
+        if(img.src!==src)set(img,'src',src);
+        const text=`${String(i+1).padStart(2,'0')} · ${photo.title||'Moment'}`;
+        if(caption.textContent!==text)caption.textContent=text;
+        return figure;
       });
-      parts.strip.replaceChildren(...figures); parts.total=photos.length; lastNumber=-1;
+      // Do not detach unchanged nodes. Remove unpublished photos immediately.
+      for(const figure of [...parts.strip.children])if(!figures.includes(figure))figure.remove();
+      figures.forEach((figure,i)=>{if(parts.strip.children[i]!==figure)parts.strip.insertBefore(figure,parts.strip.children[i]||null);}); parts.total=photos.length; lastNumber=-1;
       parts.number.textContent=String(photos.length); q(1,'.gaze-readout em').textContent=`/ ${photos.length}`;
       q(0,'.opening-metrics>span:nth-child(2) strong').textContent=String(photos.length);
     }

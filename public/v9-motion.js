@@ -67,9 +67,11 @@
 
   const hero = q('[data-hero-scene]');
   const statement = q('.story-statement');
-  const readingBar = q('.reading-progress span');
+  // The cinematic homepage owns its progress rail; its legacy bar is hidden.
+  const readingBar = q('[data-experience]') ? null : q('.reading-progress span');
   const chapterLinks = qa('.chapter-nav a');
   const chapters = chapterLinks.map(a => q(a.hash)).filter(Boolean);
+  const hasScrollEffects = !!(hero || statement || readingBar || chapters.length);
   let scrollGeometry = null, scrollLayoutDirty = true, chapterIndex = -1, lastRead = '';
   function paintScroll() {
     scrollFrame = 0;
@@ -108,13 +110,15 @@
       chapterLinks.forEach((a,i) => { if (i === index) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current'); });
     }
   }
-  const requestScroll = () => { if (!scrollFrame && !document.hidden) scrollFrame = requestAnimationFrame(paintScroll); };
+  const requestScroll = () => { if (hasScrollEffects && !scrollFrame && !document.hidden) scrollFrame = requestAnimationFrame(paintScroll); };
   const invalidateScroll = () => { scrollLayoutDirty = true; requestScroll(); };
   window.addEventListener('scroll', () => { if (active) resetDepth(); requestScroll(); }, {passive:true});
   window.addEventListener('resize', () => { resetDepth(); invalidateScroll(); }, {passive:true});
-  if ('ResizeObserver' in window) new ResizeObserver(invalidateScroll).observe(document.body);
-  document.addEventListener('load',invalidateScroll,{capture:true,passive:true});
-  document.fonts?.ready.then(invalidateScroll);
+  if (hasScrollEffects) {
+    if ('ResizeObserver' in window) new ResizeObserver(invalidateScroll).observe(document.body);
+    document.addEventListener('load',invalidateScroll,{capture:true,passive:true});
+    document.fonts?.ready.then(invalidateScroll);
+  }
 
   const seen = new WeakSet();
   const revealObserver = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {

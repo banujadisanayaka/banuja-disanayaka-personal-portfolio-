@@ -9,10 +9,10 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   const jobs=[...(career||[])].reverse();
   const gazeTags=[...new Set(photos.map(item=>item.category).filter(Boolean))].slice(0,4);
 
-  const photo = (g,i=0) => {
+  const photo = g => {
     const src=g?.derivatives?.[0]?.url||g?.preview||'';
     const set=Array.isArray(g?.derivatives)?g.derivatives.map(d=>`${esc(d.url)} ${d.width}w`).join(', '):'';
-    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 76vw, 36vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" ${i<2?'loading="eager"':'loading="lazy"'} fetchpriority="low" decoding="async">`;
+    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 64vw, 33vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" loading="eager" fetchpriority="low" decoding="async">`;
   };
 
   const sceneNames=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
@@ -47,7 +47,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <div class="gaze-tags">${(gazeTags.length?gazeTags:['Photography','Street','Travel','Moments']).map(tag=>`<span>+ ${esc(tag)}</span>`).join('')}</div>
         </div>
         <div class="gaze-reel-window"><div class="filmstrip" data-gaze-strip>
-          ${featured.map((g,i)=>`<figure><div>${photo(g,i)}</div><figcaption>${String(i+1).padStart(2,'0')} · ${esc(g.title||'Moment')}</figcaption></figure>`).join('')}
+          ${featured.map((g,i)=>`<figure data-photo-id="${esc(g.id||g.preview)}"><div>${photo(g)}</div><figcaption>${String(i+1).padStart(2,'0')} · ${esc(g.title||'Moment')}</figcaption></figure>`).join('')}
           </div></div>
         <a class="gaze-visit film-action" href="/daily-gaze/">Explore the journal <span aria-hidden="true">↗</span></a>
         <div class="gaze-readout">
