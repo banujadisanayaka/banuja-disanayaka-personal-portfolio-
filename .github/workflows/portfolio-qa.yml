@@ -83,7 +83,7 @@ jobs:
           node scripts/build-derivatives.mjs
           node scripts/build-site.mjs
           node scripts/build-info.mjs
-          python3 -m http.server 4173 -d public >/tmp/portfolio-http.log 2>&1 &
+          node scripts/preview-server.mjs --host 127.0.0.1 --port 4173 >/tmp/portfolio-http.log 2>&1 &
           for i in {1..20}; do
             curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0
             sleep 1
