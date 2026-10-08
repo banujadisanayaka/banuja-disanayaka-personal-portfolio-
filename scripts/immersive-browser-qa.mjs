@@ -62,6 +62,7 @@ try {
   assert.ok(await page.locator('.motion-toggle').isVisible(),'Motion can be re-enabled from the readable document');
   await page.locator('.motion-toggle').click();await page.locator('.experience.is-live').waitFor();
   assert.equal(await page.locator('.motion-toggle').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('[data-scene="5"]').getAttribute('aria-hidden'),'false','Restoring motion preserves the current reading section');
   await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();
   await page.goto(preview(base+'/about/'),{waitUntil:'networkidle'});assert.equal(await page.locator('html').getAttribute('data-motion'),'off');
   await page.locator('[data-explorer]').getByRole('button',{name:/The observer/}).click();assert.ok(await page.locator('#perspective-photography').isVisible());
@@ -84,6 +85,44 @@ try {
   assert.equal(await page.locator('.filmstrip figure').count(),0,'CMS removals stay removed');assert.equal(await page.locator('.work-cell:not([hidden])').count(),2);assert.ok(await page.locator('[data-scene-select="1"]').isHidden());
   await page.getByRole('button',{name:'Places',exact:true}).click();await page.waitForFunction(()=>document.querySelector('[data-scene="2"]').getAttribute('aria-hidden')==='false');
   await context.close();console.log('CMS projection, removed photographs and skipped hidden scenes passed');
+ }
+ // An unchanged CMS refresh must preserve decoded frames and their source attributes.
+ {
+  const context=await browser.newContext();const page=await context.newPage();
+  await page.route('**/api/content',r=>r.abort());
+  await page.goto(preview(base+'/'),{waitUntil:'networkidle'});
+  const payload=await (await page.request.get(base+'/api/content')).json();
+  const hydration=await page.evaluate(content=>{
+   const strip=document.querySelector('.filmstrip'), before=[...strip.querySelectorAll('img')];
+   const sources=before.map(img=>[img.getAttribute('src'),img.getAttribute('srcset'),img.getAttribute('sizes')]);
+   const observer=new MutationObserver(()=>{});observer.observe(strip,{childList:true,subtree:true,attributes:true});
+   document.dispatchEvent(new CustomEvent('portfolio:content',{detail:{content}}));
+   const mutations=observer.takeRecords();observer.disconnect();
+   const after=[...strip.querySelectorAll('img')];
+   return {same:before.length===after.length&&before.every((img,i)=>img===after[i]),sourcesStable:JSON.stringify(sources)===JSON.stringify(after.map(img=>[img.getAttribute('src'),img.getAttribute('srcset'),img.getAttribute('sizes')])),childChanges:mutations.filter(m=>m.type==='childList').length,eager:after.every(img=>img.loading==='eager')};
+  },payload.content);
+  assert.deepEqual(hydration,{same:true,sourcesStable:true,childChanges:0,eager:true},'CMS hydration preserves decoded film frames');
+  const edits=await page.evaluate(content=>{
+   const strip=document.querySelector('.filmstrip'), first=strip.firstElementChild, id=first.dataset.photoId, image=first.querySelector('img');
+   const edited=structuredClone(content);const photo=edited.dailyGaze.find(p=>String(p.id||p.preview)===id);
+   photo.alt='Updated audit description';photo.title='Updated audit title';
+   document.dispatchEvent(new CustomEvent('portfolio:content',{detail:{content:edited}}));
+   const metadataUpdated=first.querySelector('img')===image&&image.alt===photo.alt&&first.querySelector('figcaption').textContent.includes(photo.title);
+   photo.visible=false;document.dispatchEvent(new CustomEvent('portfolio:content',{detail:{content:edited}}));
+   return {metadataUpdated,removed:!first.isConnected};
+  },payload.content);
+  assert.deepEqual(edits,{metadataUpdated:true,removed:true},'Metadata updates and unpublishing still apply');
+  await jump(page,9);
+  await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();
+  await page.locator('[data-scene="4"]').scrollIntoViewIfNeeded();
+  await page.locator('.motion-toggle').click();await page.locator('.experience.is-live').waitFor();
+  assert.equal(await page.locator('[data-scene="4"]').getAttribute('aria-hidden'),'false','Static reading position survives motion restoration');
+  await jump(page,5);
+  assert.equal(await page.locator('.reading-progress span').evaluate(el=>el.style.transform),'','Homepage does not animate its hidden legacy bar');
+  await page.goto(preview(base+'/daily-gaze/'),{waitUntil:'networkidle'});
+  await page.evaluate(()=>scrollTo({top:innerHeight,behavior:'instant'}));
+  await page.waitForFunction(()=>document.querySelector('.reading-progress span').style.transform.startsWith('scaleX(')&&document.querySelector('.reading-progress span').style.transform!=='scaleX(0.0000)');
+  await context.close();console.log('Decoded film reuse, CMS edits/removals and page-specific progress ownership passed');
  }
  const context=await browser.newContext({viewport:{width:390,height:844}});const page=await context.newPage();await page.goto(preview(base+'/#contact'),{waitUntil:'networkidle'});assert.equal(await page.locator('[data-scene="9"]').getAttribute('aria-hidden'),'false');await context.close();
 } finally {await browser.close();}
