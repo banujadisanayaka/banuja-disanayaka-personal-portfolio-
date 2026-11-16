@@ -9,6 +9,17 @@ const albums = [
     description: 'Seven years of laughter, family and candlelight — kept as a story to return to.',
     href: '/moments/sathiw-7th-birthday/',
     cover: '/.netlify/images?url=%2F.netlify%2Ffunctions%2Fsathiw-photo%3Fid%3D026&w=1800&h=1300&fit=cover&fm=webp&q=88'
+  },
+  {
+    slug: 'mahi-21st',
+    title: 'Mahi’s 21st Birthday',
+    date: '14 November 2026',
+    location: 'Sri Lanka',
+    count: 116,
+    privacy: 'public',
+    description: 'A joyful collection of portraits, family moments and celebration memories from Mahi’s 21st birthday.',
+    href: '/moments/mahi-21st/',
+    cover: '/.netlify/images?url=%2F.netlify%2Ffunctions%2Fmahi-photo%3Fid%3D053&w=1800&h=1300&fit=cover&fm=webp&q=88'
   }
 ];
 
