@@ -12,6 +12,37 @@ const albums = [
   }
 ];
 
+
+const SUPABASE_URL = 'https://higdlmiobpityynbxdwh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_BEGpmbL4GxAgUh-yie_-CQ_UYkfEv_P';
+
+async function loadPublishedAlbums() {
+  try {
+    const endpoint = new URL(SUPABASE_URL + '/rest/v1/moments_albums');
+    endpoint.searchParams.set('select','id,slug,title,description,event_date,location,moments_photos(id,storage_path,sort_order)');
+    endpoint.searchParams.set('status','eq.published');
+    endpoint.searchParams.set('privacy','eq.public');
+    endpoint.searchParams.set('order','created_at.desc');
+    const response = await fetch(endpoint, {headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
+    if (!response.ok) return;
+    const rows = await response.json();
+    const remote = await Promise.all(rows.map(async album => {
+      const photos = (album.moments_photos || []).sort((a,b)=>a.sort_order-b.sort_order);
+      if (!photos.length) return null;
+      const cover = photos.find(p=>p.id===album.cover_photo_id) || photos[0];
+      const signed = await fetch(SUPABASE_URL+'/storage/v1/object/sign/moments-photos/'+cover.storage_path.split('/').map(encodeURIComponent).join('/'), {
+        method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'content-type':'application/json'},body:JSON.stringify({expiresIn:3600})
+      });
+      if (!signed.ok) return null;
+      const signedData = await signed.json();
+      const coverUrl = signedData.signedURL.startsWith('http') ? signedData.signedURL : SUPABASE_URL+signedData.signedURL;
+      const date = album.event_date ? new Date(album.event_date+'T00:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'}) : 'The Daily Gaze';
+      return {slug:album.slug,title:album.title,date,location:album.location||'Sri Lanka',count:photos.length,privacy:'public',description:album.description||'A story by The Daily Gaze.',href:'/moments/view/?album='+encodeURIComponent(album.slug),cover:coverUrl};
+    }));
+    albums.push(...remote.filter(Boolean));
+  } catch (error) { console.warn('Could not load published Moments albums.', error); }
+}
+
 const grid = document.querySelector('#momentGrid');
 const intro = document.querySelector('#momentsIntro');
 const pinDialog = document.querySelector('#pinDialog');
@@ -176,7 +207,7 @@ pinDialog.addEventListener('click', event => {
   if (event.target === pinDialog) closePin();
 });
 
-renderAlbums();
+loadPublishedAlbums().finally(() => renderAlbums());
 
 const unlockSlug = new URLSearchParams(location.search).get('unlock');
 if (unlockSlug) {
