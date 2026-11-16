@@ -20,18 +20,37 @@
   const forced = matchMedia('(forced-colors: active)');
   const finePointer=matchMedia('(hover: hover) and (pointer: fine)'),reticle=document.querySelector('.magnetic-reticle'),reticlePill=reticle?.querySelector('.reticle-pill');
   const clockNode=root.querySelector('[data-dual-clock]');
+  const workWall=root.querySelector('.work-wall');
   let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false,activeWorkCell=null;
-  const resetWorkCell=cell=>{if(!cell)return;cell.style.removeProperty('--cell-glare-x');cell.style.removeProperty('--cell-glare-y');cell.style.removeProperty('--cell-tilt-axis');};
+  const resetWorkCell=cell=>{if(!cell)return;['--cell-glare-x','--cell-glare-y','--cell-tilt-x','--cell-tilt-y','--cell-tilt-axis'].forEach(name=>cell.style.removeProperty(name));delete cell.dataset.glareActive;};
+  function workCellMotionAllowed(){
+    return finePointer.matches&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
+  }
+  function updateWorkCellGlareAndTilt(cell,clientX,clientY){
+    if(!cell||!workCellMotionAllowed())return;
+    const rect=cell.getBoundingClientRect();if(!rect.width||!rect.height)return;
+    const relX=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width)),relY=Math.max(0,Math.min(1,(clientY-rect.top)/rect.height));
+    const tiltX=(.5-relY)*7,tiltY=(relX-.5)*9,angle=Math.hypot(tiltX,tiltY);
+    const axisX=angle?tiltX/angle:0,axisY=angle?tiltY/angle:1;
+    cell.style.setProperty('--cell-glare-x',(relX*100).toFixed(2)+'%');
+    cell.style.setProperty('--cell-glare-y',(relY*100).toFixed(2)+'%');
+    cell.style.setProperty('--cell-tilt-x',tiltX.toFixed(2)+'deg');
+    cell.style.setProperty('--cell-tilt-y',tiltY.toFixed(2)+'deg');
+    cell.style.setProperty('--cell-tilt-axis',axisX.toFixed(3)+' '+axisY.toFixed(3)+' 0 '+angle.toFixed(2)+'deg');
+    cell.dataset.glareActive='true';
+    activeWorkCell=cell;
+  }
   function trackWorkCell(event){
     const cell=event.target.closest?.('.work-cell');
     if(!cell){resetWorkCell(activeWorkCell);activeWorkCell=null;return;}
-    if(activeWorkCell!==cell){resetWorkCell(activeWorkCell);activeWorkCell=cell;}
-    const rect=cell.getBoundingClientRect();if(!rect.width||!rect.height)return;
-    const nx=Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width)),ny=Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height));
-    const tiltX=(.5-ny)*4.2,tiltY=(nx-.5)*4.2,angle=Math.hypot(tiltX,tiltY);
-    const axisX=angle?tiltX/angle:0,axisY=angle?tiltY/angle:1;
-    cell.style.setProperty('--cell-glare-x',(nx*100).toFixed(1)+'%');cell.style.setProperty('--cell-glare-y',(ny*100).toFixed(1)+'%');
-    cell.style.setProperty('--cell-tilt-axis',axisX.toFixed(3)+' '+axisY.toFixed(3)+' 0 '+angle.toFixed(2)+'deg');
+    updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);
+  }
+  if(workWall){
+    const syncWorkCell=event=>{const cell=event.target.closest?.('.work-cell');if(cell)updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);};
+    workWall.addEventListener('pointerenter',syncWorkCell,true);
+    workWall.addEventListener('pointermove',syncWorkCell,{passive:true});
+    workWall.addEventListener('mousemove',syncWorkCell,{passive:true});
+    workWall.addEventListener('pointerleave',()=>{resetWorkCell(activeWorkCell);activeWorkCell=null;});
   }
   const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
   function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
