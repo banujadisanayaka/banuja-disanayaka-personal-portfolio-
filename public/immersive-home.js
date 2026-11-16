@@ -1,5 +1,11 @@
 (() => {
   'use strict';
+  const lock=document.querySelector('.signal-lock-preloader'),lockProgress=document.querySelector('[data-lock-progress]');
+  let lockTimer=0,lockStarted=0;
+  function finishSignalLock(immediate=false){if(!lock||lock.dataset.finished==='true')return;lock.dataset.finished='true';if(lockTimer)clearInterval(lockTimer);if(lockProgress)lockProgress.textContent='100%';lock.classList.add('is-exiting');lock.style.pointerEvents='none';if(immediate)lock.remove();else setTimeout(()=>lock.remove(),320);}
+  const reducedAtBoot=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(lock&&(navigator.webdriver===true||reducedAtBoot||document.documentElement.dataset.motion==='off'))finishSignalLock(true);
+  else if(lock){lockStarted=performance.now();lockTimer=setInterval(()=>{if(document.hidden)return;const progress=Math.min(100,Math.floor((performance.now()-lockStarted)/1120*100));if(lockProgress)lockProgress.textContent=String(progress).padStart(2,'0')+'%';if(progress>=100)finishSignalLock();},35);}
   const root = document.querySelector('[data-experience]');
   if (!root) return;
   const stage = root.querySelector('.experience-stage');
@@ -12,6 +18,22 @@
   if (motion) { root.querySelector('.experience-utility').append(motion); motion.hidden = false; }
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
+  const finePointer=matchMedia('(hover: hover) and (pointer: fine)'),reticle=document.querySelector('.magnetic-reticle'),reticlePill=reticle?.querySelector('.reticle-pill');
+  const clockNode=root.querySelector('[data-dual-clock]'),coordinateNode=root.querySelector('[data-scene-coordinate]');
+  let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false;
+  const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());
+  function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
+  function syncClock(){updateStudioClock();if(clockTimer)clearInterval(clockTimer);if(!document.hidden)clockTimer=setInterval(updateStudioClock,30000);}
+  syncClock();document.addEventListener('visibilitychange',syncClock);
+  function cursorAllowed(){return finePointer.matches&&enabled&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static');}
+  if(finePointer.matches&&reticle){
+    addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!cursorAllowed())return;pointerX=event.clientX;pointerY=event.clientY;pointerInside=true;root.style.setProperty('--hero-parallax-x',((pointerX/innerWidth)-.5)*26+'px');root.style.setProperty('--hero-parallax-y',((pointerY/innerHeight)-.5)*20+'px');reticle.style.transform=`translate3d(${pointerX}px,${pointerY}px,0)`;reticle.classList.add('is-visible');mapPose='';if(enabled)schedule();},{passive:true});
+    addEventListener('pointerover',event=>{if(!cursorAllowed())return;const target=event.target.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link');if(!target)return;if(reticlePill)reticlePill.textContent=target.matches('.work-cell,.filmstrip figure,.photo-link')?'[ INSPECT FRAME ]':'[ EXPLORE ]';reticle.classList.add('is-active');},{passive:true});
+    addEventListener('pointerout',event=>{if(event.target.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link')&&!event.relatedTarget?.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link'))reticle.classList.remove('is-active');},{passive:true});
+    addEventListener('pointerleave',()=>{pointerInside=false;reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');});
+    finePointer.addEventListener('change',()=>{if(!finePointer.matches){reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}});
+  }
+
   const names = nav.map(b => b.getAttribute('aria-label'));
   // The opening pair is intentionally brisk: establish identity, run the reel,
   // then reach the wider story before the experience starts to feel held.
@@ -125,14 +147,14 @@
     const dotRadius=Math.max(.75,size/340);
     for(let n=0;n<depthBuckets.length;n++){
       const points=depthBuckets[n];if(!points.length)continue;
-      ctx.fillStyle=`rgba(197,237,35,${(.2+(n+.5)/24*.7).toFixed(3)})`;ctx.beginPath();
+      ctx.fillStyle=n%5===0?`rgba(225,29,72,${(.16+(n+.5)/24*.58).toFixed(3)})`:`rgba(212,175,55,${(.2+(n+.5)/24*.7).toFixed(3)})`;ctx.beginPath();
       for(let j=0;j<points.length;j+=2){ctx.moveTo(points[j]+dotRadius,points[j+1]);ctx.arc(points[j],points[j+1],dotRadius,0,Math.PI*2);}
       ctx.fill();
     }
     for (const [lon, lat] of [[79.86, 6.93], [101.69, 3.14]]) {
       const [x, y, z] = project(lon, lat);
       if (z <= 0) continue;
-      ctx.fillStyle = '#f0ece1'; ctx.strokeStyle = '#c5ed23'; ctx.lineWidth = 1;
+      ctx.fillStyle = '#f4e9cf'; ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.stroke();
     }
@@ -259,7 +281,9 @@
     const pose=i===5||i===7||next===7?`${i}:${f(t)}:${f(u)}`:'empty';
     if(pose===mapPose)return;
     mapPose=pose;
-    mapCtx.clearRect(0,0,geo.w,geo.h);mapCtx.strokeStyle='#c5ed23';mapCtx.lineWidth=1;
+    mapCtx.clearRect(0,0,geo.w,geo.h);
+    if(pointerInside&&finePointer.matches&&enabled){const glow=mapCtx.createRadialGradient(pointerX,pointerY,0,pointerX,pointerY,Math.max(150,geo.w*.22));glow.addColorStop(0,'rgba(212,175,55,.16)');glow.addColorStop(.42,'rgba(225,29,72,.055)');glow.addColorStop(1,'rgba(5,5,7,0)');mapCtx.fillStyle=glow;mapCtx.fillRect(0,0,geo.w,geo.h);mapCtx.beginPath();mapCtx.arc(pointerX,pointerY,2.2,0,Math.PI*2);mapCtx.fillStyle='#f5e8c7';mapCtx.fill();mapCtx.beginPath();mapCtx.arc(pointerX,pointerY,15,0,Math.PI*2);mapCtx.strokeStyle='#d4af3788';mapCtx.lineWidth=.7;mapCtx.stroke();}
+    mapCtx.strokeStyle='#d4af37';mapCtx.lineWidth=1;
     if(i===5 && geo.jobs.length){
       const points=geo.jobs, progress=ease(0,.65,t)*(1-u)*(points.length-1);
       mapCtx.beginPath();mapCtx.moveTo(points[0].x,points[0].y);
@@ -351,6 +375,7 @@
     pendingStyles = new Map();
     const i=available.findLast(index=>p>=starts[index])??available[0];
     const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
+    if(coordinateNode){const text=`SC ${String(i+1).padStart(2,'0')} · ${(phase*100).toFixed(1)} / ${(p/total*100).toFixed(1)}`;if(coordinateNode.textContent!==text)coordinateNode.textContent=text;}
     const u=next!==undefined?clamp((phase-.7)/.3):0;
     setActive(u>.65?next:i);
     // Masked controls must not receive focus while the camera is between scenes.
@@ -410,6 +435,7 @@
       }
     }
     enabled = nextEnabled;
+    if(!enabled)finishSignalLock(true);
     cancelAnimationFrame(raf); raf = 0;
     root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
     cache = new WeakMap();

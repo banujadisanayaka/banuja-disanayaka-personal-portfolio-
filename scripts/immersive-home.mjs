@@ -19,6 +19,8 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
 
   return `
   <a class="experience-skip" href="#contact">Skip cinematic introduction</a>
+  <div class="signal-lock-preloader" aria-hidden="true"><div class="signal-lock-frame"><span class="signal-lock-kicker">VELORIA STUDIO / SIGNAL LOCK</span><img class="signal-lock-mark" src="/assets/v9/banuja-logo-gold.webp" width="56" height="56" alt=""><div class="signal-lock-signature"><img src="/assets/signature/banuja-signature.svg" alt=""></div><div class="signal-lock-readout"><span>INITIALISING VISUAL SYSTEM</span><strong data-lock-progress>00%</strong></div><span class="signal-lock-horizon"></span></div></div>
+  <div class="magnetic-reticle" aria-hidden="true"><span class="reticle-ring"></span><span class="reticle-pill">[ EXPLORE ]</span></div>
   <section class="experience v3-film" data-experience aria-label="Banuja Disanayaka portfolio film">
     <div class="experience-stage">
       <div class="signal-rig" aria-hidden="true">
@@ -37,6 +39,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <span><strong>${photos.length}</strong> PHOTOGRAPHS</span>
           <span><strong>${worlds.length}</strong> VELORIA WORLDS</span>
         </div>
+        <aside class="opening-telemetry-hud" aria-label="Studio telemetry"><div class="telemetry-time"><span>CMB // KUL</span><strong data-dual-clock>--:--:-- / --:--:--</strong></div><div class="telemetry-coordinate"><span>LIVE COORDINATES</span><strong data-scene-coordinate>SC 01 · 00.00 / 00.00</strong></div><div class="telemetry-status"><i aria-hidden="true"></i><span>SIGNAL ACTIVE</span></div></aside>
       </article>
 
       <article class="film-scene gaze-shot" data-scene="1" id="photography">
