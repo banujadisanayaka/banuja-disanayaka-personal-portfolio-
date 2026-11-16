@@ -80,7 +80,7 @@ try {
   for(let n=0;n<14;n++){await page.keyboard.press('Tab');assert.ok(await page.locator('#experience-menu').evaluate(el=>el.contains(document.activeElement)));}
   await page.keyboard.press('Escape');assert.equal(await menu.getAttribute('aria-expanded'),'false');assert.ok(await menu.evaluate(el=>el===document.activeElement));assert.equal(await page.locator('html').evaluate(el=>el.style.overflow),'');
   await menu.click();await page.locator('[data-menu-scene="5"]').click();await page.waitForFunction(()=>document.querySelector('[data-scene="5"]').getAttribute('aria-hidden')==='false');
-  await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();assert.equal(await page.locator('.film-scene[inert]').count(),0);
+  await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();assert.equal(await page.locator('.film-scene[inert]').count(),0);assert.equal(await page.locator('.work-discipline-ticker__track').evaluate(el=>getComputedStyle(el).animationName),'none','Static mode disables the studio ticker');
   assert.ok(await page.locator('.motion-toggle').isVisible(),'Motion can be re-enabled from the readable document');
   await page.locator('.motion-toggle').click();await page.locator('.experience.is-live').waitFor();
   assert.equal(await page.locator('.motion-toggle').getAttribute('aria-pressed'),'true');
@@ -95,6 +95,7 @@ try {
   const page=await context.newPage();if(mode==='missing-runtime')await page.route('**/immersive-home.js*',r=>r.abort());if(mode==='cms-offline')await page.route('**/api/content',r=>r.abort());
   await page.goto(preview(base+'/'),{waitUntil:'networkidle'});assert.equal(await page.locator('.film-scene').count(),10);assert.equal(await page.locator('.work-cell').count(),5);
   if(mode!=='cms-offline'){
+   if(mode==='reduced')assert.equal(await page.locator('.work-discipline-ticker__track').evaluate(el=>getComputedStyle(el).animationName),'none','Reduced motion disables the studio ticker');
    assert.equal(await page.locator('.experience.is-live').count(),0);assert.equal(await page.locator('.film-scene[inert]').count(),0);
    for(const s of ['h1','.journey-list','.credits-list','.signature-stage']){await page.locator(s).scrollIntoViewIfNeeded();await fits(page,s);assert.ok(await page.locator(s).isVisible());}
   }
