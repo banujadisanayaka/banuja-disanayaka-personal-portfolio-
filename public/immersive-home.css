@@ -259,3 +259,5 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
 
 @media(max-width:380px){.opening-name{font-size:clamp(46px,14.5vw,56px);letter-spacing:-.075em}.opening-name em{white-space:nowrap}}
 .magnetic-reticle[hidden]{display:none!important}
+
+@media(max-width:380px) and (max-height:760px){.opening-name{bottom:calc(var(--rail) + 215px);font-size:clamp(44px,13.5vw,52px)}}
