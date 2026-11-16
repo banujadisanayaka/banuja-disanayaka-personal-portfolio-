@@ -435,7 +435,7 @@
       }
     }
     enabled = nextEnabled;
-    if(!enabled)finishSignalLock(true);
+    if(!enabled){finishSignalLock(true);pointerInside=false;reticle?.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}
     cancelAnimationFrame(raf); raf = 0;
     root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
     cache = new WeakMap();
