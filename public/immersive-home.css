@@ -327,3 +327,6 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
 html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .work-discipline-ticker__track{animation:none!important;transform:none!important;will-change:auto}
 .experience.is-static .work-cell{rotate:none!important}
 @media(forced-colors:active){.work-cell::before,.journey-list li{border:1px solid CanvasText;background:Canvas;color:CanvasText}.work-cell::after,.journey-list::before,.journey-list li::before,.journey-list li::after{display:none}}
+
+.work-caption{top:18%}
+@media(max-width:700px){.work-caption{top:15%}}
