@@ -105,14 +105,19 @@
         const {data:first}=await client.from('moments_photos').select('id').eq('album_id',albumId).order('sort_order').limit(1).maybeSingle();
         if(first) await client.from('moments_albums').update({cover_photo_id:first.id}).eq('id',albumId);
       }
-      message($('formStatus'),'Album saved'+(uploaded?' · '+uploaded+' photo(s) uploaded':'')+'. It remains a draft until published.','ok');
-      resetForm(); await loadAlbums();
+      resetForm(); message($('formStatus'),'Album saved'+(uploaded?' · '+uploaded+' photo(s) uploaded':'')+'. It remains a draft until published.','ok');
+      await loadAlbums();
     } catch(error) { message($('formStatus'),error.message||'Could not save album.','error'); }
     finally { button.disabled=false; }
   }
 
   async function togglePublish(id,status) {
     const next=status==='published'?'draft':'published';
+    if (next==='published') {
+      const {count,error:countError}=await client.from('moments_photos').select('id',{count:'exact',head:true}).eq('album_id',id);
+      if (countError) { message($('listStatus'),countError.message,'error'); return; }
+      if (!count) { message($('listStatus'),'Add at least one photograph before publishing this album.','error'); return; }
+    }
     const {error}=await client.from('moments_albums').update({status:next,updated_at:new Date().toISOString()}).eq('id',id);
     if(error) message($('listStatus'),error.message,'error'); else { message($('listStatus'),'Album '+next+'.','ok'); await loadAlbums(); }
   }
