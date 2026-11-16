@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#10120f">
+  <title>Moments Admin · The Daily Gaze</title>
+  <style>
+    :root{color-scheme:dark;--bg:#10120f;--panel:#1b1d18;--paper:#f2eee6;--muted:#aaa398;--gold:#d5ae71;--line:rgba(255,255,255,.12);font-family:Inter,system-ui,sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 0%,rgba(213,174,113,.09),transparent 32%),var(--bg);color:var(--paper);min-height:100vh}
+    .wrap{width:min(1120px,calc(100% - 32px));margin:auto}.bar{height:78px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+    a{color:inherit;text-decoration:none}.brand{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}.brand b{color:var(--gold)}
+    button,input,textarea{font:inherit}.btn{border:1px solid var(--line);border-radius:999px;padding:12px 18px;background:#25271f;color:var(--paper);cursor:pointer}.btn.gold{background:var(--gold);color:#17130d;border-color:var(--gold);font-weight:700}.btn:disabled{opacity:.5;cursor:wait}
+    main{padding:44px 0 80px}.eyebrow{color:var(--gold);font-size:.7rem;text-transform:uppercase;letter-spacing:.2em;font-weight:700}h1{font:400 clamp(2.5rem,7vw,5rem)/.98 Georgia,serif;letter-spacing:-.045em;margin:12px 0}h1 em{color:var(--gold);font-weight:400}
+    .sub{color:var(--muted);line-height:1.6;max-width:58ch}.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:22px;margin-top:34px}.panel{background:linear-gradient(150deg,#1d201a,#151712);border:1px solid var(--line);border-radius:22px;padding:24px}.panel h2{font:400 1.8rem Georgia,serif;margin:0 0 20px}
+    label{display:block;color:#c8c0b4;font-size:.8rem;margin:15px 0 7px}input,textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:#0d0f0c;color:var(--paper);padding:13px 14px;outline:none}input:focus,textarea:focus{border-color:var(--gold)}textarea{min-height:95px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.hint,.status{font-size:.82rem;color:var(--muted);line-height:1.5}.status{min-height:22px;margin:14px 0 0}.status.error{color:#f1a2a2}.status.ok{color:#a9d6ad}
+    .album{display:grid;grid-template-columns:82px 1fr;gap:14px;padding:15px 0;border-top:1px solid var(--line)}.thumb{width:82px;height:82px;border-radius:12px;object-fit:cover;background:#292b24}.album h3{font:400 1.25rem Georgia,serif;margin:2px 0 6px}.meta{font-size:.76rem;color:var(--muted)}.tag{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:4px 8px;font-size:.68rem;margin-right:5px}.tag.live{color:#b6d8b3;border-color:#527653}.album-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.small{padding:7px 11px;font-size:.75rem}
+    #app[hidden],#login[hidden]{display:none!important}.login{max-width:480px;margin:12vh auto 0;text-align:center}.login .panel{padding:34px}.top-right{display:flex;align-items:center;gap:12px}.email{font-size:.78rem;color:var(--muted)}
+    @media(max-width:760px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}.bar{height:68px}.email{display:none}.panel{padding:19px}}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js" defer></script>
+  <script src="/moments/admin/admin.js" defer></script>
+</head>
+<body>
+  <header class="bar wrap"><a class="brand" href="/moments/">THE DAILY GAZE <b>·</b> MOMENTS ADMIN</a><div class="top-right"><span class="email" id="userEmail"></span><button class="btn small" id="signOut" hidden>Sign out</button></div></header>
+  <main class="wrap">
+    <section id="login" class="login">
+      <p class="eyebrow">Private workspace</p><h1>Manage your <em>Moments.</em></h1>
+      <div class="panel"><p class="sub">Sign in with the authorised Google account to create albums, upload photographs and publish client stories.</p><button class="btn gold" id="googleLogin">Continue with Google →</button><p class="status" id="loginStatus" role="status"></p></div>
+      <p class="hint">Access is restricted to the designated administrator.</p>
+    </section>
+    <section id="app" hidden>
+      <p class="eyebrow">Gallery operations</p><h1>Your stories, <em>beautifully kept.</em></h1><p class="sub">Create a draft, add photographs, preview the album, then publish it to the public Moments collection. Only published albums appear publicly.</p>
+      <div class="grid">
+        <section class="panel">
+          <h2 id="formTitle">Create an album</h2>
+          <form id="albumForm">
+            <input type="hidden" id="albumId">
+            <label for="title">Album title</label><input id="title" maxlength="120" required placeholder="e.g. Mahi’s 21st Birthday">
+            <label for="slug">Album URL slug</label><input id="slug" maxlength="100" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="mahis-21st-birthday">
+            <label for="description">Story description</label><textarea id="description" maxlength="600" placeholder="A short description of this moment…"></textarea>
+            <div class="row"><div><label for="eventDate">Event date</label><input id="eventDate" type="date"></div><div><label for="location">Location</label><input id="location" maxlength="120" placeholder="Sri Lanka"></div></div>
+            <label for="photos">Photographs (multiple files)</label><input id="photos" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+            <p class="hint">JPEG, PNG, WebP or AVIF · up to 20 MB per image. Albums start as drafts.</p>
+            <div class="actions"><button class="btn gold" id="saveAlbum" type="submit">Save album & upload</button><button class="btn" id="resetForm" type="button">Clear</button></div>
+            <p class="status" id="formStatus" role="status"></p>
+          </form>
+        </section>
+        <section class="panel"><h2>Album library</h2><div id="albumList"><p class="hint">Loading albums…</p></div><p class="status" id="listStatus" role="status"></p></section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
