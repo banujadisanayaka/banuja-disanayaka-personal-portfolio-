@@ -1,0 +1,10 @@
+{
+  "name": "Mahi’s 21st Birthday — Moments by The Daily Gaze",
+  "short_name": "Mahi · Moments",
+  "start_url": "/moments/mahi-21st/",
+  "scope": "/moments/mahi-21st/",
+  "display": "standalone",
+  "background_color": "#17110d",
+  "theme_color": "#17110d",
+  "description": "A client memory gallery by The Daily Gaze."
+}
