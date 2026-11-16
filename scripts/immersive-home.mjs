@@ -77,7 +77,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
         <div class="work-wall">
           ${work.map((p,i)=>`<a href="/work/${esc(p.slug)}/" class="work-cell c${i}">${projectBook(p,i)}<div class="work-cell-caption"><small>0${i+1} / ${esc(p.year)}</small><strong>${esc(p.title)}</strong><span>${esc(p.category)}</span></div></a>`).join('')}
         </div>
-        <div class="work-caption"><small>WORK · SC 05</small><h2>Ideas, made<br><em>useful.</em></h2></div>
+        <div class="work-caption"><small>WORK · SC 05</small><h2>Ideas, made<br><em>useful.</em></h2><div class="work-discipline-ticker" aria-hidden="true"><div class="work-discipline-ticker__track"><span>VISUAL STORYTELLING • MULTI-BRAND ARCHITECTURE • FULL-STACK &amp; ANDROID SYSTEMS • OPERATIONS ENGINEERING •</span><span>VISUAL STORYTELLING • MULTI-BRAND ARCHITECTURE • FULL-STACK &amp; ANDROID SYSTEMS • OPERATIONS ENGINEERING •</span></div></div></div>
       </article>
 
       <article class="film-scene journey-shot" data-scene="5" id="about">
