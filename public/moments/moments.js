@@ -8,7 +8,7 @@ const albums = [
     privacy: 'public',
     description: 'A collection of memories celebrating Mahi’s 21st birthday.',
     href: '/moments/mahi-21st/',
-    cover: '/.netlify/images?url=%2F.netlify%2Ffunctions%2Fmahi-photo%3Fid%3D056&w=1800&h=1300&fit=cover&fm=webp&q=88'
+    cover: '/.netlify/images?url=%2F.netlify%2Ffunctions%2Fmahi-photo%3Fid%3D037&w=1800&h=1300&fit=cover&fm=webp&q=88'
   },
   {
     slug: 'sathiw-7th-birthday',
