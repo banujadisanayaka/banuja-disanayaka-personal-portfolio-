@@ -64,7 +64,8 @@ const downloadState = {
   shareBatches: [],
   batchIndex: 0,
   busy: false,
-  controller: null
+  controller: null,
+  failedItems: []
 };
 
 // Each original appears once; page 10 gives the birthday portrait room to breathe.
@@ -332,10 +333,28 @@ function renderSelection(){
 }
 function openSelection(){ renderSelection(); if(!selectionDialog.open) selectionDialog.showModal(); }
 
-async function fetchBlob(photo, signal){
-  const res = await fetch(photo.download, {cache:'no-store', signal});
-  if(!res.ok) throw new Error(`Could not fetch ${photo.filename}`);
-  return res.blob();
+async function fetchBlob(photo, signal, retries=2){
+  let lastError;
+  for(let attempt=0;attempt<=retries;attempt++){
+    if(signal?.aborted) throw new DOMException('Aborted','AbortError');
+    try{
+      const res = await fetch(photo.download, {cache:'no-store', signal});
+      if(!res.ok) throw new Error(`Could not fetch ${photo.filename} (HTTP ${res.status})`);
+      const type=(res.headers.get('content-type')||'').toLowerCase();
+      if(!type.startsWith('image/')) throw new Error('Photo endpoint returned a non-image response');
+      const blob=await res.blob();
+      if(!blob.size) throw new Error(`Empty image: ${photo.filename}`);
+      return blob;
+    }catch(err){
+      if(err?.name==='AbortError'||signal?.aborted) throw err;
+      lastError=err;
+      if(attempt<retries) await new Promise((resolve,reject)=>{
+        const timer=setTimeout(resolve, attempt===0?800:2000);
+        signal?.addEventListener('abort',()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'));},{once:true});
+      });
+    }
+  }
+  throw lastError||new Error('Photo download failed');
 }
 
 function deviceLabel(){
@@ -348,257 +367,253 @@ function deviceLabel(){
 }
 
 function resetDownloadState(){
-  downloadState.list = [];
-  downloadState.preparedFiles = [];
-  downloadState.shareBatches = [];
-  downloadState.batchIndex = 0;
-  downloadState.busy = false;
-  downloadState.controller = null;
-  downloadPrimary.disabled = false;
+  downloadState.list=[];
+  downloadState.preparedFiles=[];
+  downloadState.shareBatches=[];
+  downloadState.batchIndex=0;
+  downloadState.busy=false;
+  downloadState.controller=null;
+  downloadState.failedItems=[];
+  downloadPrimary.disabled=false;
   downloadFallback.classList.add('hidden');
   downloadChoose.classList.add('hidden');
   downloadProgressWrap.classList.add('hidden');
-  downloadBar.style.width = '0%';
-  downloadProgress.textContent = '0 / 0';
+  downloadBar.style.width='0%';
+  downloadProgress.textContent='0 / 0';
 }
 
 function updateDownloadProgress(done,total){
   downloadProgressWrap.classList.remove('hidden');
-  downloadBar.style.width = `${Math.round(done/total*100)}%`;
-  downloadProgress.textContent = `${done} / ${total}`;
+  downloadBar.style.width=`${Math.round(done/total*100)}%`;
+  downloadProgress.textContent=`${done} / ${total}`;
 }
 
-function finishDownload(title, message){
-  downloadTitle.textContent = title;
-  downloadMessage.textContent = message;
+function finishDownload(title,message){
+  downloadTitle.textContent=title;
+  downloadMessage.textContent=message;
   downloadPrimary.classList.add('hidden');
   downloadFallback.classList.add('hidden');
-  closeDownloadDialog.textContent = 'Done';
+  closeDownloadDialog.textContent='Done';
+}
+
+function supportsDirectorySave(){
+  const ua=navigator.userAgent||'';
+  const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(ua) ||
+    (navigator.maxTouchPoints>1 && window.innerWidth<900);
+  let topLevel=false;
+  try{ topLevel=window.self===window.top; }catch{}
+  return !mobile && window.isSecureContext===true && topLevel &&
+    typeof window.showDirectoryPicker==='function';
 }
 
 function configureDownloadDialog(list){
   resetDownloadState();
-  downloadState.list = list;
-  closeDownloadDialog.textContent = 'Close';
+  downloadState.list=list;
+  closeDownloadDialog.textContent='Close';
   downloadPrimary.classList.remove('hidden');
-
-  const count = list.length;
-  const label = count === TOTAL ? 'all 116 photos' : `${count} selected photo${count === 1 ? '' : 's'}`;
-  downloadTitle.textContent = `Save ${label}`;
-  downloadMessage.textContent = 'No ZIP file. The album will use the best save method available on this device.';
-  if(count === TOTAL){
+  const count=list.length;
+  const label=count===TOTAL?'all 116 photos':`${count} selected photo${count===1?'':'s'}`;
+  downloadTitle.textContent=`Save ${label}`;
+  downloadMessage.textContent='No ZIP file. Photos are saved as individual original-quality images.';
+  if(count===TOTAL){
     downloadChoose.classList.remove('hidden');
-    downloadChoose.onclick = () => {
-      downloadDialog.close();
-      resetDownloadState();
-      openSelection();
-    };
+    downloadChoose.onclick=()=>{downloadDialog.close();resetDownloadState();openSelection();};
   }
 
-  if('showDirectoryPicker' in window){
-    downloadDeviceTitle.textContent = `${deviceLabel()} · Save to a folder`;
-    downloadDeviceHelp.textContent = 'Choose one folder and every photo will be written there as a normal image.';
-    downloadPrimary.textContent = 'Choose folder & save';
-    downloadPrimary.onclick = () => saveToFolder(list);
-    downloadFallback.textContent = 'Use normal downloads instead';
+  if(supportsDirectorySave()){
+    downloadDeviceTitle.textContent=`${deviceLabel()} · Save to a folder`;
+    downloadDeviceHelp.textContent='Choose one folder and every photo will be written there as a normal image.';
+    downloadPrimary.textContent='Choose folder & save';
+    downloadPrimary.onclick=()=>saveToFolder(list);
+    downloadFallback.textContent='Use normal downloads instead';
     downloadFallback.classList.remove('hidden');
-    downloadFallback.onclick = () => normalDownloads(list);
-    return;
-  }
-
-  if(navigator.share && navigator.canShare){
-    downloadDeviceTitle.textContent = `${deviceLabel()} · Phone save menu`;
-    downloadDeviceHelp.textContent = 'Prepare the photos once, then use your phone’s Save to Photos, Files, My Files, or another save option.';
-    downloadPrimary.textContent = `Prepare ${count} photo${count === 1 ? '' : 's'}`;
-    downloadPrimary.onclick = () => prepareNativeSave(list);
-    downloadFallback.textContent = 'Use normal downloads instead';
+    downloadFallback.onclick=()=>normalDownloads(list);
+  }else if(navigator.share&&navigator.canShare){
+    downloadDeviceTitle.textContent=`${deviceLabel()} · Phone save menu`;
+    downloadDeviceHelp.textContent='Prepare up to 10 photos at a time, then tap each batch to open your phone save menu.';
+    downloadPrimary.textContent=`Prepare batch 1 (${Math.min(10,count)} photos)`;
+    downloadPrimary.onclick=()=>prepareNativeSave(list);
+    downloadFallback.textContent='Use normal downloads instead';
     downloadFallback.classList.remove('hidden');
-    downloadFallback.onclick = () => normalDownloads(list);
-    return;
+    downloadFallback.onclick=()=>normalDownloads(list);
+  }else{
+    downloadDeviceTitle.textContent=`${deviceLabel()} · Normal image downloads`;
+    downloadDeviceHelp.textContent='Your browser may ask once to allow multiple downloads. Each item remains a normal image file.';
+    downloadPrimary.textContent=`Download ${count} photo${count===1?'':'s'}`;
+    downloadPrimary.onclick=()=>normalDownloads(list);
   }
-
-  downloadDeviceTitle.textContent = `${deviceLabel()} · Normal image downloads`;
-  downloadDeviceHelp.textContent = 'Your browser may ask once to allow multiple downloads. Each item remains a normal image file.';
-  downloadPrimary.textContent = `Download ${count} photo${count === 1 ? '' : 's'}`;
-  downloadPrimary.onclick = () => normalDownloads(list);
 }
 
 async function saveToFolder(list){
   if(downloadState.busy) return;
-  downloadState.busy = true;
-  downloadState.controller = new AbortController();
-  downloadPrimary.disabled = true;
-  closeDownloadDialog.textContent = 'Cancel';
+  let dir;
   try{
-    const dir = await window.showDirectoryPicker({mode:'readwrite'});
-    downloadTitle.textContent = 'Saving photos…';
-    downloadMessage.textContent = 'Keep this page open until every image is saved.';
+    // Keep this call directly in the button gesture; cancellation is not a fallback.
+    dir=await window.showDirectoryPicker({mode:'readwrite'});
+  }catch(err){
+    if(err?.name==='AbortError') return;
+    downloadTitle.textContent='Folder picker unavailable';
+    downloadMessage.textContent='Use normal downloads or the phone save menu instead.';
+    return;
+  }
+  downloadState.busy=true;
+  downloadState.controller=new AbortController();
+  downloadPrimary.disabled=true;
+  closeDownloadDialog.textContent='Cancel';
+  try{
     let done=0;
     for(const p of list){
-      const file = await dir.getFileHandle(p.filename,{create:true});
-      const writable = await file.createWritable();
-      await writable.write(await fetchBlob(p, downloadState.controller.signal));
+      const blob=await fetchBlob(p,downloadState.controller.signal);
+      const handle=await dir.getFileHandle(p.filename,{create:true});
+      const writable=await handle.createWritable();
+      await writable.write(blob);
       await writable.close();
       updateDownloadProgress(++done,list.length);
     }
-    finishDownload('All memories saved', `${list.length} normal image files were saved to the folder you chose.`);
-  } catch(err){
-    if(err?.name === 'AbortError'){
-      downloadTitle.textContent = 'Save cancelled';
-      downloadMessage.textContent = 'Nothing was changed. You can choose another save method anytime.';
-    } else {
-      downloadTitle.textContent = 'Folder save could not finish';
-      downloadMessage.textContent = 'Try the normal-download option below. Your photos will still stay as individual image files.';
+    finishDownload('All memories saved',`${list.length} normal image files were saved to your chosen folder.`);
+  }catch(err){
+    if(err?.name==='AbortError'){
+      downloadTitle.textContent='Save cancelled';
+      downloadMessage.textContent='Folder saving stopped. No automatic fallback was started.';
+    }else{
+      downloadTitle.textContent='Folder save could not finish';
+      downloadMessage.textContent=`${err.message||'A photo could not be saved.'} You can retry or use normal downloads.`;
       downloadFallback.classList.remove('hidden');
     }
-    downloadPrimary.disabled = false;
-  } finally {
-    downloadState.busy = false;
-    downloadState.controller = null;
-    closeDownloadDialog.textContent = 'Close';
+    downloadPrimary.disabled=false;
+  }finally{
+    downloadState.busy=false;
+    downloadState.controller=null;
+    closeDownloadDialog.textContent='Close';
   }
-}
-
-function chooseShareBatches(files, allowAll=true){
-  if(!files.length || !navigator.canShare) return [];
-  try{
-    if(allowAll && navigator.canShare({files})) return [files];
-  } catch {}
-
-  const sizes=[12,10,8,6,5,4,3,2,1];
-  for(const size of sizes){
-    try{
-      if(navigator.canShare({files:files.slice(0,size)})){
-        const batches=[];
-        for(let i=0;i<files.length;i+=size) batches.push(files.slice(i,i+size));
-        return batches;
-      }
-    } catch {}
-  }
-  return [];
 }
 
 async function prepareNativeSave(list){
+  if(downloadState.busy||!list.length) return;
+  downloadState.list=list;
+  downloadState.failedItems=[];
+  downloadState.preparedFiles=[];
+  downloadState.batchIndex=0;
+  await prepareShareBatch(0);
+}
+
+async function prepareShareBatch(batchIndex){
   if(downloadState.busy) return;
-  downloadState.busy = true;
-  downloadState.controller = new AbortController();
-  downloadPrimary.disabled = true;
-  closeDownloadDialog.textContent = 'Cancel';
+  const start=batchIndex*10;
+  const batch=downloadState.list.slice(start,start+10);
+  if(!batch.length){
+    finishDownload('All batches prepared and shared','The save flow is complete.');
+    return;
+  }
+  downloadState.busy=true;
+  downloadState.controller=new AbortController();
+  downloadPrimary.disabled=true;
   downloadFallback.classList.add('hidden');
-  downloadTitle.textContent = 'Preparing your photos…';
-  downloadMessage.textContent = 'This happens once. The photos stay on your device and are not packed into a ZIP.';
-  downloadProgressWrap.classList.remove('hidden');
-
-  const files=[];
+  closeDownloadDialog.textContent='Cancel';
+  const label=`Batch ${batchIndex+1} of ${Math.ceil(downloadState.list.length/10)} · Photos ${batch[0].n}–${batch[batch.length-1].n}`;
+  downloadTitle.textContent='Preparing your photos…';
+  downloadMessage.textContent=`Preparing ${label}. Only this batch is held in memory.`;
+  updateDownloadProgress(0,batch.length);
+  const files=new Array(batch.length);
+  let cursor=0,done=0;
   try{
-    let done=0;
-    for(const p of list){
-      const blob = await fetchBlob(p, downloadState.controller.signal);
-      files.push(new File([blob], p.filename, {type: blob.type || 'image/png'}));
-      updateDownloadProgress(++done,list.length);
-    }
-
-    const batches = chooseShareBatches(files);
-    if(!batches.length) throw new Error('File sharing is unavailable for these photos.');
-
-    downloadState.preparedFiles = files;
-    downloadState.shareBatches = batches;
-    downloadState.batchIndex = 0;
-    downloadTitle.textContent = batches.length === 1 ? 'Ready to save' : 'Ready to save in small batches';
-    downloadMessage.textContent = batches.length === 1
-      ? 'Tap below, then choose Save to Photos, Files, My Files, or your preferred save location.'
-      : `Your phone can reliably handle these in ${batches.length} small batches. Tap each batch, then choose a save option in the phone menu.`;
-    downloadPrimary.disabled = false;
-    downloadPrimary.textContent = batches.length === 1 ? 'Open phone save menu' : `Save batch 1 of ${batches.length}`;
-    downloadPrimary.onclick = sharePreparedBatch;
-    downloadFallback.textContent = 'Use normal downloads instead';
+    const workers=Array.from({length:Math.min(3,batch.length)},async()=>{
+      while(cursor<batch.length){
+        const i=cursor++;
+        const p=batch[i];
+        try{
+          const blob=await fetchBlob(p,downloadState.controller.signal);
+          files[i]=new File([blob],p.filename,{type:blob.type||'image/png'});
+        }catch(err){
+          if(err?.name==='AbortError') throw err;
+          downloadState.failedItems.push(p);
+        }
+        updateDownloadProgress(++done,batch.length);
+      }
+    });
+    await Promise.all(workers);
+    downloadState.preparedFiles=files.filter(Boolean);
+    downloadState.batchIndex=batchIndex;
+    if(!downloadState.preparedFiles.length) throw new Error('No photos in this batch could be prepared.');
+    downloadTitle.textContent=`${label} ready`;
+    downloadMessage.textContent=downloadState.failedItems.length
+      ? `${downloadState.preparedFiles.length} ready. ${downloadState.failedItems.length} photo(s) failed and can be retried separately.`
+      : 'Tap the button below to open the phone save menu. The next batch will prepare after this one is shared.';
+    downloadPrimary.disabled=false;
+    downloadPrimary.textContent=`Tap to Save / Share Batch ${batchIndex+1}`;
+    downloadPrimary.onclick=sharePreparedBatch;
+    downloadFallback.textContent='Use normal downloads instead';
     downloadFallback.classList.remove('hidden');
-    downloadFallback.onclick = () => normalDownloads(list);
-  } catch(err){
-    if(err?.name === 'AbortError'){
-      downloadTitle.textContent = 'Preparation cancelled';
-      downloadMessage.textContent = 'Nothing was saved. You can start again whenever you want.';
-    } else {
-      downloadTitle.textContent = 'Phone save menu is unavailable';
-      downloadMessage.textContent = 'We can still save the photos as normal individual downloads — no ZIP.';
-      downloadPrimary.disabled = false;
-      downloadPrimary.textContent = 'Use normal downloads';
-      downloadPrimary.onclick = () => normalDownloads(list);
-      downloadFallback.classList.add('hidden');
+    downloadFallback.onclick=()=>normalDownloads(batch);
+  }catch(err){
+    downloadState.preparedFiles=[];
+    if(err?.name==='AbortError'){
+      downloadTitle.textContent='Preparation cancelled';
+      downloadMessage.textContent='No fallback downloads were started.';
+    }else{
+      downloadTitle.textContent='Could not prepare this batch';
+      downloadMessage.textContent=`${err.message||'Network error'} You can retry this batch.`;
+      downloadPrimary.disabled=false;
+      downloadPrimary.textContent='Retry this batch';
+      downloadPrimary.onclick=()=>prepareShareBatch(batchIndex);
     }
-  } finally {
-    downloadState.busy = false;
-    downloadState.controller = null;
-    closeDownloadDialog.textContent = 'Close';
+  }finally{
+    downloadState.busy=false;
+    downloadState.controller=null;
+    closeDownloadDialog.textContent='Close';
   }
 }
 
 async function sharePreparedBatch(){
-  const batches=downloadState.shareBatches;
+  const files=downloadState.preparedFiles;
+  if(!files.length||downloadState.busy) return;
   const index=downloadState.batchIndex;
-  const batch=batches[index];
-  if(!batch) return;
-
+  const total=Math.ceil(downloadState.list.length/10);
+  let sharePromise;
   try{
-    await navigator.share({
-      files: batch,
-      title: 'Mahi’s 21st Birthday',
-      text: batches.length === 1
-        ? 'Save these birthday memories to your device.'
-        : `Birthday memories · batch ${index + 1} of ${batches.length}`
-    });
-
-    downloadState.batchIndex += 1;
-    if(downloadState.batchIndex >= batches.length){
-      finishDownload('Save menu completed', 'The phone save flow is complete. Your final save location depends on the option you chose in the phone menu.');
-      downloadState.preparedFiles = [];
-      downloadState.shareBatches = [];
+    // Invoke share synchronously in the click handler before awaiting anything else.
+    if(!navigator.share||!navigator.canShare||!navigator.canShare({files})){
+      throw new Error('This device cannot share these image files.');
+    }
+    sharePromise=navigator.share({files,title:'Mahi’s 21st Birthday',text:`Birthday memories · batch ${index+1} of ${total}`});
+    await sharePromise;
+  }catch(err){
+    if(err?.name==='AbortError'){
+      downloadMessage.textContent='Share sheet closed. Your prepared batch is still ready; tap again when you want to continue.';
       return;
     }
+    downloadTitle.textContent='Could not open the phone save menu';
+    downloadMessage.textContent=`${err.message||'Sharing is unavailable.'} Use normal downloads instead.`;
+    downloadFallback.classList.remove('hidden');
+    return;
+  }
 
-    const next=downloadState.batchIndex + 1;
-    downloadTitle.textContent = `Batch ${index + 1} complete`;
-    downloadMessage.textContent = 'Tap the next button when you are ready.';
-    downloadPrimary.textContent = `Save batch ${next} of ${batches.length}`;
-  } catch(err){
-    if(err?.name === 'AbortError'){
-      downloadMessage.textContent = 'Save menu closed. Tap again whenever you are ready.';
-      return;
-    }
-
-    if(batches.length === 1 && downloadState.preparedFiles.length > 1){
-      const smaller = chooseShareBatches(downloadState.preparedFiles, false);
-      if(smaller.length > 1){
-        downloadState.shareBatches = smaller;
-        downloadState.batchIndex = 0;
-        downloadTitle.textContent = 'Let’s use smaller batches';
-        downloadMessage.textContent = `Your phone rejected one large save. We can use ${smaller.length} smaller batches instead.`;
-        downloadPrimary.textContent = `Save batch 1 of ${smaller.length}`;
-        return;
-      }
-    }
-
-    downloadTitle.textContent = 'Couldn’t open the phone save menu';
-    downloadMessage.textContent = 'Use normal downloads instead. The photos will still be individual image files.';
-    downloadPrimary.textContent = 'Use normal downloads';
-    downloadPrimary.onclick = () => normalDownloads(downloadState.list);
+  // Drop every strong reference before preparing the next group.
+  downloadState.preparedFiles.length=0;
+  downloadState.preparedFiles=[];
+  downloadPrimary.disabled=true;
+  const next=index+1;
+  if(next<total){
+    await prepareShareBatch(next);
+  }else{
+    finishDownload('Share batches completed','The phone share flow finished. Confirm the files in the save destination you selected.');
+    downloadState.list=[];
   }
 }
 
 async function normalDownloads(list){
-  if(downloadState.busy) return;
-  downloadState.busy = true;
-  downloadState.controller = new AbortController();
-  downloadPrimary.disabled = true;
-  closeDownloadDialog.textContent = 'Cancel';
+  if(downloadState.busy||!list.length) return;
+  downloadState.busy=true;
+  downloadState.controller=new AbortController();
+  downloadPrimary.disabled=true;
+  closeDownloadDialog.textContent='Cancel';
   downloadFallback.classList.add('hidden');
-  downloadTitle.textContent = 'Starting image downloads…';
-  downloadMessage.textContent = 'Your browser may ask once to allow multiple downloads. Each photo is saved separately — no ZIP.';
-  downloadProgressWrap.classList.remove('hidden');
-
+  downloadTitle.textContent='Starting image downloads…';
+  downloadMessage.textContent='Each photo is requested as an individual file. Your browser may ask permission for multiple downloads.';
   try{
     let done=0;
     for(const p of list){
+      if(downloadState.controller.signal.aborted) throw new DOMException('Aborted','AbortError');
       const a=document.createElement('a');
       a.href=p.download;
       a.download=p.filename;
@@ -608,25 +623,21 @@ async function normalDownloads(list){
       a.click();
       a.remove();
       updateDownloadProgress(++done,list.length);
-      await new Promise((resolve,reject)=>{
-        const timer=setTimeout(resolve,320);
-        downloadState.controller.signal.addEventListener('abort',()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'));},{once:true});
+      if(done<list.length) await new Promise((resolve,reject)=>{
+        const signal=downloadState.controller.signal;
+        const timer=setTimeout(resolve,350);
+        signal.addEventListener('abort',()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'));},{once:true});
       });
     }
-    finishDownload('Downloads started', `${list.length} individual image downloads were requested. Check your Downloads or Files app if they do not appear in Photos automatically.`);
-  } catch(err){
-    if(err?.name === 'AbortError'){
-      downloadTitle.textContent = 'Downloads stopped';
-      downloadMessage.textContent = 'Some downloads may already have started. Nothing was packed into a ZIP.';
-    } else {
-      downloadTitle.textContent = 'Couldn’t finish automatically';
-      downloadMessage.textContent = 'Choose fewer photos, or open an individual photo and use “Download this photo”.';
-      downloadPrimary.disabled = false;
-    }
-  } finally {
-    downloadState.busy = false;
-    downloadState.controller = null;
-    closeDownloadDialog.textContent = 'Close';
+    finishDownload('Downloads started',`${list.length} individual image downloads were requested. Check Downloads or Files if they do not appear in Photos automatically.`);
+  }catch(err){
+    downloadTitle.textContent=err?.name==='AbortError'?'Downloads stopped':'Could not finish downloads';
+    downloadMessage.textContent=err?.name==='AbortError'?'Some downloads may already have started. No additional downloads will be triggered.':(err.message||'Try fewer photos.');
+    downloadPrimary.disabled=false;
+  }finally{
+    downloadState.busy=false;
+    downloadState.controller=null;
+    closeDownloadDialog.textContent='Close';
   }
 }
 
@@ -705,6 +716,8 @@ document.querySelector('#downloadSelected').addEventListener('click',()=>{
 closeDownloadDialog.addEventListener('click',()=>{
   if(downloadState.busy){
     downloadState.controller?.abort();
+    downloadState.preparedFiles.length=0;
+    downloadState.preparedFiles=[];
     return;
   }
   downloadDialog.close();
