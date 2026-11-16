@@ -41,7 +41,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <span><strong>${photos.length}</strong> PHOTOGRAPHS</span>
           <span><strong>${worlds.length}</strong> VELORIA WORLDS</span>
         </div>
-        <aside class="opening-telemetry-hud" aria-label="Studio telemetry"><div class="telemetry-time"><span>CMB // KUL</span><strong data-dual-clock>--:--:-- / --:--:--</strong></div><div class="telemetry-coordinate"><span>STUDIO COORDINATES</span><strong>06.93°N / 079.86°E</strong></div><div class="telemetry-status"><i aria-hidden="true"></i><span>SIGNAL ACTIVE</span></div></aside>
+        <aside class="opening-telemetry-hud" aria-label="Studio telemetry"><div class="telemetry-time"><span>CMB // KUL</span><strong data-dual-clock>--:-- / --:--</strong></div><div class="telemetry-coordinate"><span>STUDIO COORDINATES</span><strong>06.93°N / 079.86°E</strong></div><div class="telemetry-status"><i aria-hidden="true"></i><span>SIGNAL ACTIVE</span></div></aside>
       </article>
 
       <article class="film-scene gaze-shot" data-scene="1" id="photography">
