@@ -19,7 +19,8 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
   const finePointer=matchMedia('(hover: hover) and (pointer: fine)'),reticle=document.querySelector('.magnetic-reticle'),reticlePill=reticle?.querySelector('.reticle-pill');
-  const clockNode=root.querySelector('[data-dual-clock]'),coordinateNode=root.querySelector('[data-scene-coordinate]');
+  const clockNode=root.querySelector('[data-dual-clock]'),coordinateCanvas=root.querySelector('[data-scene-coordinate]'),coordinateCtx=coordinateCanvas?.getContext('2d');
+  let lastCoordinateScene=-1;
   let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false;
   const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());
   function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
@@ -375,7 +376,7 @@
     pendingStyles = new Map();
     const i=available.findLast(index=>p>=starts[index])??available[0];
     const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
-    if(coordinateNode){const text=`SC ${String(i+1).padStart(2,'0')} · ${(phase*100).toFixed(1)} / ${(p/total*100).toFixed(1)}`;if(coordinateNode.textContent!==text)coordinateNode.textContent=text;}
+    if(coordinateCtx&&coordinateCanvas&&lastCoordinateScene!==i){const text=`SC ${String(i+1).padStart(2,'0')} · ${String(starts[i].toFixed(2)).padStart(5,'0')} / ${String(total.toFixed(2)).padStart(5,'0')}`;coordinateCtx.clearRect(0,0,220,22);coordinateCtx.font='10px ui-monospace,monospace';coordinateCtx.fillStyle='#f4efe3';coordinateCtx.fillText(text,0,15);coordinateCanvas.setAttribute('aria-label',text);lastCoordinateScene=i;}
     const u=next!==undefined?clamp((phase-.7)/.3):0;
     setActive(u>.65?next:i);
     // Masked controls must not receive focus while the camera is between scenes.
