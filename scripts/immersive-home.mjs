@@ -41,7 +41,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <span><strong>${photos.length}</strong> PHOTOGRAPHS</span>
           <span><strong>${worlds.length}</strong> VELORIA WORLDS</span>
         </div>
-        <aside class="opening-telemetry-hud" aria-label="Studio telemetry"><div class="telemetry-time"><span>CMB // KUL</span><strong data-dual-clock>--:--:-- / --:--:--</strong></div><div class="telemetry-coordinate"><span>LIVE COORDINATES</span><svg data-scene-coordinate viewBox="0 0 220 22" role="img" aria-label="Scene 01 coordinates"><text x="0" y="15">SC 01 · 00.00 / 18.00</text></svg></div><div class="telemetry-status"><i aria-hidden="true"></i><span>SIGNAL ACTIVE</span></div></aside>
+        <aside class="opening-telemetry-hud" aria-label="Studio telemetry"><div class="telemetry-time"><span>CMB // KUL</span><strong data-dual-clock>--:--:-- / --:--:--</strong></div><div class="telemetry-coordinate"><span>LIVE COORDINATES</span><div class="coordinate-stack" data-scene-coordinate aria-hidden="true"><span>SC 01 · 00.00 / 17.55</span><span>SC 02 · 01.35 / 17.55</span><span>SC 03 · 04.25 / 17.55</span><span>SC 04 · 06.05 / 17.55</span><span>SC 05 · 06.95 / 17.55</span><span>SC 06 · 09.25 / 17.55</span><span>SC 07 · 11.65 / 17.55</span><span>SC 08 · 12.55 / 17.55</span><span>SC 09 · 14.35 / 17.55</span><span>SC 10 · 15.75 / 17.55</span></div></div><div class="telemetry-status"><i aria-hidden="true"></i><span>SIGNAL ACTIVE</span></div></aside>
       </article>
 
       <article class="film-scene gaze-shot" data-scene="1" id="photography">
