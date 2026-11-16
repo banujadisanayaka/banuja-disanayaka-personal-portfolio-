@@ -516,6 +516,7 @@ async function prepareShareBatch(batchIndex){
   updateDownloadProgress(0,batch.length);
   const files=new Array(batch.length);
   let cursor=0,done=0;
+  const failedThisBatch=[];
   try{
     const workers=Array.from({length:Math.min(3,batch.length)},async()=>{
       while(cursor<batch.length){
@@ -526,12 +527,14 @@ async function prepareShareBatch(batchIndex){
           files[i]=new File([blob],p.filename,{type:blob.type||'image/png'});
         }catch(err){
           if(err?.name==='AbortError') throw err;
+          failedThisBatch.push(p);
           downloadState.failedItems.push(p);
         }
         updateDownloadProgress(++done,batch.length);
       }
     });
     await Promise.all(workers);
+    if(failedThisBatch.length) throw new Error(`${failedThisBatch.length} photo(s) failed after retries: ${failedThisBatch.map(p=>p.n).join(', ')}`);
     downloadState.preparedFiles=files.filter(Boolean);
     downloadState.batchIndex=batchIndex;
     if(!downloadState.preparedFiles.length) throw new Error('No photos in this batch could be prepared.');
