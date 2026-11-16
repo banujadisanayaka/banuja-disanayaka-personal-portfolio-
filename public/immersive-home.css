@@ -253,5 +253,5 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
 .signal-lock-pen{stroke-dasharray:1;stroke-dashoffset:1;animation:signal-pen-write .86s .08s cubic-bezier(.16,1,.3,1) forwards}
 @keyframes signal-pen-write{to{stroke-dashoffset:0}}
 
-.opening-telemetry-hud .telemetry-coordinate canvas{display:block;width:220px;height:22px;max-width:100%}
-@media(max-width:700px){.opening-telemetry-hud .telemetry-coordinate canvas{width:150px;height:18px}}
+.opening-telemetry-hud .telemetry-coordinate svg{display:block;width:220px;height:22px;max-width:100%;overflow:visible}.opening-telemetry-hud .telemetry-coordinate svg text{font:10px ui-monospace,monospace;fill:#f4efe3}
+@media(max-width:700px){.opening-telemetry-hud .telemetry-coordinate svg{width:150px;height:18px}}
