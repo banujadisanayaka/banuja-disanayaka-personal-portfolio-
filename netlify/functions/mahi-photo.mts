@@ -27,7 +27,7 @@ async function getArchive(): Promise<Buffer> {
       }
       const bytes = Buffer.from(await response.arrayBuffer());
       if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4b) {
-        const hint = bytes.toString("utf8", 0, Math.min(bytes.length, 180)).replace(/\\s+/g, " ");
+        const hint = bytes.toString("utf8", 0, Math.min(bytes.length, 180)).replace(/\s+/g, " ");
         throw new Error(`Drive did not return a ZIP archive: ${hint}`);
       }
       return bytes;
