@@ -4,7 +4,7 @@
   let lockTimer=0,lockStarted=0;
   function finishSignalLock(immediate=false){if(!lock||lock.dataset.finished==='true')return;lock.dataset.finished='true';if(lockTimer)clearInterval(lockTimer);if(lockProgress)lockProgress.textContent='100%';lock.classList.add('is-exiting');lock.style.pointerEvents='none';if(immediate)lock.remove();else setTimeout(()=>lock.remove(),320);}
   const reducedAtBoot=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(lock&&(navigator.webdriver===true||reducedAtBoot||document.documentElement.dataset.motion==='off'))finishSignalLock(true);
+  if(lock&&(navigator.webdriver===true||reducedAtBoot||document.documentElement.dataset.motion==='off'||document.querySelector('.experience.is-static')||document.querySelector('.motion-toggle[aria-pressed="false"]')))finishSignalLock(true);
   else if(lock){lockStarted=performance.now();lockTimer=setInterval(()=>{if(document.hidden)return;const progress=Math.min(100,Math.floor((performance.now()-lockStarted)/1120*100));if(lockProgress)lockProgress.textContent=String(progress).padStart(2,'0')+'%';if(progress>=100)finishSignalLock();},35);}
   const root = document.querySelector('[data-experience]');
   if (!root) return;
