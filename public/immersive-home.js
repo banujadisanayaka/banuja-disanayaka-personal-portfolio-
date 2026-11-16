@@ -20,18 +20,30 @@
   const forced = matchMedia('(forced-colors: active)');
   const finePointer=matchMedia('(hover: hover) and (pointer: fine)'),reticle=document.querySelector('.magnetic-reticle'),reticlePill=reticle?.querySelector('.reticle-pill');
   const clockNode=root.querySelector('[data-dual-clock]');
-  let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false;
+  let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false,activeWorkCell=null;
+  const resetWorkCell=cell=>{if(!cell)return;cell.style.removeProperty('--cell-glare-x');cell.style.removeProperty('--cell-glare-y');cell.style.removeProperty('--cell-tilt-axis');};
+  function trackWorkCell(event){
+    const cell=event.target.closest?.('.work-cell');
+    if(!cell){resetWorkCell(activeWorkCell);activeWorkCell=null;return;}
+    if(activeWorkCell!==cell){resetWorkCell(activeWorkCell);activeWorkCell=cell;}
+    const rect=cell.getBoundingClientRect();if(!rect.width||!rect.height)return;
+    const nx=Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width)),ny=Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height));
+    const tiltX=(.5-ny)*4.2,tiltY=(nx-.5)*4.2,angle=Math.hypot(tiltX,tiltY);
+    const axisX=angle?tiltX/angle:0,axisY=angle?tiltY/angle:1;
+    cell.style.setProperty('--cell-glare-x',(nx*100).toFixed(1)+'%');cell.style.setProperty('--cell-glare-y',(ny*100).toFixed(1)+'%');
+    cell.style.setProperty('--cell-tilt-axis',axisX.toFixed(3)+' '+axisY.toFixed(3)+' 0 '+angle.toFixed(2)+'deg');
+  }
   const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
   function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
   function syncClock(){updateStudioClock();if(clockTimer)clearInterval(clockTimer);if(!document.hidden)clockTimer=setInterval(updateStudioClock,30000);}
   syncClock();document.addEventListener('visibilitychange',syncClock);
   function cursorAllowed(){return finePointer.matches&&enabled&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static');}
   if(finePointer.matches&&reticle){
-    addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!cursorAllowed())return;pointerX=event.clientX;pointerY=event.clientY;pointerInside=true;root.style.setProperty('--hero-parallax-x',((pointerX/innerWidth)-.5)*26+'px');root.style.setProperty('--hero-parallax-y',((pointerY/innerHeight)-.5)*20+'px');reticle.style.transform=`translate3d(${pointerX}px,${pointerY}px,0)`;reticle.classList.add('is-visible');mapPose='';if(enabled)schedule();},{passive:true});
-    addEventListener('pointerover',event=>{if(!cursorAllowed())return;const target=event.target.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link');if(!target)return;if(reticlePill)reticlePill.textContent=target.matches('.work-cell,.filmstrip figure,.photo-link')?'[ INSPECT FRAME ]':'[ EXPLORE ]';reticle.classList.add('is-active');},{passive:true});
-    addEventListener('pointerout',event=>{if(event.target.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link')&&!event.relatedTarget?.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link'))reticle.classList.remove('is-active');},{passive:true});
-    addEventListener('pointerleave',()=>{pointerInside=false;reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');});
-    finePointer.addEventListener('change',()=>{if(!finePointer.matches){reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}});
+    addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!cursorAllowed())return;pointerX=event.clientX;pointerY=event.clientY;pointerInside=true;trackWorkCell(event);root.style.setProperty('--hero-parallax-x',((pointerX/innerWidth)-.5)*26+'px');root.style.setProperty('--hero-parallax-y',((pointerY/innerHeight)-.5)*20+'px');reticle.style.transform=`translate3d(${pointerX}px,${pointerY}px,0)`;reticle.classList.add('is-visible');mapPose='';if(enabled)schedule();},{passive:true});
+    addEventListener('pointerover',event=>{if(!cursorAllowed())return;const target=event.target.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link');if(!target)return;if(reticlePill)reticlePill.textContent=target.matches('.filmstrip figure,.photo-link')?'[ INSPECT FRAME ]':'[ EXPLORE ]';reticle.classList.add('is-active');},{passive:true});
+    addEventListener('pointerout',event=>{const cell=event.target.closest?.('.work-cell');if(cell&&!event.relatedTarget?.closest?.('.work-cell')){resetWorkCell(cell);if(activeWorkCell===cell)activeWorkCell=null;}if(event.target.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link')&&!event.relatedTarget?.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link'))reticle.classList.remove('is-active');},{passive:true});
+    addEventListener('pointerleave',()=>{pointerInside=false;resetWorkCell(activeWorkCell);activeWorkCell=null;reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');});
+    finePointer.addEventListener('change',()=>{if(!finePointer.matches){resetWorkCell(activeWorkCell);activeWorkCell=null;reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}});
   }
 
   const names = nav.map(b => b.getAttribute('aria-label'));
@@ -435,7 +447,7 @@
       }
     }
     enabled = nextEnabled;
-    if(!enabled){finishSignalLock(true);pointerInside=false;reticle?.classList.remove('is-visible','is-active');reticle?.setAttribute('hidden','');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}else if(finePointer.matches&&cursorAllowed()){reticle?.removeAttribute('hidden');}
+    if(!enabled){finishSignalLock(true);pointerInside=false;resetWorkCell(activeWorkCell);activeWorkCell=null;reticle?.classList.remove('is-visible','is-active');reticle?.setAttribute('hidden','');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}else if(finePointer.matches&&cursorAllowed()){reticle?.removeAttribute('hidden');}
     cancelAnimationFrame(raf); raf = 0;
     root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
     cache = new WeakMap();
