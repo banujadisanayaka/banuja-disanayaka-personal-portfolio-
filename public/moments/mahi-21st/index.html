@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#17110d" />
+  <meta name="description" content="Mahi’s 21st Birthday — a client photo story from Moments by The Daily Gaze, with full-quality photo downloads." />
+  <meta name="robots" content="noindex,nofollow,noarchive,noimageindex" />
+  <meta property="og:title" content="Mahi’s 21st Birthday — Moments by The Daily Gaze" />
+  <meta property="og:description" content="116 birthday memories, beautifully presented and available in original quality." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://banujadisanayaka.netlify.app/moments/mahi-21st-birthday/" />
+  <meta property="og:image" content="https://banujadisanayaka.netlify.app/.netlify/images?url=%2F.netlify%2Ffunctions%2Fmahi-photo%3Fid%3D056&w=1200&h=630&fit=cover&fm=jpg&q=88" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mahi’s 21st Birthday — Moments by The Daily Gaze" />
+  <meta name="twitter:description" content="116 birthday memories, beautifully presented and available in original quality." />
+  <meta name="twitter:image" content="https://banujadisanayaka.netlify.app/.netlify/images?url=%2F.netlify%2Ffunctions%2Fmahi-photo%3Fid%3D056&w=1200&h=630&fit=cover&fm=jpg&q=88" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%236e2439'/%3E%3Ctext x='50' y='67' text-anchor='middle' font-size='58' font-family='Georgia' fill='%23e7c78f'%3E21%3C/text%3E%3C/svg%3E" />
+  <title>Mahi’s 21st Birthday — Moments by The Daily Gaze</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main id="app">
+    <section class="landing" id="landing" aria-labelledby="albumTitle">
+      <a class="tdg-home-link" href="/moments/" aria-label="Back to Moments by The Daily Gaze"><strong>THE DAILY GAZE</strong><span>MOMENTS</span></a>
+      <div class="ambient ambient-a"></div>
+      <div class="ambient ambient-b"></div>
+      <div class="cover-wrap">
+        <div class="book-cover" id="bookCover">
+          <div class="cover-inset">
+            <p class="eyebrow">Moments by The Daily Gaze</p>
+            <h1 id="albumTitle">Mahi’s<br><span>21st Birthday</span></h1>
+            <div class="cover-photo-frame">
+              <img src="/.netlify/images?url=%2F.netlify%2Ffunctions%2Fmahi-photo%3Fid%3D056&w=900&fm=webp&q=84" alt="Birthday portrait of Mahi" fetchpriority="high" />
+            </div>
+            <p class="cover-subtitle">Captured with care · Kept in full quality</p>
+            <button class="primary-btn open-album" id="openAlbum">Enter memories <span aria-hidden="true">→</span></button>
+          </div>
+          <div class="cover-spine" aria-hidden="true"></div>
+        </div>
+      </div>
+      <p class="landing-note">116 photographs · Full-quality downloads · A Moments client story</p>
+    </section>
+
+    <section class="album-shell" id="albumShell" aria-hidden="true">
+      <header class="album-toolbar">
+        <div>
+          <p class="toolbar-kicker">Moments · The Daily Gaze</p>
+          <p class="toolbar-progress" id="progressLabel" role="status" aria-live="polite">Opening</p>
+        </div>
+        <div class="toolbar-actions">
+          <button class="ghost-btn" id="shareAlbum">Share</button>
+          <button class="ghost-btn" id="selectPhotos">Favourites</button>
+          <button class="gold-btn" data-download-all>Save all 116</button>
+          <a class="toolbar-brand" href="/moments/" aria-label="Back to Moments">Moments ↗</a>
+          <button class="icon-btn" id="closeAlbum" aria-label="Close album">×</button>
+        </div>
+      </header>
+
+      <div class="album-stage" id="albumStage">
+        <div class="book" id="book" aria-label="Birthday photo album">
+          <div class="book-edge book-edge-left" aria-hidden="true"></div>
+          <div class="book-edge book-edge-right" aria-hidden="true"></div>
+          <div class="spread" id="spread"></div>
+          <div class="turn-sheet" id="turnSheet" aria-hidden="true" inert></div>
+        </div>
+
+        <button class="page-nav prev" id="prevPage" aria-label="Previous spread"><span aria-hidden="true">‹</span><span class="nav-word">Previous</span></button>
+        <button class="page-nav next" id="nextPage" aria-label="Next spread"><span aria-hidden="true">›</span><span class="nav-word">Next</span></button>
+      </div>
+
+      <div class="album-reading-bar" aria-hidden="true"><span id="readingProgress"></span></div>
+      <p class="mobile-hint" id="mobileHint">Swipe or use the arrows · Tap a photo to open</p>
+      <a class="brand-corner" href="/moments/" aria-label="Back to Moments by The Daily Gaze">Captured by <strong>The Daily Gaze</strong> · Back to Moments ↗</a>
+    </section>
+  </main>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Full-screen photo">
+    <div class="lightbox-backdrop" data-close-lightbox></div>
+    <div class="lightbox-card">
+      <div class="lightbox-topbar">
+        <div>
+          <p class="toolbar-kicker">Moments · The Daily Gaze</p>
+          <p id="lightboxCounter">Photo 1 of 116</p>
+        </div>
+        <button class="icon-btn" data-close-lightbox aria-label="Close photo">×</button>
+      </div>
+      <div class="lightbox-image-wrap">
+        <button class="lightbox-arrow" id="lightboxPrev" aria-label="Previous photo">‹</button>
+        <img id="lightboxImage" alt="" />
+        <button class="lightbox-arrow" id="lightboxNext" aria-label="Next photo">›</button>
+      </div>
+      <div class="lightbox-actions">
+        <button class="ghost-btn" id="toggleSelectCurrent">Add to selection</button>
+        <a class="gold-btn link-btn" id="downloadCurrent" download>Download this photo</a>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="selection-dialog" id="selectionDialog" aria-label="Select favourite photos">
+    <div class="selection-panel">
+      <div class="selection-head">
+        <div>
+          <p class="eyebrow">Choose what you love</p>
+          <h2>Select photos</h2>
+          <p id="selectionCount">0 selected</p>
+        </div>
+        <button class="icon-btn" id="closeSelection" aria-label="Close selection">×</button>
+      </div>
+      <div class="selection-grid" id="selectionGrid"></div>
+      <div class="selection-footer">
+        <button class="ghost-btn" id="clearSelection">Clear</button>
+        <button class="gold-btn" id="downloadSelected">Download selected</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="download-dialog" id="downloadDialog" aria-labelledby="downloadTitle">
+    <div class="download-panel">
+      <p class="eyebrow">Original-quality memories</p>
+      <h2 id="downloadTitle">Save photos to your device</h2>
+      <p id="downloadMessage">We’ll choose the simplest method your browser supports. No ZIP file.</p>
+
+      <div class="download-device-card" id="downloadDeviceCard">
+        <span class="download-device-dot" aria-hidden="true"></span>
+        <div>
+          <strong id="downloadDeviceTitle">Smart save</strong>
+          <span id="downloadDeviceHelp">Normal image files, ready for Photos or Files.</span>
+        </div>
+      </div>
+
+      <div class="download-actions" id="downloadActions">
+        <button class="gold-btn" id="downloadPrimary">Continue</button>
+        <button class="ghost-btn hidden" id="downloadFallback">Use normal downloads</button>
+      </div>
+      <button class="download-choose hidden" id="downloadChoose">Choose specific photos instead</button>
+
+      <div class="download-progress-wrap hidden" id="downloadProgressWrap">
+        <div class="progress-track"><div class="progress-bar" id="downloadBar"></div></div>
+        <p class="download-progress" id="downloadProgress">0 / 116</p>
+      </div>
+
+      <button class="ghost-btn download-close" id="closeDownloadDialog">Close</button>
+    </div>
+  </dialog>
+
+  <div class="share-toast" id="shareToast" role="status" aria-live="polite">Album link copied</div>
+
+  <template id="photoMountTemplate">
+    <button class="photo-mount is-loading" type="button">
+      <img decoding="async" alt="" />
+      <span class="photo-loader" aria-hidden="true"></span>
+      <span class="photo-error">Photo couldn’t load · Tap to open</span>
+      <span class="print-number" aria-hidden="true"></span>
+      <span class="tap-open" aria-hidden="true">Tap to open &amp; download</span>
+    </button>
+  </template>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
+

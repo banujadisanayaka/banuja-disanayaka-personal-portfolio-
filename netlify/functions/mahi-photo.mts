@@ -1,0 +1,162 @@
+const PHOTOS = {
+  "100": "1atSvnOdjV6MTm4ct0DgZs0DtlvnAMZt-",
+  "101": "1fcJUuqnICrKjtRBEvW-q1Bj2KrUysSuO",
+  "102": "1kotv7wfzTc5uMcr2LYy4DHWOKy1ZT-uE",
+  "103": "1Bu6a-nq-vhlaPsFumEWP_GCGrl7eNS5g",
+  "104": "1zBd6HyTxiIJty198rKG24Vw3_VtIUrRb",
+  "105": "1DWM64rrqfu65eF3gbpXA25BeUKb0UFVx",
+  "106": "1GNSy2RE8opIm5f5WhckAqwXwnroDgssf",
+  "107": "1L-0TIF9N2tXvpuYqW3zhgHFYd29m7pNs",
+  "108": "1bNkVr6e4IDI0XoSQy_Lr-D2GS8Ydqe9_",
+  "109": "1secrR-Qr9lOf3LYakeTa9jyZ6c6FT2cq",
+  "110": "16a-Th1a6OBg11QRicref5EXtUcJLH3vJ",
+  "111": "1Amc5pG0enhfjJpCc6TskXJOnjvaGQgxD",
+  "112": "1FtBMncIMad-l9flX-rdCIxm6EbO5r6tB",
+  "113": "1p2TOaU_BScxQqmZVEoplTWXMO0qs-MYK",
+  "114": "1EUejBTIR2VSIPlD5Y6FdKCLoG6YYJ3OC",
+  "115": "1ALw6biklK8087JQlujmWjLhIKLjLUspB",
+  "116": "1tkb9jChoRM-AyOgDg2JteMVv7VUWX7Az",
+  "001": "1xY6VzcVQ9mfcm3j0pFrdv1tO0SuG4HND",
+  "002": "1svkbztEFoAYNZPquOU3Gc_drtVyEfvzu",
+  "003": "1Ub5D-PvIe6LDcrPVAXIBKn6EaDTnk3rV",
+  "004": "1UVu6MS55rTdHQPgDWt9fPlRlKjp8X0wM",
+  "005": "1XuHSYWhxRzrbrh9ic7Pdr5WSA4AMJ_UM",
+  "006": "1cbJZOLknv17Nwymn6koiQhqEDRMIIKmP",
+  "007": "1iH16XBi0oTJfhOldeMwjTbZOPdeYCmVl",
+  "008": "1lrX9vYSOBbUgLzjHKOJXy7nFauNDW4-Y",
+  "009": "1Gsoj0oE6TLn1xv7doh4tksWILsBAgmEP",
+  "010": "1E6mzHNdMXAfvRkWyvBOgff7owmgbgs9y",
+  "011": "1ZM7rFcZel6GlLE7Q5W4EuXzqWN-_EWVb",
+  "012": "1kapDbOj1H2eIy-utQcXNIM8h9xAq_bXa",
+  "013": "1QASaF0UOFK-HsvffClqEyZHRLNZ8ZXye",
+  "014": "1YRPh4AMJkZuX2xb1f3uBvkVAxPv19pk_",
+  "015": "1K_ratxczsRBqXA_7Texh89MTWWuE4zpf",
+  "016": "1IP7XFsTHJ1C_UtOqsjsxEskRch4Zz_76",
+  "017": "1ifuFFjxWDO-n602Nj9c6XoTMYMcF-vEQ",
+  "018": "1zEi_Ij4CNe0gNauJh2LV5k3gj4STnXAW",
+  "019": "1EISBvWCy-qFvuMxt-YZov2Km-ovJ9BfD",
+  "020": "1MLmsP-ASn_Y-xybgJX0xqJjwyCcdVbUL",
+  "021": "1grtmA3gejLO--W9wC53Zgul6RuTUc2vF",
+  "022": "1Q0k1R1MF0pwxgv-VJTl8wBBHhlyS3VG0",
+  "023": "1nft2snHMeI1uiSxhrZH7qWvtGj9F-5aX",
+  "024": "1lmDxx1U6u-tXioYN3FHbw3fDs2O_oGpt",
+  "025": "1NkrhG_JUKheVfoMgGIknsoS-duYliYxe",
+  "026": "18IrqWNIGR0yX0xzr5IjVXzXfSBWpmVJV",
+  "027": "1Geern8j64vsCpk9a_7_r1VeyxhAhfvwh",
+  "028": "1zwfXFNdxfCmcrit9s2IbnzvbQCxDDAnY",
+  "029": "1EHpzgw3yACqw3H93Fmx0cqJLRctf-JqK",
+  "030": "1LwhGD9bxGyJ5uqZ7afjykdWO4CK_w1EV",
+  "031": "1zI9HNE_67munc5dPJxkGt4zsfA0pMiEI",
+  "032": "1ockc4ympuxuqEu42pzjw9GIB1KoopcBV",
+  "033": "1ppuGLpj-nsVNIu-6rVqofOO_J8qutqG9",
+  "034": "1CCAqQfEyM0GT5WHlHkV3KHXJVO2eCEVr",
+  "035": "15RHyGSerPl3bDNfW1kuzNINbAop7XI5v",
+  "036": "1Y3x06pNP8MTrT-YWw6czfZt8ZSawNxEV",
+  "037": "10cJCX1JQ10xt3umtgoSqoT7Wfjkl444b",
+  "038": "1JaycgXTYqaxRgSBwDGAsAXsGaS7FokqH",
+  "039": "1uVsiqZSyc38bNQF2r2SxP9s8Nw01_1y9",
+  "040": "1vPF8rGF1YhKzkZpMKv97zyl0K0DRwOXT",
+  "041": "1aII8hfjcGZNZe-BUxnP4VEwjTojcI1CO",
+  "042": "1nmzsAtdVGC3sv-0zsIDPBuyByi3nqk23",
+  "043": "1fScG8m7OLqrwAAbEMEbD6XqpQ7wuG_OR",
+  "044": "1VkU_fM7ejL0I0jIxksbyZ5sg75nI-y0Y",
+  "045": "1-VyUwWc5Q7qMWScgj3NLAvQBcZmTYN78",
+  "046": "1fpUuwElUlWH0tHy5zJU9gZnuGOhHWKwv",
+  "047": "1uAZjw2ZUxJqhKBkDGuz6GSklgy4eChuK",
+  "048": "1i2yMMWsJULwOhWVawHIpQUmorpfgMnyC",
+  "049": "196YkfN89uaV-O-y9wk-kifnAZymp9WYt",
+  "050": "14USoX9TI_EBDQerT-qsS6NAzKvTxiIyJ",
+  "051": "1qi4RU6eXthuPd1YwXWm9HjkQ3-OuJYo3",
+  "052": "1Pg1Znhl5ZhwMxcoinAwUE7qX_vKUo6Uy",
+  "053": "1Jd8GjMl_dqDpaM0EGyyUDHUYBHFoXx8u",
+  "054": "1ZOnbx7Y5ClC3WZX9cwQ77oXMF1fvRoaS",
+  "055": "1jDGdH7u296TsBoahlTpaGd8q1AnBEgcX",
+  "056": "1OXY3M0qynT-iX6WNjR4A73YwDhZJPYev",
+  "057": "1f3W-OX3KsWmXPa0fjZNFn-k7fKECt08I",
+  "058": "124fcPz50icFg1VQD7HZOYBTTIsd2oDfc",
+  "059": "1eRGI5o1xGDieYKhPMBU_RwOZpxhEk41N",
+  "060": "16Bn_XL9H60iVHvqqmWLKL7SvLlajDx1c",
+  "061": "10SsVJMVordxPb5ekdJCp7E1EfLtJFYos",
+  "062": "1eTafEXRRx9N3XX2RqBdRGA3pMr6jcXxS",
+  "063": "1CFAq4HbYZUDMZiqZSbpaYvMXAvGG0gRz",
+  "064": "1f_sMw0ebch-s_zq5jktc0D9tbjt47Yu9",
+  "065": "1ncWgbYis18bL5NtT-K_GDR2aWO5RuovD",
+  "066": "1HCVPAQYeQgakF4FIEjEHP4H9iXs2fRcr",
+  "067": "1ChrM2NpJRKRy8J8ZhIxwkU5fyA-NZnYs",
+  "068": "1fh2kCZGls_IPP7TvTJL7Yusx2k4ERxy0",
+  "069": "1S53DUcUZFBpGjPESI8NmJsQ3t1A8Ri3q",
+  "070": "1f1pJWZYF01zH4G2oYyZhgIr_I-gWzK2k",
+  "071": "1gpHhIZYGWBXUqKcprVi9Nlv-S1Q5zJTf",
+  "072": "1lVptpuSVKjDd5cjO9-p4Q4Dkwjd2q1TL",
+  "073": "1BC2T6aE3VAVQypJ4ck2owkbTHMG4pFZE",
+  "074": "1giqsyFrgXIAX_yhMwEJdA9dwJ3JCh0xa",
+  "075": "1vCXwAv2V7yylVBHXqmoAg218iSWirUBq",
+  "076": "17PkML1ANBSBJAWy4Jsyhqs_jYJznjm0G",
+  "077": "1DbnH5CCZUBBPQiJp7xxwgKvFn_3w31eP",
+  "078": "1wWKTMI-sHcHGKUlNKSanIblAap5DGEN6",
+  "079": "1BuSeSvuG63AKkpPC2adj7oQm_h8bUm6Z",
+  "080": "1ARg0iDxKBrVxW79bQku5-EGEXXVrTuP4",
+  "081": "1dEjbGdv5Sivk57gCK1PWNBHq38UnGm86",
+  "082": "15Kb88mgtiS5sgVNMOEInw4-GryZ381ZW",
+  "083": "10TxT4nmUU2qKWTkiCblv0oqC2eob73Wc",
+  "084": "1Tn8akoCRzI_pvlOg0cRWG3hJIF1pZy7l",
+  "085": "1Wnd8hmFbETLgnt_tpxWozIrrW8Nd_9jR",
+  "086": "1mlj3676MkNlMBTLBFsYCk1hIxjWTpKu1",
+  "087": "1XjZ8mxJp3xYBp_IlcVM6zJ_PclD50Y_a",
+  "088": "1spHMyxZDdUNUQ0J82x4-5jENztMxZA_H",
+  "089": "1Y7JXqDov2vU2nLOryvQ3ddUEVs__6mtX",
+  "090": "1crZkOisSdt0jwqVsycb5I8PYTSJleowB",
+  "091": "1mlesN1YNDZrnU9PVTRYJfcCsV16KtvKt",
+  "092": "1IfcqqDbawwo-BUyUOcTHMTtsEMm4RiZW",
+  "093": "12UvSy5LwPwKS8AzGyuu925J7YsoaXrlK",
+  "094": "1zrmo3nhfKqr_W-HlwtKhG030RnGba6_M",
+  "095": "1YocRLAZGP0zRy7LRfje_P9N7GQwdFKnW",
+  "096": "1oQM3LaSTzjxkwg3xZmTHxs7Wb2heabck",
+  "097": "1vlHH4HEFwErbzCRC5gyj0v3Llhtuk4ZQ",
+  "098": "1DDpwTGxxpkQcGvHgJkYQdLWzxdhpB06v",
+  "099": "16LIWL_CWMBu2afeAD85OH6Yo9VueSYxx"
+};
+export default async (req: Request) => {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, HEAD" } });
+  }
+  const url = new URL(req.url);
+  const id = (url.searchParams.get("id") || "").padStart(3, "0");
+  const driveId = PHOTOS[id];
+  if (!driveId) return new Response("Photo not found", { status: 404 });
+
+  const source = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(driveId)}`;
+  let upstream = await fetch(source, { redirect: "follow" });
+  let type = upstream.headers.get("content-type") || "";
+
+  // Google Drive can show a virus-scan confirmation page for large PNGs.
+  if (upstream.ok && !type.startsWith("image/")) {
+    const html = await upstream.text().catch(() => "");
+    const token = html.match(/confirm=([0-9A-Za-z_-]+)/)?.[1]
+      || html.match(/name=["']confirm["']\s+value=["']([^"']+)["']/i)?.[1]
+      || html.match(/[?&]confirm=([0-9A-Za-z_-]+)/)?.[1];
+    const cookies = upstream.headers.get("set-cookie")?.split(/, (?=[^;]+=)/).map(v => v.split(";")[0]).join("; ");
+    if (token) {
+      const headers = cookies ? { Cookie: cookies } : undefined;
+      upstream = await fetch(`https://drive.google.com/uc?export=download&confirm=${encodeURIComponent(token)}&id=${encodeURIComponent(driveId)}`, { redirect: "follow", headers });
+      type = upstream.headers.get("content-type") || "";
+    }
+  }
+
+  if (!upstream.ok || !type.startsWith("image/")) {
+    return new Response("Google Drive did not return an image. Confirm the file is shared as anyone with the link can view.", {
+      status: 503, headers: { "Cache-Control": "no-store" }
+    });
+  }
+  const download = url.searchParams.get("download") === "1";
+  const headers = new Headers({
+    "Content-Type": type,
+    "X-Robots-Tag": "noindex, nofollow, noarchive, noimageindex",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "Referrer-Policy": "no-referrer",
+    "Cache-Control": download ? "private, max-age=0, must-revalidate" : "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400"
+  });
+  if (download) headers.set("Content-Disposition", `attachment; filename="Mahi_21st_Birthday_Photo_${id}.png"`);
+  if (req.method === "HEAD") return new Response(null, { status: 200, headers });
+  return new Response(upstream.body, { status: 200, headers });
+};

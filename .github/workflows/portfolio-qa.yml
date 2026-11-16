@@ -46,7 +46,8 @@ jobs:
 
 
   browser-qa:
-    runs-on: ubuntu-latest
+    # Playwright 1.55 does not support the ubuntu-26.04 image currently behind ubuntu-latest.
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - name: Checkout
