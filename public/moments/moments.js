@@ -1,5 +1,16 @@
 const albums = [
   {
+    slug: 'mahi-21st',
+    title: 'Mahi’s 21st Birthday',
+    date: '14 November 2026',
+    location: 'Sri Lanka',
+    count: 116,
+    privacy: 'public',
+    description: 'A collection of memories celebrating Mahi’s 21st birthday.',
+    href: '/moments/mahi-21st/',
+    cover: '/.netlify/images?url=%2F.netlify%2Ffunctions%2Fmahi-photo%3Fid%3D053&w=1800&h=1300&fit=cover&fm=webp&q=88'
+  },
+  {
     slug: 'sathiw-7th-birthday',
     title: 'Sathiw’s 7th Birthday',
     date: 'September 2026',
@@ -10,9 +21,7 @@ const albums = [
     href: '/moments/sathiw-7th-birthday/',
     cover: '/.netlify/images?url=%2F.netlify%2Ffunctions%2Fsathiw-photo%3Fid%3D026&w=1800&h=1300&fit=cover&fm=webp&q=88'
   }
-];
-
-const grid = document.querySelector('#momentGrid');
+];const grid = document.querySelector('#momentGrid');
 const intro = document.querySelector('#momentsIntro');
 const pinDialog = document.querySelector('#pinDialog');
 const pinForm = document.querySelector('#pinForm');

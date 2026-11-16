@@ -24,7 +24,7 @@ const chapters = [
   {start:1, end:10, label:'Portraits & first smiles'},
   {start:11, end:22, label:'Family moments'},
   {start:23, end:34, label:'Cake, candles & celebration'},
-  {start:35, end:44, label:'Evening memories'}
+  {start:35, end:116, label:'Evening memories'}
 ];
 
 const state = { page: 0, lightboxIndex: 0, selected: new Set(), animating: false };
@@ -116,7 +116,7 @@ function makeTextPage(side, closing=false, companion=false){
       </div>`;
   } else if (companion) {
     page.innerHTML = `
-      <div class="seal">44</div>
+      <div class="seal">21</div>
       <p class="chapter-no">Your album</p>
       <h2>Turn the pages. Open a memory. Keep the ones you love.</h2>
       <p>Tap any photograph to see it full-screen. Save one image, choose favourites, or keep the complete collection in original quality — without opening Google Drive.</p>`;
