@@ -330,3 +330,6 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
 
 .work-caption{top:18%}
 @media(max-width:700px){.work-caption{top:15%}}
+
+/* Keep the work heading below the cinematic top rail on desktop. */
+@media(min-width:701px){.work-caption{top:26%}}
