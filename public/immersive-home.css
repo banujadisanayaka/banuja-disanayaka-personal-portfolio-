@@ -343,3 +343,5 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
 
 /* Keep the layered book artwork inside its card's horizontal bounds. */
 .work-cell .project-book .book{inset:0 8px 0 0;width:auto}
+
+.work-cell .project-book{width:calc(100% - 4px)!important;max-width:calc(100% - 4px)!important}
