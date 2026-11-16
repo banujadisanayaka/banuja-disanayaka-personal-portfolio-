@@ -116,16 +116,47 @@ const PHOTOS = {
   "098": "1DDpwTGxxpkQcGvHgJkYQdLWzxdhpB06v",
   "099": "16LIWL_CWMBu2afeAD85OH6Yo9VueSYxx"
 };
-export default async (req) => {
- if(req.method!=="GET"&&req.method!=="HEAD")return new Response("Method not allowed",{status:405,headers:{Allow:"GET, HEAD"}});
- const url=new URL(req.url),id=(url.searchParams.get("id")||"").padStart(3,"0"),driveId=PHOTOS[id];
- if(!driveId)return new Response("Photo not found",{status:404});
- const upstream=await fetch(`https://drive.google.com/uc?export=download&id=${encodeURIComponent(driveId)}`,{redirect:"follow"});
- const type=upstream.headers.get("content-type")||"";
- if(!upstream.ok||!type.startsWith("image/"))return new Response("Google Drive did not return an image. Check that this file is publicly viewable.",{status:503,headers:{"Cache-Control":"no-store"}});
- const download=url.searchParams.get("download")==="1";
- const headers=new Headers({"Content-Type":type,"X-Robots-Tag":"noindex, nofollow, noarchive, noimageindex","Cross-Origin-Resource-Policy":"same-origin","Referrer-Policy":"no-referrer","Cache-Control":download?"private, max-age=0, must-revalidate":"public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400"});
- if(download)headers.set("Content-Disposition",`attachment; filename="Mahi_21st_Birthday_Photo_${id}.png"`);
- if(req.method==="HEAD")return new Response(null,{status:200,headers});
- return new Response(upstream.body,{status:200,headers});
+export default async (req: Request) => {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, HEAD" } });
+  }
+  const url = new URL(req.url);
+  const id = (url.searchParams.get("id") || "").padStart(3, "0");
+  const driveId = PHOTOS[id];
+  if (!driveId) return new Response("Photo not found", { status: 404 });
+
+  const source = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(driveId)}`;
+  let upstream = await fetch(source, { redirect: "follow" });
+  let type = upstream.headers.get("content-type") || "";
+
+  // Google Drive can show a virus-scan confirmation page for large PNGs.
+  if (upstream.ok && !type.startsWith("image/")) {
+    const html = await upstream.text().catch(() => "");
+    const token = html.match(/confirm=([0-9A-Za-z_-]+)/)?.[1]
+      || html.match(/name=["']confirm["']\s+value=["']([^"']+)["']/i)?.[1]
+      || html.match(/[?&]confirm=([0-9A-Za-z_-]+)/)?.[1];
+    const cookies = upstream.headers.get("set-cookie")?.split(/, (?=[^;]+=)/).map(v => v.split(";")[0]).join("; ");
+    if (token) {
+      const headers = cookies ? { Cookie: cookies } : undefined;
+      upstream = await fetch(`https://drive.google.com/uc?export=download&confirm=${encodeURIComponent(token)}&id=${encodeURIComponent(driveId)}`, { redirect: "follow", headers });
+      type = upstream.headers.get("content-type") || "";
+    }
+  }
+
+  if (!upstream.ok || !type.startsWith("image/")) {
+    return new Response("Google Drive did not return an image. Confirm the file is shared as anyone with the link can view.", {
+      status: 503, headers: { "Cache-Control": "no-store" }
+    });
+  }
+  const download = url.searchParams.get("download") === "1";
+  const headers = new Headers({
+    "Content-Type": type,
+    "X-Robots-Tag": "noindex, nofollow, noarchive, noimageindex",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "Referrer-Policy": "no-referrer",
+    "Cache-Control": download ? "private, max-age=0, must-revalidate" : "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400"
+  });
+  if (download) headers.set("Content-Disposition", `attachment; filename="Mahi_21st_Birthday_Photo_${id}.png"`);
+  if (req.method === "HEAD") return new Response(null, { status: 200, headers });
+  return new Response(upstream.body, { status: 200, headers });
 };

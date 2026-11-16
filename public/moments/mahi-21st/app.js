@@ -15,8 +15,8 @@ const photos = Array.from({length: TOTAL}, (_, i) => {
     preview: photoSource(n, {width: 1200, quality: 82}),
     full: photoSource(n, {width: 2200, quality: 90}),
     download: photoSource(n, {download: true}),
-    filename: `Mahi_7th_Birthday_Photo_${n}.png`,
-    alt: `Mahi's 7th birthday memory ${i + 1}`
+    filename: `Mahi_21st_Birthday_Photo_${n}.png`,
+    alt: `Mahi's 21st birthday memory ${i + 1}`
   };
 });
 
@@ -97,9 +97,9 @@ function makeTextPage(side, closing=false, companion=false){
       <p>These photographs are small pieces of a day filled with family, laughter and love — presented as a memory experience, not just a folder of files.</p>`;
   } else if (closing) {
     page.innerHTML = `
-      <div class="seal">S · 7</div>
+      <div class="seal">21</div>
       <p class="chapter-no">Until the next chapter</p>
-      <h2>21st years of love, joy & beautiful memories.</h2>
+      <h2>21 years of love, joy & beautiful memories.</h2>
       <p>Happy 21st Birthday, Mahi. May this little album always bring this night back to life.</p>
       <div class="closing-actions">
         <button class="gold-btn" data-download-all>Save all 116 photos</button>
@@ -542,7 +542,7 @@ async function sharePreparedBatch(){
   try{
     await navigator.share({
       files: batch,
-      title: 'Mahi’s 7th Birthday',
+      title: 'Mahi’s 21st Birthday',
       text: batches.length === 1
         ? 'Save these birthday memories to your device.'
         : `Birthday memories · batch ${index + 1} of ${batches.length}`
@@ -645,9 +645,9 @@ function showShareToast(message='Album link copied'){
 
 async function shareAlbum(){
   const shareData = {
-    title: 'Mahi’s 7th Birthday',
-    text: 'Mahi’s 7th birthday memories, captured by The Daily Gaze.',
-    url: 'https://banujadisanayaka.netlify.app/moments/mahi-7th-birthday/'
+    title: 'Mahi’s 21st Birthday',
+    text: 'Mahi’s 21st birthday memories, captured by The Daily Gaze.',
+    url: 'https://banujadisanayaka.netlify.app/moments/mahi-21st/'
   };
   try{
     if(navigator.share){
@@ -662,7 +662,7 @@ async function shareAlbum(){
       await navigator.clipboard.writeText(shareData.url);
       showShareToast();
     } catch {
-      showShareToast('Copy this link: banujadisanayaka.netlify.app/moments/mahi-7th-birthday/');
+      showShareToast('Copy this link: banujadisanayaka.netlify.app/moments/mahi-21st/');
     }
   }
 }
@@ -746,7 +746,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'){ e.preventDefault(); turn(1); }
 });
 
-if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('/moments/mahi-7th-birthday/sw.js',{scope:'/moments/mahi-7th-birthday/'}).catch(()=>{})); }
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('/moments/mahi-21st/sw.js',{scope:'/moments/mahi-21st/'}).catch(()=>{})); }
 renderSpread();
 
 mobileQuery.addEventListener('change', () => { finishTurn?.(); renderSpread(); });
