@@ -258,14 +258,14 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
 
 .opening-telemetry-hud .coordinate-stack{position:relative;display:grid;width:220px;height:22px;contain:layout paint;overflow:hidden}
 .opening-telemetry-hud .coordinate-stack>span{grid-area:1/1;align-self:center;visibility:hidden;opacity:0;white-space:nowrap;font:10px/1.2 ui-monospace,monospace;color:#f4efe3;letter-spacing:.04em}
-.experience:has(.film-scene[data-scene="0"].is-current) .coordinate-stack>span:nth-child(1){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="1"].is-current) .coordinate-stack>span:nth-child(2){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="2"].is-current) .coordinate-stack>span:nth-child(3){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="3"].is-current) .coordinate-stack>span:nth-child(4){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="4"].is-current) .coordinate-stack>span:nth-child(5){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="5"].is-current) .coordinate-stack>span:nth-child(6){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="6"].is-current) .coordinate-stack>span:nth-child(7){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="7"].is-current) .coordinate-stack>span:nth-child(8){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="8"].is-current) .coordinate-stack>span:nth-child(9){visibility:visible;opacity:1}
-.experience:has(.film-scene[data-scene="9"].is-current) .coordinate-stack>span:nth-child(10){visibility:visible;opacity:1}
+.experience[data-active-scene="0"] .coordinate-stack>span:nth-child(1){visibility:visible;opacity:1}
+.experience[data-active-scene="1"] .coordinate-stack>span:nth-child(2){visibility:visible;opacity:1}
+.experience[data-active-scene="2"] .coordinate-stack>span:nth-child(3){visibility:visible;opacity:1}
+.experience[data-active-scene="3"] .coordinate-stack>span:nth-child(4){visibility:visible;opacity:1}
+.experience[data-active-scene="4"] .coordinate-stack>span:nth-child(5){visibility:visible;opacity:1}
+.experience[data-active-scene="5"] .coordinate-stack>span:nth-child(6){visibility:visible;opacity:1}
+.experience[data-active-scene="6"] .coordinate-stack>span:nth-child(7){visibility:visible;opacity:1}
+.experience[data-active-scene="7"] .coordinate-stack>span:nth-child(8){visibility:visible;opacity:1}
+.experience[data-active-scene="8"] .coordinate-stack>span:nth-child(9){visibility:visible;opacity:1}
+.experience[data-active-scene="9"] .coordinate-stack>span:nth-child(10){visibility:visible;opacity:1}
 @media(max-width:700px){.opening-telemetry-hud .coordinate-stack{width:150px;height:18px}.opening-telemetry-hud .coordinate-stack>span{font-size:8px}}
