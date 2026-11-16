@@ -198,7 +198,6 @@
     // Never make the focused subtree inert before returning focus to the timeline.
     if (scenes.some((s, j) => j !== i && s.contains(document.activeElement))) nav[i].focus({ preventScroll: true });
     active = i;
-    root.dataset.activeScene = String(i);
     scenes.forEach((s, j) => { s.classList.toggle('is-current', i === j); s.setAttribute('aria-hidden', String(i !== j)); s.inert = i !== j; });
     nav.forEach((b, j) => b.setAttribute('aria-pressed', String(i === j)));
     menuItems.forEach((b, j) => i === j ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
