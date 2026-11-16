@@ -2,7 +2,7 @@
   'use strict';
   const lock=document.querySelector('.signal-lock-preloader'),lockProgress=document.querySelector('[data-lock-progress]');
   let lockTimer=0,lockStarted=0;
-  function finishSignalLock(immediate=false){if(!lock||lock.dataset.finished==='true')return;lock.dataset.finished='true';if(lockTimer)clearInterval(lockTimer);if(lockProgress)lockProgress.textContent='100%';lock.classList.add('is-exiting');lock.style.pointerEvents='none';if(immediate)lock.remove();else setTimeout(()=>lock.remove(),320);}
+  function finishSignalLock(immediate=false){if(!lock||lock.dataset.finished==='true')return;lock.dataset.finished='true';if(lockTimer)clearInterval(lockTimer);if(lockProgress)lockProgress.textContent='100%';lock.classList.add('is-exiting');lock.style.pointerEvents='none';const hide=()=>{lock.hidden=true;lock.style.display='none';};if(immediate)hide();else setTimeout(hide,320);}
   const reducedAtBoot=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(lock&&(navigator.webdriver===true||reducedAtBoot||document.documentElement.dataset.motion==='off'||document.querySelector('.experience.is-static')||document.querySelector('.motion-toggle[aria-pressed="false"]')))finishSignalLock(true);
   else if(lock){lockStarted=performance.now();lockTimer=setInterval(()=>{if(document.hidden)return;const progress=Math.min(100,Math.floor((performance.now()-lockStarted)/1120*100));if(lockProgress)lockProgress.textContent=String(progress).padStart(2,'0')+'%';if(progress>=100)finishSignalLock();},35);}
@@ -21,7 +21,7 @@
   const finePointer=matchMedia('(hover: hover) and (pointer: fine)'),reticle=document.querySelector('.magnetic-reticle'),reticlePill=reticle?.querySelector('.reticle-pill');
   const clockNode=root.querySelector('[data-dual-clock]');
   let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false;
-  const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());
+  const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
   function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
   function syncClock(){updateStudioClock();if(clockTimer)clearInterval(clockTimer);if(!document.hidden)clockTimer=setInterval(updateStudioClock,30000);}
   syncClock();document.addEventListener('visibilitychange',syncClock);
@@ -435,7 +435,7 @@
       }
     }
     enabled = nextEnabled;
-    if(!enabled){finishSignalLock(true);pointerInside=false;reticle?.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}
+    if(!enabled){finishSignalLock(true);pointerInside=false;reticle?.classList.remove('is-visible','is-active');reticle?.setAttribute('hidden','');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}else if(finePointer.matches&&cursorAllowed()){reticle?.removeAttribute('hidden');}
     cancelAnimationFrame(raf); raf = 0;
     root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
     cache = new WeakMap();
