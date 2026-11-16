@@ -1,4 +1,5 @@
 import {projectBook} from './project-book.mjs';
+// V15: this source owns the generated homepage hero and preloader markup.
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 export function immersiveHome({picture,gallery,profile,ecosystem,projects,career,contact}) {
