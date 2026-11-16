@@ -348,3 +348,5 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
 
 /* Keep tall work cards clear of the persistent lower film controls. */
 @media(min-width:701px){.work-wall{bottom:calc(var(--rail) + 60px)}}
+
+@media(min-width:701px){.work-wall{bottom:calc(var(--rail) + 90px)}}
