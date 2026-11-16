@@ -33,6 +33,28 @@ try {
    await fits(page,`[data-scene="${i}"]`);
    const selector=i===0?'h1':i===4?'.work-wall':i===5?'.journey-list':i===9?'.signature-stage':`[data-scene="${i}"] h2`;
    const bounds=await fits(page,selector);const rail=await page.locator('.film-bottombar').boundingBox();assert.ok(bounds.bottom<=rail.y+1,`${selector} clears controls`);
+   if(i===4){
+    assert.equal(await page.locator('.work-cell').count(),5,'Work matrix keeps exactly five project links');
+    assert.equal(await page.locator('.work-discipline-ticker').getAttribute('aria-hidden'),'true','Discipline ticker is decorative');
+    const ticker=await page.locator('.work-discipline-ticker').innerText();assert.match(ticker,/VISUAL STORYTELLING.*MULTI-BRAND ARCHITECTURE.*FULL-STACK & ANDROID SYSTEMS.*OPERATIONS ENGINEERING/);
+    for(const s of ['.work-caption h2','.work-discipline-ticker','.work-cell']){const b=await fits(page,s),top=await page.locator('.film-topbar').boundingBox();assert.ok(b.top>=top.bottom-1,`${s} clears top controls`);assert.ok(b.bottom<=rail.y+1,`${s} clears bottom controls`);}
+    const topRailBottom=(await page.locator('.film-topbar').boundingBox()).bottom,bottomRailTop=rail.y;const cards=await page.locator('.work-cell').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:el.scrollWidth,width:el.clientWidth};}));
+    for(const b of cards)assert.ok(b.left>=-1&&b.right<=innerWidth+1&&b.scroll<=b.width+1&&b.top>=topRailBottom-1&&b.bottom<=bottomRailTop+1,`Work card fits without rail overlap: ${JSON.stringify(b)}`);
+    if(viewport.width>700){
+     const card=page.locator('.work-cell').first();await card.hover();
+     const effect=await card.evaluate(el=>({x:el.style.getPropertyValue('--cell-glare-x'),y:el.style.getPropertyValue('--cell-glare-y'),tilt:el.style.getPropertyValue('--cell-tilt-axis')}));
+     assert.ok(effect.x&&effect.y&&effect.tilt,'Desktop card receives pointer glare and 3D micro-tilt');
+     assert.equal((await page.locator('.reticle-pill').textContent()).trim(),'[ EXPLORE ]','Work card activates Explore reticle');
+     const siblingOpacity=await page.locator('.work-cell').nth(1).evaluate(el=>Number(getComputedStyle(el).opacity));assert.ok(Math.abs(siblingOpacity-.72)<.02,'Inactive work cards dim on hover');
+     await page.mouse.move(2,2);
+    }
+   }
+   if(i===5){
+    assert.equal(await page.locator('.journey-list li').count(),6,'Career ledger keeps exactly six entries');
+    for(const s of ['.journey-copy h2','.journey-list','.journey-list li']){const b=await fits(page,s),top=await page.locator('.film-topbar').boundingBox();assert.ok(b.top>=top.bottom-1,`${s} clears top controls`);assert.ok(b.bottom<=rail.y+1,`${s} clears bottom controls`);}
+    const topRailBottom=(await page.locator('.film-topbar').boundingBox()).bottom,bottomRailTop=rail.y;const entries=await page.locator('.journey-list li').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:el.scrollWidth,width:el.clientWidth};}));
+    for(const b of entries)assert.ok(b.left>=-1&&b.right<=innerWidth+1&&b.scroll<=b.width+1&&b.top>=topRailBottom-1&&b.bottom<=bottomRailTop+1,`Career entry fits without rail overlap: ${JSON.stringify(b)}`);
+   }
    await page.screenshot({path:`qa-artifacts/immersive/${viewport.width}-scene-${i+1}.png`});
   }
   assert.equal(await page.locator('.journey-list li').count(),6);
