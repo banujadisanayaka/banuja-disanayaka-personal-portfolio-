@@ -350,3 +350,6 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
 @media(min-width:701px){.work-wall{bottom:calc(var(--rail) + 90px)}}
 
 @media(min-width:701px){.work-wall{top:22%;bottom:calc(var(--rail) + 90px)}}
+
+.work-wall.is-interacting .work-cell:not(.is-active-cell){opacity:.72!important;filter:saturate(.72) brightness(.82)}
+.work-wall.is-interacting .work-cell.is-active-cell{opacity:1!important;filter:none}
