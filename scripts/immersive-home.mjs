@@ -11,10 +11,10 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   const jobs=[...(career||[])].reverse();
   const gazeTags=[...new Set(photos.map(item=>item.category).filter(Boolean))].slice(0,4);
 
-  const photo = g => {
+  const photo = (g, decorative = false) => {
     const src=g?.derivatives?.[0]?.url||g?.preview||'';
     const set=Array.isArray(g?.derivatives)?g.derivatives.map(d=>`${esc(d.url)} ${d.width}w`).join(', '):'';
-    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 64vw, 33vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" loading="eager" fetchpriority="low" decoding="async">`;
+    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 64vw, 33vw"`:''} alt="${decorative?'':esc(g?.alt||g?.title||'The Daily Gaze photograph')}"${decorative?' aria-hidden="true"':''} width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" loading="eager" fetchpriority="low" decoding="async">`;
   };
 
   const sceneNames=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
@@ -57,7 +57,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
         <div class="gaze-gate-ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <div class="grade-comparison" id="perspective-photography" style="--grade-split:50%" aria-label="From raw to real color grading comparison">
           <div class="grade-comparison__heading"><span>FROM RAW.</span><strong>TO REAL.</strong></div>
-          <div class="grade-comparison__frame"><div class="grade-comparison__image grade-comparison__image--graded">${photo(featured[0]||{})}</div><div class="grade-comparison__image grade-comparison__image--raw" aria-hidden="true">${photo(featured[0]||{})}</div><span class="grade-comparison__label grade-comparison__label--raw">RAW // LOG</span><span class="grade-comparison__label grade-comparison__label--graded">GRADED // REAL</span><span class="grade-comparison__divider" aria-hidden="true"></span></div>
+          <div class="grade-comparison__frame"><div class="grade-comparison__image grade-comparison__image--graded">${photo(featured[0]||{})}</div><div class="grade-comparison__image grade-comparison__image--raw" aria-hidden="true">${photo(featured[0]||{},true)}</div><span class="grade-comparison__label grade-comparison__label--raw">RAW // LOG</span><span class="grade-comparison__label grade-comparison__label--graded">GRADED // REAL</span><span class="grade-comparison__divider" aria-hidden="true"></span></div>
           <label class="grade-comparison__control"><span>GRADE SPLIT</span><input type="range" min="0" max="100" value="50" data-grade-scrubber aria-label="Compare raw and color-graded photograph"><output data-grade-value>50%</output></label>
         </div>
         <a class="gaze-visit film-action" href="/daily-gaze/">Explore the journal <span aria-hidden="true">↗</span></a>
