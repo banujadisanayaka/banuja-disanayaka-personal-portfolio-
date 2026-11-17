@@ -475,3 +475,17 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
  .journey-list{gap:.3rem .55rem}
  .journey-list li{padding-block:.32rem!important}
 }
+
+
+/* Career cards use intrinsic row heights: never stretch into the bottom rail. */
+.journey-list{
+  grid-template-rows:repeat(3,auto)!important;
+  grid-auto-rows:auto;
+  align-content:start!important;
+  overflow:visible;
+}
+.journey-list li{
+  height:auto!important;
+  min-height:0!important;
+  align-self:start;
+}
