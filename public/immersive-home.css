@@ -364,3 +364,15 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
 .work-wall:hover .work-cell:not(:hover):not(:focus-within),
 .work-wall:focus-within .work-cell:not(:focus-within){opacity:.72}
 .work-wall .work-cell:hover,.work-wall .work-cell:focus-within{opacity:1}
+
+
+/* Phase 2 QA: opacity is an immediate interaction state, never interpolated. */
+.work-cell{transition-property:rotate,filter,border-color,box-shadow,background-color!important}
+.work-wall[data-has-active-cell="true"] .work-cell.is-dimmed-cell,
+.work-cell.is-dimmed-cell[data-dimmed="true"],
+.work-cell[data-dimmed="true"]{opacity:.72!important}
+.work-wall[data-has-active-cell="true"] .work-cell.is-active-cell{opacity:1!important}
+@media(hover:hover) and (pointer:fine){
+ .work-wall:hover .work-cell:not(:hover):not(:focus-within){opacity:.72!important}
+ .work-wall:hover .work-cell:hover,.work-wall .work-cell:focus-within{opacity:1!important}
+}
