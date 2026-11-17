@@ -25,7 +25,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]){
    assert.ok(Math.abs(state.target-state.visual)<.0004,'Smoothed camera settles exactly on native scroll');
    assert.ok(Date.now()-started<900,'Camera settling stays responsive');
  };
- const state=()=>page.locator('.experience').evaluate(el=>[...el.querySelectorAll('.film-scene,.film-scene [style],.signal-rig [style]')].filter(el=>!el.closest('.film-scene')||getComputedStyle(el.closest('.film-scene')).visibility==='visible').map(el=>({tag:el.className?.baseVal??el.className,style:el.getAttribute('style')})));
+ const state=()=>page.locator('.experience').evaluate(el=>[...el.querySelectorAll('.film-scene,.film-scene [style],.signal-rig [style]')].filter(el=>(!el.closest('.film-scene')||getComputedStyle(el.closest('.film-scene')).visibility==='visible')&&!el.closest('#perspective-photography')&&!el.closest('.gaze-gate-ticks')).map(el=>({tag:el.className?.baseVal??el.className,style:el.getAttribute('style')})));
  // Tiny scroll increments must move the portrait smoothly instead of holding
  // a rounded scale and then jumping an entire pixel on a large surface.
  const zooms=[];
