@@ -49,6 +49,13 @@ try {
      await page.mouse.move(2,2);
     }
    }
+   if(i===1){
+    const topRailBox=await page.locator('.film-topbar').boundingBox(),bottomRailBox=await page.locator('.film-bottombar').boundingBox();
+    for(const selector of ['.gaze-intro','.gaze-reel-window','.gaze-readout','#perspective-photography']){const b=await page.locator(selector).boundingBox();assert.ok(b&&b.y>=topRailBox.y+topRailBox.height-1&&b.y+b.height<=bottomRailBox.y+1,'Photography element clears rails: '+selector+' '+JSON.stringify({b,topRailBox,bottomRailBox,viewport}));assert.ok(await page.locator(selector).evaluate(el=>el.scrollWidth<=el.clientWidth+1),'No horizontal overflow: '+selector);}
+    assert.equal(await page.locator('[data-gaze-strip] figure').count(),6,'All six featured reel frames remain present');assert.ok(Number(await page.locator('[data-gaze-number]').textContent())>=6,'Frame counter remains numeric');
+    const scrubber=page.locator('[data-grade-scrubber]');await scrubber.evaluate(el=>{el.value='73';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));});assert.equal(await page.locator('#perspective-photography').evaluate(el=>getComputedStyle(el).getPropertyValue('--grade-split').trim()),'73%','Input synchronously updates split');await scrubber.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#perspective-photography').evaluate(el=>getComputedStyle(el).getPropertyValue('--grade-split').trim()),'74%','Keyboard synchronously updates split');
+    if(viewport.width>700){await page.locator('.filmstrip figure').first().hover();assert.equal((await page.locator('.reticle-pill').textContent()).trim(),'[ INSPECT FRAME ]','Frame hover activates inspect reticle');await page.mouse.move(2,2);}
+   }
    if(i===5){
     assert.equal(await page.locator('.journey-list li').count(),6,'Career ledger keeps exactly six entries');
     const journeyTitle=await fits(page,'.journey-copy h2'),journeyLabel=await fits(page,'.journey-copy small'),journeyTop=await page.locator('.film-topbar').boundingBox();assert.ok(!(journeyLabel.top<journeyTop.y+journeyTop.height-1&&journeyLabel.bottom>journeyTop.y+1),'Career section label clears top rail');assert.ok(!(journeyTitle.top<journeyTop.y+journeyTop.height-1&&journeyTitle.bottom>journeyTop.y+1),`Career heading does not overlap top controls: ${JSON.stringify({journeyTitle,journeyTop})}`);for(const s of ['.journey-list','.journey-list li:first-child']){const b=await fits(page,s);assert.ok(b.top>=journeyTop.y+journeyTop.height-1,`${s} clears top controls`);assert.ok(b.bottom<=rail.y+1,`${s} clears bottom controls`);}
