@@ -535,3 +535,5 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
 @media(max-width:700px){.gaze-reel-window{top:65px}.gaze-gate-ticks{top:65px}.filmstrip{width:64%;padding:14px 12px;gap:16px}.gaze-readout{right:3%;top:32%;max-width:31%;padding:8px 7px;gap:7px}.gaze-readout strong{font-size:clamp(38px,12vw,58px)}.gaze-optics{font-size:6px;line-height:1.35;letter-spacing:0}.grade-comparison{left:4%;bottom:calc(var(--rail) + 13px);width:clamp(142px,43vw,190px);padding:7px}.grade-comparison__heading{font-size:7px}.grade-comparison__control{gap:5px;font-size:6px}.grade-comparison__label{font-size:6px;padding:3px 4px}}
 @media(prefers-reduced-motion:reduce){.filmstrip figure{transition:none!important}}
 html[data-motion="off"] .filmstrip figure,.experience.is-static .filmstrip figure{transition:none!important}
+
+.gaze-shot.is-current .filmstrip{pointer-events:auto}
