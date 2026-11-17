@@ -39,7 +39,8 @@
     cell.style.setProperty('--cell-tilt-axis',axisX.toFixed(3)+' '+axisY.toFixed(3)+' 0 '+angle.toFixed(2)+'deg');
     cell.dataset.glareActive='true';
     activeWorkCell=cell;
-    if(workWall){workWall.classList.add('is-interacting');workWall.querySelectorAll('.work-cell').forEach(item=>{item.classList.toggle('is-active-cell',item===cell);item.style.setProperty('opacity',item===cell?'1':'.72','important');});}
+    workWall?.classList.add('is-interacting');
+    root.querySelectorAll('.work-cell').forEach(item=>{item.classList.toggle('is-active-cell',item===cell);item.style.setProperty('opacity',item===cell?'1':'.72','important');});
   }
   function trackWorkCell(event){
     const cell=event.target.closest?.('.work-cell');
@@ -269,7 +270,7 @@
     } else if(i===4) {
       parts.work.forEach((el,j)=>{
         const enter=1, travel=ease(.4,.7,t);
-        if(!workWall?.classList.contains('is-interacting'))set(el,'opacity','1');set(el,'clipPath','none');
+        if(!activeWorkCell||activeWorkCell===el)set(el,'opacity','1');set(el,'clipPath','none');
         set(el,'transform',`translate3d(${f((1-enter)*(j-2)*geo.w*.1)}px,${f((1-enter)*geo.h*.65-travel*(j%2?12:-12))}px,${f((1-enter)*-450)}px) rotateY(${f((1-enter)*(j%2?22:-22))}deg)`);
       });
     } else if(i===5) reveal(parts.jobs,t+.35,.045);
