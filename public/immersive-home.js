@@ -166,7 +166,7 @@
   const gate = rig.querySelector('.signal-gate'), circle = rig.querySelector('.signal-circle');
   const dot = rig.querySelector('.signal-dot'), map = rig.querySelector('.signal-map');
   const mapCtx = map.getContext('2d');
-  const copy = scenes.map(scene => [...scene.children].filter(el => !el.matches('.opening-photo,.gaze-reel-window,.reach-globe,.work-wall,.journey-list,.veloria-orbit')));
+  const copy = scenes.map(scene => [...scene.children].filter(el => !el.matches('.opening-photo,.gaze-reel-window,.gaze-gate-ticks,.grade-comparison,.reach-globe,.work-wall,.journey-list,.veloria-orbit')));
   const mix = (a,b,t) => a+(b-a)*t;
   const f = v => Number(v).toFixed(3);
   // Scale errors multiply across large surfaces: .001 can move a text edge by
