@@ -39,6 +39,7 @@
     cell.style.setProperty('--cell-tilt-axis',axisX.toFixed(3)+' '+axisY.toFixed(3)+' 0 '+angle.toFixed(2)+'deg');
     cell.dataset.glareActive='true';
     activeWorkCell=cell;
+    if(workWall){workWall.classList.add('is-interacting');workWall.querySelectorAll('.work-cell').forEach(item=>{item.classList.toggle('is-active-cell',item===cell);item.style.setProperty('opacity',item===cell?'1':'.72','important');});}
   }
   function trackWorkCell(event){
     const cell=event.target.closest?.('.work-cell');
@@ -50,7 +51,7 @@
     workWall.addEventListener('pointerenter',syncWorkCell,true);
     workWall.addEventListener('pointermove',syncWorkCell,{passive:true});
     workWall.addEventListener('mousemove',syncWorkCell,{passive:true});
-    workWall.addEventListener('pointerleave',()=>{resetWorkCell(activeWorkCell);activeWorkCell=null;workWall.classList.remove('is-interacting');workWall.querySelectorAll('.work-cell').forEach(item=>item.classList.remove('is-active-cell'));});
+    workWall.addEventListener('pointerleave',()=>{resetWorkCell(activeWorkCell);activeWorkCell=null;workWall.classList.remove('is-interacting');workWall.querySelectorAll('.work-cell').forEach(item=>{item.classList.remove('is-active-cell');item.style.removeProperty('opacity');});});
   }
   const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
   function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
