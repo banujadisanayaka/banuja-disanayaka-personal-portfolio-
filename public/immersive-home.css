@@ -489,3 +489,38 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
   min-height:0!important;
   align-self:start;
 }
+
+
+/* Tablet work matrix: preserve card width instead of compressing five columns. */
+@media(min-width:701px) and (max-width:899px){
+ .work-wall{
+  left:35%;
+  right:5%;
+  top:24%;
+  bottom:calc(var(--rail) + 90px);
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:12px;
+ }
+ .work-cell{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  align-self:stretch;
+  min-width:0;
+  margin-top:0!important;
+  padding:7px 5px;
+ }
+ .work-cell .project-book{
+  width:100%!important;
+  max-width:100%!important;
+  height:auto;
+  aspect-ratio:220/324;
+  margin-bottom:8px;
+ }
+ .work-cell-caption{min-width:0}
+ .work-cell strong{font-size:clamp(13px,1.7vw,16px);overflow-wrap:anywhere}
+ .work-cell small{font-size:8px}
+}
