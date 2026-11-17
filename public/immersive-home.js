@@ -46,11 +46,11 @@
     updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);
   }
   if(workWall){
-    const syncWorkCell=event=>{if(event.pointerType&&event.pointerType!=='mouse')return;const cell=event.target.closest?.('.work-cell');if(cell)updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);};
+    const syncWorkCell=event=>{if(event.pointerType&&event.pointerType!=='mouse')return;const cell=event.target.closest?.('.work-cell');if(cell){updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);workWall.classList.add('is-interacting');workWall.querySelectorAll('.work-cell').forEach(item=>item.classList.toggle('is-active-cell',item===cell));}};
     workWall.addEventListener('pointerenter',syncWorkCell,true);
     workWall.addEventListener('pointermove',syncWorkCell,{passive:true});
     workWall.addEventListener('mousemove',syncWorkCell,{passive:true});
-    workWall.addEventListener('pointerleave',()=>{resetWorkCell(activeWorkCell);activeWorkCell=null;});
+    workWall.addEventListener('pointerleave',()=>{resetWorkCell(activeWorkCell);activeWorkCell=null;workWall.classList.remove('is-interacting');workWall.querySelectorAll('.work-cell').forEach(item=>item.classList.remove('is-active-cell'));});
   }
   const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
   function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
