@@ -379,7 +379,7 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
 
 /* Keep the six-row career ledger clear of the desktop chapter rail. */
 @media(min-width:701px){
- .journey-list{top:25%;bottom:calc(var(--rail) + 18px);justify-content:space-between}
+ .journey-list{top:28%;bottom:calc(var(--rail) + 18px);justify-content:space-between}
  .journey-list li{min-height:0;padding-block:7px!important}
  .journey-list strong{font-size:20px;line-height:1.08;margin:3px 0}
  .journey-list li small{line-height:1.2}
