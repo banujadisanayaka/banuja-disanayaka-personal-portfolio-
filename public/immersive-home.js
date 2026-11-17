@@ -23,6 +23,21 @@
   const workWall=root.querySelector('.work-wall');
   let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false,activeWorkCell=null;
   const resetWorkCell=cell=>{if(!cell)return;['--cell-glare-x','--cell-glare-y','--cell-tilt-x','--cell-tilt-y','--cell-tilt-axis'].forEach(name=>cell.style.removeProperty(name));delete cell.dataset.glareActive;};
+  function setActiveWorkCell(activeCell){
+    const wall=activeCell?activeCell.closest('.work-wall'):workWall;
+    if(!wall)return;
+    const cells=wall.querySelectorAll('.work-cell');
+    if(!activeCell){
+      delete wall.dataset.hasActiveCell;
+      cells.forEach(cell=>{cell.classList.remove('is-active-cell','is-dimmed-cell');delete cell.dataset.dimmed;resetWorkCell(cell);});
+      return;
+    }
+    wall.dataset.hasActiveCell='true';
+    cells.forEach(cell=>{
+      if(cell===activeCell){cell.classList.add('is-active-cell');cell.classList.remove('is-dimmed-cell');delete cell.dataset.dimmed;}
+      else{cell.classList.remove('is-active-cell');cell.classList.add('is-dimmed-cell');cell.dataset.dimmed='true';resetWorkCell(cell);}
+    });
+  }
   function workCellMotionAllowed(){
     return !reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
   }
@@ -39,20 +54,20 @@
     cell.style.setProperty('--cell-tilt-axis',axisX.toFixed(3)+' '+axisY.toFixed(3)+' 0 '+angle.toFixed(2)+'deg');
     cell.dataset.glareActive='true';
     activeWorkCell=cell;
-    workWall?.classList.add('is-interacting');
-    root.querySelectorAll('.work-cell').forEach(item=>{item.classList.toggle('is-active-cell',item===cell);item.style.setProperty('opacity',item===cell?'1':'.72','important');});
+    setActiveWorkCell(cell);
   }
   function trackWorkCell(event){
     const cell=event.target.closest?.('.work-cell');
-    if(!cell){resetWorkCell(activeWorkCell);activeWorkCell=null;return;}
+    if(!cell){setActiveWorkCell(null);activeWorkCell=null;return;}
     updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);
   }
   if(workWall){
-    const syncWorkCell=event=>{if(event.pointerType&&event.pointerType!=='mouse')return;const cell=event.target.closest?.('.work-cell');if(cell){updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);workWall.classList.add('is-interacting');workWall.querySelectorAll('.work-cell').forEach(item=>item.classList.toggle('is-active-cell',item===cell));}};
+    const syncWorkCell=event=>{if(event.pointerType&&event.pointerType!=='mouse')return;const cell=event.target.closest?.('.work-cell');if(cell){updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);setActiveWorkCell(cell);}};
     workWall.addEventListener('pointerenter',syncWorkCell,true);
     workWall.addEventListener('pointermove',syncWorkCell,{passive:true});
     workWall.addEventListener('mousemove',syncWorkCell,{passive:true});
-    workWall.addEventListener('pointerleave',()=>{resetWorkCell(activeWorkCell);activeWorkCell=null;workWall.classList.remove('is-interacting');workWall.querySelectorAll('.work-cell').forEach(item=>{item.classList.remove('is-active-cell');item.style.removeProperty('opacity');});});
+    workWall.addEventListener('focusin',event=>{const cell=event.target.closest?.('.work-cell');if(cell)setActiveWorkCell(cell);});
+    workWall.addEventListener('pointerleave',()=>{resetWorkCell(activeWorkCell);activeWorkCell=null;setActiveWorkCell(null);});
   }
   const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
   function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
@@ -468,7 +483,7 @@
       }
     }
     enabled = nextEnabled;
-    if(!enabled){finishSignalLock(true);pointerInside=false;resetWorkCell(activeWorkCell);activeWorkCell=null;reticle?.classList.remove('is-visible','is-active');reticle?.setAttribute('hidden','');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}else if(finePointer.matches&&cursorAllowed()){reticle?.removeAttribute('hidden');}
+    if(!enabled){finishSignalLock(true);pointerInside=false;resetWorkCell(activeWorkCell);activeWorkCell=null;setActiveWorkCell(null);reticle?.classList.remove('is-visible','is-active');reticle?.setAttribute('hidden','');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}else if(finePointer.matches&&cursorAllowed()){reticle?.removeAttribute('hidden');}
     cancelAnimationFrame(raf); raf = 0;
     root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
     cache = new WeakMap();
