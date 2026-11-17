@@ -537,3 +537,80 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
 html[data-motion="off"] .filmstrip figure,.experience.is-static .filmstrip figure{transition:none!important}
 
 .gaze-shot.is-current .filmstrip{pointer-events:auto}
+
+
+/* PHASE 3B — photography rail-safe composition and accessible comparison */
+.gaze-reel-window{z-index:6}
+.gaze-intro{z-index:5;max-width:100%;box-sizing:border-box}
+.gaze-optics{white-space:normal;overflow-wrap:anywhere;max-width:100%}
+.grade-comparison{box-sizing:border-box;max-width:calc(100% - 2rem);z-index:9}
+.grade-comparison__label{color:#fff;background:#050706;line-height:1.25}
+.grade-comparison__control{position:relative;z-index:5;pointer-events:auto}
+.grade-comparison__control input{position:relative;z-index:6;pointer-events:auto;min-height:24px;touch-action:pan-x}
+.grade-comparison__image--raw img{alt:"";pointer-events:none}
+.gaze-shot.is-current .gaze-reel-window{pointer-events:none}
+.gaze-shot.is-current .filmstrip{pointer-events:auto;z-index:7}
+.gaze-shot .gaze-reel-window:before,.gaze-shot .gaze-reel-window:after{pointer-events:none}
+
+/* Desktop: the reel and grading inspector occupy separate columns. */
+@media(min-width:900px){
+ .gaze-intro{top:10%;left:5%;right:52%;width:43%;text-align:left}
+ .gaze-intro h2{font-size:clamp(52px,5.4vw,78px);line-height:.96}
+ .gaze-intro p{margin:12px 0;max-width:48ch;font-size:12px}
+ .gaze-intro small{margin-bottom:8px}
+ .gaze-tags{justify-content:flex-start;gap:6px;margin-top:10px}
+ .gaze-tags span{padding:7px 9px;font-size:8px}
+ .gaze-reel-window{left:4%;right:auto;top:34%;bottom:calc(var(--rail) + 14px);width:48%;height:auto}
+ .filmstrip{left:50%;top:50%;width:88%;max-height:100%;box-sizing:border-box;padding:9px;gap:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));align-content:center;overflow:hidden}
+ .filmstrip figure{min-width:0;min-height:0;aspect-ratio:4/3}
+ .filmstrip figcaption{padding:5px;font-size:7px}
+ .gaze-readout{top:35%;right:5%;left:auto;max-width:38%;width:34%;box-sizing:border-box}
+ .grade-comparison{left:auto;right:5%;bottom:calc(var(--rail) + 14px);width:min(34vw,390px)}
+ .gaze-optics{white-space:normal;overflow-wrap:anywhere}
+}
+
+/* Compact and mobile: stack the title, reel, readout and inspector inside the rails. */
+@media(max-width:899px){
+ .gaze-intro{top:9%;left:5%;right:5%;width:90%;text-align:center}
+ .gaze-intro small{margin-bottom:5px}
+ .gaze-intro h2{font-size:clamp(34px,8.2vw,66px);line-height:.95}
+ .gaze-intro p{max-width:52ch;margin:7px auto;font-size:clamp(9px,1.55vw,12px);line-height:1.35}
+ .gaze-tags{gap:5px;margin-top:7px}
+ .gaze-tags span{padding:5px 7px;font-size:7px}
+ .gaze-reel-window{left:4%;right:auto;top:34%;bottom:auto;width:92%;height:clamp(126px,26dvh,250px);max-height:calc(100dvh - var(--rail) - 210px)}
+ .filmstrip{left:50%;top:50%;width:92%;max-height:100%;box-sizing:border-box;padding:6px;gap:6px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));align-content:center;overflow:hidden}
+ .filmstrip figure{min-width:0;min-height:0;aspect-ratio:4/3}
+ .filmstrip figcaption{padding:4px;font-size:6px;letter-spacing:.03em}
+ .gaze-readout{top:64%;right:4%;left:auto;max-width:42%;width:42%;padding:6px;gap:4px;box-sizing:border-box}
+ .gaze-readout strong{font-size:clamp(32px,8vw,54px)}
+ .gaze-readout>span,.gaze-readout em{font-size:7px}
+ .gaze-optics{font-size:6px;line-height:1.25;letter-spacing:0;white-space:normal;overflow-wrap:anywhere}
+ .grade-comparison{left:4%;right:auto;bottom:calc(var(--rail) + 10px);width:clamp(140px,40vw,220px);max-width:46%;padding:6px}
+ .grade-comparison__heading{font-size:7px;margin-bottom:4px}
+ .grade-comparison__control{grid-template-columns:auto minmax(0,1fr) auto;gap:4px;margin-top:5px;font-size:6px}
+ .grade-comparison__control input{min-height:22px}
+ .grade-comparison__label{font-size:6px;padding:3px}
+}
+@media(max-width:380px){
+ .gaze-intro{top:8%;left:4%;right:4%;width:92%}
+ .gaze-intro h2{font-size:clamp(32px,10vw,40px)}
+ .gaze-intro p{font-size:9px;line-height:1.25;margin:5px auto}
+ .gaze-tags{gap:4px;margin-top:5px}
+ .gaze-tags span{padding:4px 5px;font-size:6px}
+ .gaze-reel-window{top:32%;height:clamp(118px,23dvh,155px);max-height:calc(100dvh - var(--rail) - 230px)}
+ .filmstrip{gap:4px;padding:4px}
+ .filmstrip figcaption{font-size:5px;padding:3px}
+ .gaze-readout{top:58%;width:43%;max-width:43%;padding:5px}
+ .gaze-readout strong{font-size:34px}
+ .gaze-optics{font-size:5.5px}
+ .grade-comparison{width:140px;max-width:46%;bottom:calc(var(--rail) + 8px);padding:5px}
+ .grade-comparison__control{gap:3px;font-size:5.5px}
+}
+@media(max-height:760px) and (max-width:899px){
+ .gaze-intro{top:8%}
+ .gaze-intro p{margin:5px auto}
+ .gaze-tags{margin-top:4px}
+ .gaze-reel-window{top:32%;height:clamp(112px,22dvh,154px)}
+ .gaze-readout{top:57%}
+ .grade-comparison{bottom:calc(var(--rail) + 7px)}
+}
