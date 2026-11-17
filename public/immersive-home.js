@@ -29,13 +29,18 @@
     const cells=wall.querySelectorAll('.work-cell');
     if(!activeCell){
       delete wall.dataset.hasActiveCell;
-      cells.forEach(cell=>{cell.classList.remove('is-active-cell','is-dimmed-cell');delete cell.dataset.dimmed;resetWorkCell(cell);});
+      cells.forEach(cell=>{cell.classList.remove('is-active-cell','is-dimmed-cell');delete cell.dataset.dimmed;cell.style.removeProperty('opacity');resetWorkCell(cell);});
       return;
     }
     wall.dataset.hasActiveCell='true';
     cells.forEach(cell=>{
-      if(cell===activeCell){cell.classList.add('is-active-cell');cell.classList.remove('is-dimmed-cell');delete cell.dataset.dimmed;}
-      else{cell.classList.remove('is-active-cell');cell.classList.add('is-dimmed-cell');cell.dataset.dimmed='true';resetWorkCell(cell);}
+      if(cell===activeCell){
+        cell.classList.add('is-active-cell');cell.classList.remove('is-dimmed-cell');delete cell.dataset.dimmed;
+        cell.style.setProperty('opacity','1','important');
+      }else{
+        cell.classList.remove('is-active-cell');cell.classList.add('is-dimmed-cell');cell.dataset.dimmed='true';
+        cell.style.setProperty('opacity','0.72','important');resetWorkCell(cell);
+      }
     });
   }
   function workCellMotionAllowed(){
