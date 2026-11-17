@@ -384,3 +384,9 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
  .journey-list strong{font-size:20px;line-height:1.08;margin:3px 0}
  .journey-list li small{line-height:1.2}
 }
+
+@media(min-width:701px) and (max-width:1000px){
+ .journey-list{left:48vw;right:auto;width:47vw;top:18%;bottom:calc(var(--rail) + 18px)}
+ .journey-list li{padding-block:6px!important}
+ .journey-list strong{font-size:18px}
+}
