@@ -376,3 +376,6 @@ html[data-motion="off"] .work-discipline-ticker__track,.experience.is-static .wo
  .work-wall:hover .work-cell:not(:hover):not(:focus-within){opacity:.72!important}
  .work-wall:hover .work-cell:hover,.work-wall .work-cell:focus-within{opacity:1!important}
 }
+
+/* Desktop career ledger clears the fixed top film rail. */
+@media(min-width:701px){.journey-list{top:18%}}
