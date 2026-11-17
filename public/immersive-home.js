@@ -24,7 +24,7 @@
   let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false,activeWorkCell=null;
   const resetWorkCell=cell=>{if(!cell)return;['--cell-glare-x','--cell-glare-y','--cell-tilt-x','--cell-tilt-y','--cell-tilt-axis'].forEach(name=>cell.style.removeProperty(name));delete cell.dataset.glareActive;};
   function workCellMotionAllowed(){
-    return finePointer.matches&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
+    return !reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
   }
   function updateWorkCellGlareAndTilt(cell,clientX,clientY){
     if(!cell||!workCellMotionAllowed())return;
@@ -46,7 +46,7 @@
     updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);
   }
   if(workWall){
-    const syncWorkCell=event=>{const cell=event.target.closest?.('.work-cell');if(cell)updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);};
+    const syncWorkCell=event=>{if(event.pointerType&&event.pointerType!=='mouse')return;const cell=event.target.closest?.('.work-cell');if(cell)updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);};
     workWall.addEventListener('pointerenter',syncWorkCell,true);
     workWall.addEventListener('pointermove',syncWorkCell,{passive:true});
     workWall.addEventListener('mousemove',syncWorkCell,{passive:true});
