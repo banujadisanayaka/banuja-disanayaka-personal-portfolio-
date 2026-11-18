@@ -210,9 +210,6 @@ body.immersive-home .motion-toggle{position:static!important;border:1px solid va
   pointer-events:auto!important;
   z-index:auto!important;
 }
-.experience:not(.is-live) .film-scene[inert]{
-  pointer-events:auto!important;
-}
 
 /* V15 Signal Lock / editorial depth sandwich */
 .signal-lock-preloader{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:#050507;color:#f4efe3;pointer-events:none;opacity:1;transition:opacity .28s cubic-bezier(.16,1,.3,1);overflow:hidden}
@@ -613,4 +610,28 @@ html[data-motion="off"] .filmstrip figure,.experience.is-static .filmstrip figur
  .gaze-reel-window{top:32%;height:clamp(112px,22dvh,154px)}
  .gaze-readout{top:57%}
  .grade-comparison{bottom:calc(var(--rail) + 7px)}
+}
+
+
+/* PHASE 3B — keep decorative surfaces inert and scope controls to the active scene. */
+.gaze-intro,
+.gaze-gate-ticks,
+.grade-comparison__image--raw,
+.grade-comparison__label{
+  pointer-events:none;
+}
+.grade-comparison,
+.grade-comparison__control,
+.grade-comparison__control input{
+  pointer-events:none;
+}
+.gaze-shot.is-current .grade-comparison,
+.gaze-shot.is-current .grade-comparison__control,
+.gaze-shot.is-current .grade-comparison__control input{
+  pointer-events:auto;
+}
+.gaze-shot:not(.is-current) .gaze-reel-window,
+.gaze-shot:not(.is-current) .filmstrip,
+.gaze-shot:not(.is-current) .grade-comparison{
+  pointer-events:none!important;
 }
