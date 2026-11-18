@@ -679,3 +679,13 @@ article#photography.film-scene[inert],
   background-image:repeating-linear-gradient(90deg,rgba(212,175,55,.38) 0 2px,transparent 2px 18px);
   background-size:auto 100%;
 }
+
+
+/* Accessible custom grade slider: no native range shadow tree. */
+.grade-comparison__scrubber{position:relative;display:block;width:100%;height:22px;min-width:0;cursor:ew-resize;touch-action:pan-y;outline-offset:3px;--grade-position:50%}
+.grade-comparison__scrubber:before{content:"";position:absolute;left:0;right:0;top:10px;height:3px;background:linear-gradient(90deg,#d4af37 0 var(--grade-position),#777b72 var(--grade-position) 100%);border-radius:3px}
+.grade-comparison__scrubber:after{content:"";position:absolute;left:var(--grade-position);top:4px;width:14px;height:14px;transform:translateX(-50%);border:2px solid #f5e9c7;border-radius:50%;background:#d4af37;box-shadow:0 0 0 2px #050706}
+.grade-comparison__scrubber:focus-visible{outline:1px solid #f5e9c7}
+.grade-comparison__image{background-position:center;background-size:cover;background-repeat:no-repeat}
+.grade-comparison__image img{display:none!important}
+.grade-comparison__control input{display:none!important}
