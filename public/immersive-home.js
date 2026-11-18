@@ -85,14 +85,18 @@
     const photographyHit=event=>{
       const scene=document.querySelector('#photography');
       if(!scene?.classList.contains('is-current')||scene.inert)return null;
-      const selector='.gaze-reel-window,[data-gaze-strip],.filmstrip figure,#perspective-photography';
-      const direct=event.target?.closest?.(selector);
+      const selector='.filmstrip figure,#perspective-photography';
       const x=event.clientX,y=event.clientY;
-      const pointed=Number.isFinite(x)&&Number.isFinite(y)?document.elementFromPoint(x,y)?.closest?.(selector):null;
+      const hitStack=typeof document.elementsFromPoint==='function'&&Number.isFinite(x)&&Number.isFinite(y)
+        ?document.elementsFromPoint(x,y)
+        :[(Number.isFinite(x)&&Number.isFinite(y))?document.elementFromPoint(x,y):null].filter(Boolean);
+      const isFilmFrameHit=hitStack.some(node=>node.matches?.(selector)||Boolean(node.closest?.(selector)));
+      const hitFrame=hitStack.map(node=>node.closest?.('.filmstrip figure')).find(Boolean);
       const containsPoint=el=>{if(!el||!Number.isFinite(x)||!Number.isFinite(y))return false;const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;};
-      const frame=[...scene.querySelectorAll('.filmstrip figure')].find(containsPoint);
-      const surface=frame||direct||pointed||[...scene.querySelectorAll('.gaze-reel-window,#perspective-photography')].find(containsPoint);
-      return surface?{surface,frame}:null;
+      const frame=hitFrame||[...scene.querySelectorAll('.filmstrip figure')].find(containsPoint);
+      const direct=event.target?.closest?.(selector);
+      const surface=frame||direct||hitStack.map(node=>node.closest?.('#perspective-photography')).find(Boolean)||[...scene.querySelectorAll('#perspective-photography')].find(containsPoint);
+      return (isFilmFrameHit||surface||frame)?{surface,frame}:null;
     };
     const syncReticleTarget=event=>{
       if((event.pointerType&&event.pointerType!=='mouse')||!cursorAllowed())return;
