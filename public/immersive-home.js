@@ -96,20 +96,13 @@
     const photographyHit=event=>{
       const scene=document.querySelector('#photography');
       if(!scene?.classList.contains('is-current')||scene.inert)return null;
-      const selector='.filmstrip figure,#perspective-photography';
       const x=event.clientX,y=event.clientY;
-      const hitStack=typeof document.elementsFromPoint==='function'&&Number.isFinite(x)&&Number.isFinite(y)
-        ?document.elementsFromPoint(x,y)
-        :[(Number.isFinite(x)&&Number.isFinite(y))?document.elementFromPoint(x,y):null].filter(Boolean);
-      const isFilmFrameHit=hitStack.some(node=>node.matches?.('.filmstrip figure')||Boolean(node.closest?.('.filmstrip figure')));
-      const isPhotographyInspectorHit=hitStack.some(node=>node.matches?.('#perspective-photography')||Boolean(node.closest?.('#perspective-photography')));
-      const isFilmstripHit=isFilmFrameHit||isPhotographyInspectorHit;
-      const hitFrame=hitStack.map(node=>node.closest?.('.filmstrip figure')).find(Boolean);
-      const containsPoint=el=>{if(!el||!Number.isFinite(x)||!Number.isFinite(y))return false;const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;};
-      const frame=hitFrame||[...scene.querySelectorAll('.filmstrip figure')].find(containsPoint);
-      const direct=event.target?.closest?.(selector);
-      const surface=frame||direct||hitStack.map(node=>node.closest?.('#perspective-photography')).find(Boolean)||[...scene.querySelectorAll('#perspective-photography')].find(containsPoint);
-      return (isFilmstripHit||surface||frame)?{surface,frame}:null;
+      if(!Number.isFinite(x)||!Number.isFinite(y))return null;
+      const containsPoint=el=>{const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;};
+      const frame=[...scene.querySelectorAll('.filmstrip figure')].find(containsPoint);
+      const inspector=scene.querySelector('#perspective-photography');
+      const surface=frame|| (inspector&&containsPoint(inspector)?inspector:null);
+      return surface?{surface,frame}:null;
     };
     const syncReticleTarget=event=>{
       if((event.pointerType&&event.pointerType!=='mouse')||!cursorAllowed())return;
