@@ -54,7 +54,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
         <div class="gaze-reel-window"><div class="filmstrip" data-gaze-strip>
           ${featured.map((g,i)=>`<figure data-photo-id="${esc(g.id||g.preview)}"><div>${photo(g)}</div><figcaption>${String(i+1).padStart(2,'0')} · ${esc(g.title||'Moment')}</figcaption></figure>`).join('')}
           </div></div>
-        <div class="gaze-gate-ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="gaze-gate-ticks" aria-hidden="true"></div>
         <div class="grade-comparison" id="perspective-photography" style="--grade-split:50%" aria-label="From raw to real color grading comparison">
           <div class="grade-comparison__heading"><span>FROM RAW.</span><strong>TO REAL.</strong></div>
           <div class="grade-comparison__frame"><div class="grade-comparison__image grade-comparison__image--graded">${photo(featured[0]||{})}</div><div class="grade-comparison__image grade-comparison__image--raw" aria-hidden="true">${photo(featured[0]||{},true)}</div><span class="grade-comparison__label grade-comparison__label--raw">RAW // LOG</span><span class="grade-comparison__label grade-comparison__label--graded">GRADED // REAL</span><span class="grade-comparison__divider" aria-hidden="true"></span></div>
