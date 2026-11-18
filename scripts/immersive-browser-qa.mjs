@@ -13,6 +13,10 @@ async function fits(page,selector){
  assert.ok(r.left>=-1&&r.right<=r.viewport+1&&r.scroll<=r.width+1,`${selector} fits ${JSON.stringify(r)}`);
  return r;
 }
+async function assertPhotographyActive(page,stage){
+ const state=await page.locator('#photography').evaluate(el=>({current:el.classList.contains('is-current'),inert:el.inert,ariaHidden:el.getAttribute('aria-hidden')}));
+ assert.deepEqual(state,{current:true,inert:false,ariaHidden:'false'},'Photography scene is active before '+stage+': '+JSON.stringify(state));
+}
 async function jump(page,i){await page.getByRole('button',{name:names[i],exact:true}).click();await page.waitForFunction(i=>document.querySelector(`[data-scene="${i}"]`).getAttribute('aria-hidden')==='false',i);await page.waitForTimeout(700);}
 try {
  for(const viewport of [{width:1366,height:900},{width:768,height:1024},{width:390,height:844},{width:320,height:700}]){
@@ -50,11 +54,12 @@ try {
     }
    }
    if(i===1){
+    await assertPhotographyActive(page,'photography layout and comparison checks');
     const topRailBox=await page.locator('.film-topbar').boundingBox(),bottomRailBox=await page.locator('.film-bottombar').boundingBox();
     for(const selector of ['.gaze-intro','.gaze-reel-window','.gaze-readout','#perspective-photography']){const b=await page.locator(selector).boundingBox();assert.ok(b&&b.y>=topRailBox.y+topRailBox.height-1&&b.y+b.height<=bottomRailBox.y+1,'Photography element clears rails: '+selector+' '+JSON.stringify({b,topRailBox,bottomRailBox,viewport}));assert.ok(await page.locator(selector).evaluate(el=>el.scrollWidth<=el.clientWidth+1),'No horizontal overflow: '+selector);}
     assert.equal(await page.locator('[data-gaze-strip] figure').count(),6,'All six featured reel frames remain present');assert.ok(Number(await page.locator('[data-gaze-number]').textContent())>=6,'Frame counter remains numeric');const rawImage=page.locator('.grade-comparison__image--raw img');assert.equal(await rawImage.getAttribute('alt'),'','Decorative RAW overlay has empty alternative text');assert.equal(await rawImage.getAttribute('aria-hidden'),'true','Decorative RAW overlay image is hidden from assistive technology');assert.equal(await page.locator('.grade-comparison__image--raw').getAttribute('aria-hidden'),'true','RAW layer is hidden from assistive technology');assert.equal(await page.locator('[data-grade-scrubber]').evaluate(el=>getComputedStyle(el).pointerEvents),'auto','Grade scrubber remains pointer-interactive');for(const label of ['.grade-comparison__label--raw','.grade-comparison__label--graded']){const style=await page.locator(label).evaluate(el=>({color:getComputedStyle(el).color,background:getComputedStyle(el).backgroundColor}));assert.ok(style.color==='rgb(255, 255, 255)'&&style.background==='rgb(5, 7, 6)','Comparison label uses high-contrast foreground/background: '+label+' '+JSON.stringify(style));}
-    const scrubber=page.locator('[data-grade-scrubber]');await scrubber.evaluate(el=>{el.value='73';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));});assert.equal(await page.locator('#perspective-photography').evaluate(el=>getComputedStyle(el).getPropertyValue('--grade-split').trim()),'73%','Input synchronously updates split');await scrubber.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#perspective-photography').evaluate(el=>getComputedStyle(el).getPropertyValue('--grade-split').trim()),'74%','Keyboard synchronously updates split');
-    if(viewport.width>700){const frame=page.locator('.filmstrip figure').first();await frame.scrollIntoViewIfNeeded();await frame.hover({timeout:10000});assert.equal((await page.locator('.reticle-pill').textContent()).trim(),'[ INSPECT FRAME ]','Frame hover activates inspect reticle');await page.mouse.move(2,2);}
+    await assertPhotographyActive(page,'grade scrubber interaction');const scrubber=page.locator('[data-grade-scrubber]');await scrubber.evaluate(el=>{el.value='73';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));});assert.equal(await page.locator('#perspective-photography').evaluate(el=>getComputedStyle(el).getPropertyValue('--grade-split').trim()),'73%','Input synchronously updates split');await scrubber.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#perspective-photography').evaluate(el=>getComputedStyle(el).getPropertyValue('--grade-split').trim()),'74%','Keyboard synchronously updates split');
+    if(viewport.width>700){await assertPhotographyActive(page,'film frame hover');const frame=page.locator('.filmstrip figure').first();await frame.scrollIntoViewIfNeeded();await frame.hover({timeout:10000});assert.equal((await page.locator('.reticle-pill').textContent()).trim(),'[ INSPECT FRAME ]','Frame hover activates inspect reticle');await page.mouse.move(2,2);}
    }
    if(i===5){
     assert.equal(await page.locator('.journey-list li').count(),6,'Career ledger keeps exactly six entries');
