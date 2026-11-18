@@ -635,3 +635,31 @@ html[data-motion="off"] .filmstrip figure,.experience.is-static .filmstrip figur
 .gaze-shot:not(.is-current) .grade-comparison{
   pointer-events:none!important;
 }
+
+
+/* PHASE 3B — explicit photography hit-test boundary */
+.experience-stage{pointer-events:none}
+.experience-stage>.film-topbar,
+.experience-stage>.film-bottombar,
+.experience-stage>.experience-utility,
+.experience-stage>.experience-skip{pointer-events:auto}
+article#photography.film-scene.is-current,
+article#photography.film-scene.is-current .gaze-intro,
+article#photography.film-scene.is-current .gaze-reel-window,
+article#photography.film-scene.is-current .gaze-gate-ticks{pointer-events:none!important}
+article#photography.film-scene.is-current #perspective-photography,
+article#photography.film-scene.is-current [data-grade-scrubber],
+article#photography.film-scene.is-current a,
+article#photography.film-scene.is-current button,
+article#photography.film-scene.is-current input{pointer-events:auto}
+article#photography.film-scene.is-current .filmstrip,
+article#photography.film-scene.is-current .filmstrip figure{pointer-events:auto;position:relative;z-index:20}
+article#photography.film-scene.is-current .filmstrip{z-index:20}
+article#photography.film-scene.is-current .grade-comparison{pointer-events:none}
+article#photography.film-scene.is-current .grade-comparison__control,
+article#photography.film-scene.is-current .grade-comparison__control input{pointer-events:auto}
+article#photography.film-scene:not(.is-current) .filmstrip,
+article#photography.film-scene:not(.is-current) #perspective-photography,
+article#photography.film-scene:not(.is-current) a,
+article#photography.film-scene:not(.is-current) button,
+article#photography.film-scene:not(.is-current) input{pointer-events:none!important}
