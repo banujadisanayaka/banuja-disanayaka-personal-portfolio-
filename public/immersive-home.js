@@ -87,14 +87,18 @@
       if(!scene?.classList.contains('is-current')||scene.inert)return null;
       const selector='.gaze-reel-window,[data-gaze-strip],.filmstrip figure,#perspective-photography';
       const direct=event.target?.closest?.(selector);
-      const pointed=Number.isFinite(event.clientX)&&Number.isFinite(event.clientY)?document.elementFromPoint(event.clientX,event.clientY)?.closest?.(selector):null;
-      return direct||pointed||null;
+      const x=event.clientX,y=event.clientY;
+      const pointed=Number.isFinite(x)&&Number.isFinite(y)?document.elementFromPoint(x,y)?.closest?.(selector):null;
+      const containsPoint=el=>{if(!el||!Number.isFinite(x)||!Number.isFinite(y))return false;const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;};
+      const frame=[...scene.querySelectorAll('.filmstrip figure')].find(containsPoint);
+      const surface=frame||direct||pointed||[...scene.querySelectorAll('.gaze-reel-window,#perspective-photography')].find(containsPoint);
+      return surface?{surface,frame}:null;
     };
     const syncReticleTarget=event=>{
       if(!cursorAllowed())return;
       const photoSurface=photographyHit(event);
       if(photoSurface){
-        const frame=event.target?.closest?.('.filmstrip figure')||document.elementFromPoint?.(event.clientX,event.clientY)?.closest?.('.filmstrip figure');
+        const frame=photoSurface.frame||event.target?.closest?.('.filmstrip figure');
         if(frame){frame.classList.add('is-active-frame');frame.parentElement?.querySelectorAll('figure').forEach(item=>{if(item!==frame)item.classList.remove('is-active-frame');});}
         if(reticlePill)reticlePill.textContent='[ INSPECT FRAME ]';
         reticle.classList.add('is-active');
