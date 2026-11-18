@@ -20,7 +20,18 @@
   const forced = matchMedia('(forced-colors: active)');
   const finePointer=matchMedia('(hover: hover) and (pointer: fine)'),reticle=document.querySelector('.magnetic-reticle'),reticlePill=reticle?.querySelector('.reticle-pill');
   const gradeInspector=root.querySelector('#perspective-photography'),gradeScrubber=gradeInspector?.querySelector('[data-grade-scrubber]'),gradeValue=gradeInspector?.querySelector('[data-grade-value]');
-  const syncGradeSplit=()=>{if(!gradeInspector||!gradeScrubber)return;const value=Math.max(0,Math.min(100,Number(gradeScrubber.value)||0));gradeInspector.style.setProperty('--grade-split',value+'%');if(gradeValue)gradeValue.value=value+'%';};gradeScrubber?.addEventListener('input',syncGradeSplit);gradeScrubber?.addEventListener('change',syncGradeSplit);syncGradeSplit();
+  let gradePosition=50;
+  if(gradeScrubber){
+    Object.defineProperty(gradeScrubber,'value',{configurable:true,get:()=>String(gradePosition),set:value=>{gradePosition=Math.max(0,Math.min(100,Number(value)||0));}});
+    const syncGradeSplit=()=>{gradePosition=Math.max(0,Math.min(100,Number(gradeScrubber.value)||0));gradeScrubber.dataset.value=String(gradePosition);gradeScrubber.setAttribute('aria-valuenow',String(gradePosition));gradeScrubber.style.setProperty('--grade-position',gradePosition+'%');gradeInspector.style.setProperty('--grade-split',gradePosition+'%');if(gradeValue)gradeValue.value=gradePosition+'%';};
+    const setGradeFromPointer=event=>{const rect=gradeScrubber.getBoundingClientRect();if(!rect.width)return;gradeScrubber.value=((event.clientX-rect.left)/rect.width)*100;syncGradeSplit();};
+    gradeScrubber.addEventListener('input',syncGradeSplit);gradeScrubber.addEventListener('change',syncGradeSplit);
+    gradeScrubber.addEventListener('pointerdown',event=>{setGradeFromPointer(event);gradeScrubber.setPointerCapture?.(event.pointerId);});
+    gradeScrubber.addEventListener('pointermove',event=>{if(event.buttons&1)setGradeFromPointer(event);});
+    gradeScrubber.addEventListener('click',setGradeFromPointer);
+    gradeScrubber.addEventListener('keydown',event=>{let next=gradePosition;if(event.key==='ArrowRight'||event.key==='ArrowUp')next+=1;else if(event.key==='ArrowLeft'||event.key==='ArrowDown')next-=1;else if(event.key==='Home')next=0;else if(event.key==='End')next=100;else return;event.preventDefault();gradeScrubber.value=next;syncGradeSplit();gradeScrubber.dispatchEvent(new Event('input',{bubbles:true}));});
+    syncGradeSplit();
+  }
   const clockNode=root.querySelector('[data-dual-clock]');
   const workWall=root.querySelector('.work-wall');
   let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false,activeWorkCell=null;
