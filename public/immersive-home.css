@@ -663,3 +663,19 @@ article#photography.film-scene:not(.is-current) #perspective-photography,
 article#photography.film-scene:not(.is-current) a,
 article#photography.film-scene:not(.is-current) button,
 article#photography.film-scene:not(.is-current) input{pointer-events:none!important}
+
+
+/* PHASE 3B PERFORMANCE — isolate animated content and keep changing telemetry width-stable. */
+.gaze-readout{contain:layout style}
+[data-gaze-number]{display:inline-block;min-width:2.2ch;font-variant-numeric:tabular-nums;text-align:right}
+#perspective-photography,.grade-comparison{contain:layout style paint}
+.gaze-gate-ticks,.opening-telemetry-hud,.work-wall,.journey-list{contain:layout style paint}
+/* Scene state must remain paint/interaction-only; no geometry changes are introduced here. */
+article#photography.film-scene.is-current,
+article#photography.film-scene[inert],
+.film-scene.is-current,
+.film-scene[inert]{transition-property:opacity,transform,visibility}
+.gaze-gate-ticks{
+  background-image:repeating-linear-gradient(90deg,rgba(212,175,55,.38) 0 2px,transparent 2px 18px);
+  background-size:auto 100%;
+}
