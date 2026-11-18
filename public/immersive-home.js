@@ -80,8 +80,8 @@
   function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
   function syncClock(){updateStudioClock();if(clockTimer)clearInterval(clockTimer);if(!document.hidden)clockTimer=setInterval(updateStudioClock,30000);}
   syncClock();document.addEventListener('visibilitychange',syncClock);
-  function cursorAllowed(){return finePointer.matches&&enabled&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static');}
-  if(finePointer.matches&&reticle){
+  function cursorAllowed(){return enabled&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static');}
+  if(reticle){
     const photographyHit=event=>{
       const scene=document.querySelector('#photography');
       if(!scene?.classList.contains('is-current')||scene.inert)return null;
@@ -95,7 +95,7 @@
       return surface?{surface,frame}:null;
     };
     const syncReticleTarget=event=>{
-      if(!cursorAllowed())return;
+      if((event.pointerType&&event.pointerType!=='mouse')||!cursorAllowed())return;
       const photoSurface=photographyHit(event);
       if(photoSurface){
         const frame=photoSurface.frame||event.target?.closest?.('.filmstrip figure');
