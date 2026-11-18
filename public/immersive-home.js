@@ -68,7 +68,7 @@
     if(!cell){setActiveWorkCell(null);activeWorkCell=null;return;}
     updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);
   }
-  if(workWall){
+  if(workWall&&finePointer.matches){
     const syncWorkCell=event=>{if(event.pointerType&&event.pointerType!=='mouse')return;const cell=event.target.closest?.('.work-cell');if(cell){updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);setActiveWorkCell(cell);}};
     workWall.addEventListener('pointerenter',syncWorkCell,true);
     workWall.addEventListener('pointermove',syncWorkCell,{passive:true});
@@ -81,7 +81,7 @@
   function syncClock(){updateStudioClock();if(clockTimer)clearInterval(clockTimer);if(!document.hidden)clockTimer=setInterval(updateStudioClock,30000);}
   syncClock();document.addEventListener('visibilitychange',syncClock);
   function cursorAllowed(){return enabled&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static');}
-  if(reticle){
+  if(reticle&&finePointer.matches){
     const photographyHit=event=>{
       const scene=document.querySelector('#photography');
       if(!scene?.classList.contains('is-current')||scene.inert)return null;
