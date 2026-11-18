@@ -99,7 +99,7 @@
       const x=event.clientX,y=event.clientY;
       if(!Number.isFinite(x)||!Number.isFinite(y))return null;
       const containsPoint=el=>{const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;};
-      const frame=[...scene.querySelectorAll('.filmstrip figure')].find(containsPoint);
+      const frame=event.target?.closest?.('.filmstrip figure')||[...scene.querySelectorAll('.filmstrip figure')].find(containsPoint);
       const inspector=scene.querySelector('#perspective-photography');
       const surface=frame|| (inspector&&containsPoint(inspector)?inspector:null);
       return surface?{surface,frame}:null;
