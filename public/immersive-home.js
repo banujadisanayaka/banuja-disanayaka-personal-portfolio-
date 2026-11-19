@@ -94,14 +94,21 @@
   function cursorAllowed(){return enabled&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static');}
   if(reticle&&finePointer.matches){
     const photographyHit=event=>{
-      const scene=document.querySelector('#photography');
-      if(!scene?.classList.contains('is-current')||scene.inert)return null;
       const x=event.clientX,y=event.clientY;
       if(!Number.isFinite(x)||!Number.isFinite(y))return null;
-      const containsPoint=el=>{const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;};
-      const frame=event.target?.closest?.('.filmstrip figure')||[...scene.querySelectorAll('.filmstrip figure')].find(containsPoint);
+      const containsPoint=el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;};
+      const directFrame=event.target?.closest?.('.filmstrip figure, [data-gaze-strip] figure');
+      const directInspector=event.target?.closest?.('#perspective-photography, [data-grade-scrubber]');
+      const scene=directFrame?.closest('#photography')||directInspector?.closest('#photography')||document.querySelector('#photography');
+      const visible=el=>{if(!el)return false;const style=getComputedStyle(el);return style.display!=='none'&&style.visibility!=='hidden'&&el.getBoundingClientRect().width>0&&el.getBoundingClientRect().height>0;};
+      // A directly hit visible film frame/inspector takes priority over scene/link
+      // resolution. This path is event-driven and never runs in the scroll loop.
+      if(directFrame&&visible(directFrame))return {surface:directFrame,frame:directFrame};
+      if(directInspector&&visible(directInspector))return {surface:directInspector,frame:null};
+      if(!scene?.classList.contains('is-current')||scene.inert)return null;
+      const frame=[...scene.querySelectorAll('.filmstrip figure, [data-gaze-strip] figure')].find(el=>visible(el)&&containsPoint(el));
       const inspector=scene.querySelector('#perspective-photography');
-      const surface=frame|| (inspector&&containsPoint(inspector)?inspector:null);
+      const surface=frame||(visible(inspector)&&containsPoint(inspector)?inspector:null);
       return surface?{surface,frame}:null;
     };
     const syncReticleTarget=event=>{
