@@ -321,14 +321,14 @@
     if (enabled) schedule(); else drawWorld();
   }).catch(() => {});
 
+  function resolveCanvasDpr(){return Math.min(devicePixelRatio||1,innerWidth<768||matchMedia('(pointer: coarse)').matches?1.5:2);}
   function measure() {
     const h = stage.clientHeight, w = stage.clientWidth;
     geo = { h, w, top: root.getBoundingClientRect().top + scrollY,
       reelTravel: Math.max(0, parts.strip.scrollHeight - parts.window.clientHeight) };
     if (enabled) root.style.height = `${h * (total + 1)}px`;
     globeSize = canvas.clientWidth;
-    const mobileOrCoarse=innerWidth<768||matchMedia('(pointer: coarse)').matches;
-    const dpr=Math.min(devicePixelRatio||1,mobileOrCoarse?1.5:2);
+    const dpr=resolveCanvasDpr();
     const globePixels = Math.round(globeSize * dpr);
     if (canvas.width !== globePixels || canvas.height !== globePixels) {
       canvas.width = globePixels; canvas.height = globePixels;
@@ -706,7 +706,7 @@
   addEventListener('resize', () => {
     const allowed = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
     if (allowed !== enabled) configure();
-    else if (!enabled || stage.clientWidth !== geo.w || stage.clientHeight !== geo.h || map.width !== Math.round(geo.w * Math.min(devicePixelRatio || 1, 2))) {
+    else if (!enabled || stage.clientWidth !== geo.w || stage.clientHeight !== geo.h || map.width !== Math.round(geo.w * resolveCanvasDpr())) {
       // Mobile toolbar resizing can leave the small-viewport stage unchanged.
       // In that case retain its canvas buffers and geometry instead of reallocating.
       dirty = true; if (enabled) schedule(); else measure();
