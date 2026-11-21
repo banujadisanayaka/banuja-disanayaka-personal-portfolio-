@@ -134,6 +134,46 @@
     addEventListener('pointerout',event=>{const frame=event.target.closest?.('.filmstrip figure');if(frame&&!event.relatedTarget?.closest?.('.filmstrip figure'))frame.classList.remove('is-active-frame');const cell=event.target.closest?.('.work-cell');if(cell&&!event.relatedTarget?.closest?.('.work-cell')){resetWorkCell(cell);if(activeWorkCell===cell)activeWorkCell=null;}if(event.target.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link')&&!event.relatedTarget?.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link'))reticle.classList.remove('is-active');},{passive:true});
     addEventListener('pointerleave',()=>{pointerInside=false;resetWorkCell(activeWorkCell);activeWorkCell=null;reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');});
     finePointer.addEventListener('change',()=>{if(!finePointer.matches){resetWorkCell(activeWorkCell);activeWorkCell=null;reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}});
+
+    // Capture-phase photography guard: the existing window-level hover handlers
+    // can resolve the same event as a generic link. Reassert the inspect state
+    // after the event dispatch so a later [ EXPLORE ] assignment cannot win.
+    const inspectSurfaceSelector='.filmstrip figure, [data-gaze-strip] figure, .gaze-reel-window, #perspective-photography, [data-grade-scrubber]';
+    const inspectScene=()=>document.querySelector('#photography');
+    const canInspect=()=>finePointer.matches&&!reduced.matches&&cursorAllowed();
+    const isInspectHit=event=>{
+      if(!canInspect()||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return false;
+      const scene=inspectScene();
+      if(!scene||scene.inert||!scene.classList.contains('is-current'))return false;
+      const visible=el=>{
+        if(!el)return false;
+        const style=getComputedStyle(el),rect=el.getBoundingClientRect();
+        return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)!==0&&rect.width>0&&rect.height>0;
+      };
+      const direct=event.target?.closest?.(inspectSurfaceSelector);
+      if(direct&&scene.contains(direct)&&visible(direct))return true;
+      const x=event.clientX,y=event.clientY,pad=8;
+      return [...scene.querySelectorAll(inspectSurfaceSelector)].some(el=>{
+        if(!visible(el))return false;
+        const rect=el.getBoundingClientRect();
+        return x>=rect.left-pad&&x<=rect.right+pad&&y>=rect.top-pad&&y<=rect.bottom+pad;
+      });
+    };
+    const enforceInspectState=event=>{
+      if(!isInspectHit(event))return;
+      const apply=()=>{
+        if(!canInspect()||!reticlePill)return;
+        reticlePill.textContent='[ INSPECT FRAME ]';
+        reticlePill.dataset.reticleState='inspect';
+        reticle.dataset.reticleState='inspect';
+        reticle.classList.add('is-active');
+      };
+      apply();
+      queueMicrotask(apply);
+    };
+    document.addEventListener('pointermove',enforceInspectState,{capture:true,passive:true});
+    document.addEventListener('pointerover',enforceInspectState,{capture:true,passive:true});
+    document.addEventListener('mousemove',enforceInspectState,{capture:true,passive:true});
   }
 
   const names = nav.map(b => b.getAttribute('aria-label'));
