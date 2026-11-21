@@ -92,7 +92,7 @@
   function syncClock(){updateStudioClock();if(clockTimer)clearInterval(clockTimer);if(!document.hidden)clockTimer=setInterval(updateStudioClock,30000);}
   syncClock();document.addEventListener('visibilitychange',syncClock);
   function cursorAllowed(){return enabled&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static');}
-  if(reticle&&finePointer.matches){
+  if(reticle){
     const photographyHit=event=>{
       const x=event.clientX,y=event.clientY;
       if(!Number.isFinite(x)||!Number.isFinite(y))return null;
@@ -140,9 +140,9 @@
     // after the event dispatch so a later [ EXPLORE ] assignment cannot win.
     const inspectSurfaceSelector='.filmstrip figure, [data-gaze-strip] figure, .gaze-reel-window, #perspective-photography, [data-grade-scrubber]';
     const inspectScene=()=>document.querySelector('#photography');
-    const canInspect=()=>finePointer.matches&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!document.querySelector('.experience.is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
+    const canInspect=event=>(finePointer.matches||event?.type==='mousemove'||event?.pointerType==='mouse')&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!document.querySelector('.experience.is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
     const isInspectHit=event=>{
-      if(!canInspect()||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return false;
+      if(!canInspect(event)||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return false;
       const scene=inspectScene();
       if(!scene||scene.inert||!scene.classList.contains('is-current'))return false;
       const visible=el=>{
@@ -162,7 +162,7 @@
     const enforceInspectState=event=>{
       if(!isInspectHit(event))return;
       const apply=()=>{
-        if(!canInspect()||!reticlePill)return;
+        if(!canInspect(event)||!reticlePill)return;
         reticlePill.textContent='[ INSPECT FRAME ]';
         reticlePill.dataset.reticleState='inspect';
         reticle.dataset.reticleState='inspect';
