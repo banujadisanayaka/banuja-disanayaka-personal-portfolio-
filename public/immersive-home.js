@@ -1,5 +1,25 @@
 (() => {
   'use strict';
+  const lock=document.querySelector('.signal-lock-preloader'),lockProgress=document.querySelector('[data-lock-progress]');
+  let lockTimer=0,lockStarted=0,lockElapsed=0;
+  function finishSignalLock(immediate=false){if(!lock||lock.dataset.finished==='true')return;lock.dataset.finished='true';if(lockTimer)clearInterval(lockTimer);if(lockProgress)lockProgress.textContent='100%';lock.classList.add('is-exiting');lock.style.pointerEvents='none';const hide=()=>{lock.hidden=true;lock.style.display='none';};if(immediate)hide();else setTimeout(hide,320);}
+  function syncSignalLockTimer(){
+    if(!lock||lock.dataset.finished==='true')return;
+    if(document.hidden){if(lockTimer)clearInterval(lockTimer);lockTimer=0;return;}
+    if(lockTimer)return;
+    lockStarted=performance.now();
+    lockTimer=setInterval(()=>{
+      if(document.hidden)return;
+      lockElapsed+=performance.now()-lockStarted;lockStarted=performance.now();
+      const progress=Math.min(100,Math.floor(lockElapsed/1120*100));
+      if(lockProgress)lockProgress.textContent=String(progress).padStart(2,'0')+'%';
+      if(progress>=100)finishSignalLock();
+    },35);
+  }
+  const reducedAtBoot=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(lock&&(navigator.webdriver===true||reducedAtBoot||document.documentElement.dataset.motion==='off'||document.querySelector('.experience.is-static')||document.querySelector('.motion-toggle[aria-pressed="false"]')))finishSignalLock(true);
+  else syncSignalLockTimer();
+  document.addEventListener('visibilitychange',syncSignalLockTimer);
   const root = document.querySelector('[data-experience]');
   if (!root) return;
   const stage = root.querySelector('.experience-stage');
@@ -12,6 +32,164 @@
   if (motion) { root.querySelector('.experience-utility').append(motion); motion.hidden = false; }
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const forced = matchMedia('(forced-colors: active)');
+  const finePointer=matchMedia('(hover: hover) and (pointer: fine)'),reticle=document.querySelector('.magnetic-reticle'),reticlePill=reticle?.querySelector('.reticle-pill');
+  const gradeInspector=root.querySelector('#perspective-photography'),gradeScrubber=gradeInspector?.querySelector('[data-grade-scrubber]'),gradeValue=gradeInspector?.querySelector('[data-grade-value]');
+  let gradePosition=50;
+  if(gradeScrubber){
+    Object.defineProperty(gradeScrubber,'value',{configurable:true,get:()=>String(gradePosition),set:value=>{gradePosition=Math.max(0,Math.min(100,Number(value)||0));}});
+    const syncGradeSplit=()=>{gradePosition=Math.max(0,Math.min(100,Number(gradeScrubber.value)||0));gradeScrubber.dataset.value=String(gradePosition);gradeScrubber.setAttribute('aria-valuenow',String(gradePosition));gradeScrubber.style.setProperty('--grade-position',gradePosition+'%');gradeInspector.style.setProperty('--grade-split',gradePosition+'%');if(gradeValue)gradeValue.value=gradePosition+'%';};
+    const setGradeFromPointer=event=>{const rect=gradeScrubber.getBoundingClientRect();if(!rect.width)return;gradeScrubber.value=((event.clientX-rect.left)/rect.width)*100;syncGradeSplit();};
+    gradeScrubber.addEventListener('input',syncGradeSplit);gradeScrubber.addEventListener('change',syncGradeSplit);
+    gradeScrubber.addEventListener('pointerdown',event=>{setGradeFromPointer(event);gradeScrubber.setPointerCapture?.(event.pointerId);});
+    gradeScrubber.addEventListener('pointermove',event=>{if(event.buttons&1)setGradeFromPointer(event);});
+    gradeScrubber.addEventListener('click',setGradeFromPointer);
+    gradeScrubber.addEventListener('keydown',event=>{let next=gradePosition;if(event.key==='ArrowRight'||event.key==='ArrowUp')next+=1;else if(event.key==='ArrowLeft'||event.key==='ArrowDown')next-=1;else if(event.key==='Home')next=0;else if(event.key==='End')next=100;else return;event.preventDefault();gradeScrubber.value=next;syncGradeSplit();gradeScrubber.dispatchEvent(new Event('input',{bubbles:true}));});
+    syncGradeSplit();
+  }
+  const clockNode=root.querySelector('[data-dual-clock]');
+  const workWall=root.querySelector('.work-wall');
+  let clockTimer=0,pointerX=0,pointerY=0,pointerInside=false,activeWorkCell=null;
+  const resetWorkCell=cell=>{if(!cell)return;['--cell-glare-x','--cell-glare-y','--cell-tilt-x','--cell-tilt-y','--cell-tilt-axis'].forEach(name=>cell.style.removeProperty(name));delete cell.dataset.glareActive;};
+  function setActiveWorkCell(activeCell){
+    const wall=activeCell?activeCell.closest('.work-wall'):workWall;
+    if(!wall)return;
+    const cells=wall.querySelectorAll('.work-cell');
+    if(!activeCell){
+      delete wall.dataset.hasActiveCell;
+      cells.forEach(cell=>{cell.classList.remove('is-active-cell','is-dimmed-cell');delete cell.dataset.dimmed;cell.style.removeProperty('opacity');resetWorkCell(cell);});
+      return;
+    }
+    wall.dataset.hasActiveCell='true';
+    cells.forEach(cell=>{
+      if(cell===activeCell){
+        cell.classList.add('is-active-cell');cell.classList.remove('is-dimmed-cell');delete cell.dataset.dimmed;
+        cell.style.setProperty('opacity','1','important');
+      }else{
+        cell.classList.remove('is-active-cell');cell.classList.add('is-dimmed-cell');cell.dataset.dimmed='true';
+        cell.style.setProperty('opacity','0.72','important');resetWorkCell(cell);
+      }
+    });
+  }
+  function workCellMotionAllowed(){
+    return !reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
+  }
+  function updateWorkCellGlareAndTilt(cell,clientX,clientY){
+    if(!cell||!workCellMotionAllowed())return;
+    const rect=cell.getBoundingClientRect();if(!rect.width||!rect.height)return;
+    const relX=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width)),relY=Math.max(0,Math.min(1,(clientY-rect.top)/rect.height));
+    const tiltX=(.5-relY)*7,tiltY=(relX-.5)*9,angle=Math.hypot(tiltX,tiltY);
+    const axisX=angle?tiltX/angle:0,axisY=angle?tiltY/angle:1;
+    cell.style.setProperty('--cell-glare-x',(relX*100).toFixed(2)+'%');
+    cell.style.setProperty('--cell-glare-y',(relY*100).toFixed(2)+'%');
+    cell.style.setProperty('--cell-tilt-x',tiltX.toFixed(2)+'deg');
+    cell.style.setProperty('--cell-tilt-y',tiltY.toFixed(2)+'deg');
+    cell.style.setProperty('--cell-tilt-axis',axisX.toFixed(3)+' '+axisY.toFixed(3)+' 0 '+angle.toFixed(2)+'deg');
+    cell.dataset.glareActive='true';
+    activeWorkCell=cell;
+    setActiveWorkCell(cell);
+  }
+  function trackWorkCell(event){
+    const cell=event.target.closest?.('.work-cell');
+    if(!cell){setActiveWorkCell(null);activeWorkCell=null;return;}
+    updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);
+  }
+  if(workWall&&finePointer.matches){
+    const syncWorkCell=event=>{if(event.pointerType&&event.pointerType!=='mouse')return;const cell=event.target.closest?.('.work-cell');if(cell){updateWorkCellGlareAndTilt(cell,event.clientX,event.clientY);setActiveWorkCell(cell);}};
+    workWall.addEventListener('pointerenter',syncWorkCell,true);
+    workWall.addEventListener('pointermove',syncWorkCell,{passive:true});
+    workWall.addEventListener('mousemove',syncWorkCell,{passive:true});
+    workWall.addEventListener('focusin',event=>{const cell=event.target.closest?.('.work-cell');if(cell)setActiveWorkCell(cell);});
+    workWall.addEventListener('pointerleave',()=>{resetWorkCell(activeWorkCell);activeWorkCell=null;setActiveWorkCell(null);});
+  }
+  const timeText=zone=>new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+  function updateStudioClock(){if(!clockNode||document.hidden)return;clockNode.textContent=timeText('Asia/Colombo')+' / '+timeText('Asia/Kuala_Lumpur');}
+  function syncClock(){updateStudioClock();if(clockTimer)clearInterval(clockTimer);if(!document.hidden)clockTimer=setInterval(updateStudioClock,30000);}
+  syncClock();document.addEventListener('visibilitychange',syncClock);
+  function cursorAllowed(){return enabled&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!root.classList.contains('is-static');}
+  if(reticle){
+    const photographyHit=event=>{
+      const x=event.clientX,y=event.clientY;
+      if(!Number.isFinite(x)||!Number.isFinite(y))return null;
+      const containsPoint=el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;};
+      const directFrame=event.target?.closest?.('.filmstrip figure, [data-gaze-strip] figure');
+      const directInspector=event.target?.closest?.('#perspective-photography, [data-grade-scrubber]');
+      const scene=directFrame?.closest('#photography')||directInspector?.closest('#photography')||document.querySelector('#photography');
+      const visible=el=>{if(!el)return false;const style=getComputedStyle(el);const rect=el.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0;};
+      // Direct frame hits win immediately. Otherwise use viewport geometry only
+      // for the visible active scene; do not depend on the event target being the
+      // figure because the reel's decorative layers can sit above its children.
+      if(directFrame&&visible(directFrame))return {surface:directFrame,frame:directFrame};
+      if(directInspector&&visible(directInspector))return {surface:directInspector,frame:null};
+      if(!scene||scene.inert||!visible(scene))return null;
+      const frame=[...scene.querySelectorAll('.filmstrip figure, [data-gaze-strip] figure')].find(el=>visible(el)&&containsPoint(el));
+      const inspector=scene.querySelector('#perspective-photography');
+      const surface=frame||(visible(inspector)&&containsPoint(inspector)?inspector:null);
+      return surface?{surface,frame}:null;
+    };
+    const syncReticleTarget=event=>{
+      if((event.pointerType&&event.pointerType!=='mouse')||!cursorAllowed())return;
+      const photoSurface=photographyHit(event);
+      if(photoSurface){
+        const frame=photoSurface.frame||event.target?.closest?.('.filmstrip figure');
+        if(frame){frame.classList.add('is-active-frame');frame.parentElement?.querySelectorAll('figure').forEach(item=>{if(item!==frame)item.classList.remove('is-active-frame');});}
+        if(reticlePill)reticlePill.textContent='[ INSPECT FRAME ]';
+        reticle.classList.add('is-active');
+        return;
+      }
+      const target=event.target?.closest?.('a,button,.work-cell,.photo-link');
+      if(!target)return;
+      if(reticlePill)reticlePill.textContent=target.matches('.photo-link')?'[ INSPECT FRAME ]':'[ EXPLORE ]';
+      reticle.classList.add('is-active');
+    };
+    addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!cursorAllowed())return;pointerX=event.clientX;pointerY=event.clientY;pointerInside=true;trackWorkCell(event);syncReticleTarget(event);root.style.setProperty('--hero-parallax-x',((pointerX/innerWidth)-.5)*26+'px');root.style.setProperty('--hero-parallax-y',((pointerY/innerHeight)-.5)*20+'px');reticle.style.transform=`translate3d(${pointerX}px,${pointerY}px,0)`;reticle.classList.add('is-visible');mapPose='';if(enabled)schedule();},{passive:true});
+    addEventListener('pointerover',syncReticleTarget,{passive:true});
+    addEventListener('pointerenter',syncReticleTarget,{capture:true,passive:true});
+    addEventListener('mousemove',syncReticleTarget,{passive:true});
+    addEventListener('pointerout',event=>{const frame=event.target.closest?.('.filmstrip figure');if(frame&&!event.relatedTarget?.closest?.('.filmstrip figure'))frame.classList.remove('is-active-frame');const cell=event.target.closest?.('.work-cell');if(cell&&!event.relatedTarget?.closest?.('.work-cell')){resetWorkCell(cell);if(activeWorkCell===cell)activeWorkCell=null;}if(event.target.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link')&&!event.relatedTarget?.closest?.('a,button,.work-cell,.filmstrip figure,.photo-link'))reticle.classList.remove('is-active');},{passive:true});
+    addEventListener('pointerleave',()=>{pointerInside=false;resetWorkCell(activeWorkCell);activeWorkCell=null;reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');});
+    finePointer.addEventListener('change',()=>{if(!finePointer.matches){resetWorkCell(activeWorkCell);activeWorkCell=null;reticle.classList.remove('is-visible','is-active');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}});
+
+    // Capture-phase photography guard: the existing window-level hover handlers
+    // can resolve the same event as a generic link. Reassert the inspect state
+    // after the event dispatch so a later [ EXPLORE ] assignment cannot win.
+    const inspectSurfaceSelector='.filmstrip figure, [data-gaze-strip] figure, .gaze-reel-window, #perspective-photography, [data-grade-scrubber]';
+    const inspectScene=()=>document.querySelector('#photography');
+    const canInspect=event=>(finePointer.matches||event?.type==='mousemove'||event?.pointerType==='mouse')&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!document.querySelector('.experience.is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
+    const isInspectHit=event=>{
+      if(!canInspect(event)||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return false;
+      const scene=inspectScene();
+      if(!scene||scene.inert||!scene.classList.contains('is-current'))return false;
+      const visible=el=>{
+        if(!el)return false;
+        const style=getComputedStyle(el),rect=el.getBoundingClientRect();
+        return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)!==0&&rect.width>0&&rect.height>0;
+      };
+      const direct=event.target?.closest?.(inspectSurfaceSelector);
+      if(direct&&scene.contains(direct)&&visible(direct))return true;
+      const x=event.clientX,y=event.clientY,pad=8;
+      return [...scene.querySelectorAll(inspectSurfaceSelector)].some(el=>{
+        if(!visible(el))return false;
+        const rect=el.getBoundingClientRect();
+        return x>=rect.left-pad&&x<=rect.right+pad&&y>=rect.top-pad&&y<=rect.bottom+pad;
+      });
+    };
+    const enforceInspectState=event=>{
+      if(!isInspectHit(event))return;
+      const apply=()=>{
+        if(!canInspect(event)||!reticlePill)return;
+        reticlePill.textContent='[ INSPECT FRAME ]';
+        reticlePill.dataset.reticleState='inspect';
+        reticle.dataset.reticleState='inspect';
+        reticle.classList.add('is-active');
+      };
+      apply();
+      queueMicrotask(apply);
+    };
+    document.addEventListener('pointermove',enforceInspectState,{capture:true,passive:true});
+    document.addEventListener('pointerover',enforceInspectState,{capture:true,passive:true});
+    document.addEventListener('mousemove',enforceInspectState,{capture:true,passive:true});
+  }
+
   const names = nav.map(b => b.getAttribute('aria-label'));
   // The opening pair is intentionally brisk: establish identity, run the reel,
   // then reach the wider story before the experience starts to feel held.
@@ -89,7 +267,7 @@
   const gate = rig.querySelector('.signal-gate'), circle = rig.querySelector('.signal-circle');
   const dot = rig.querySelector('.signal-dot'), map = rig.querySelector('.signal-map');
   const mapCtx = map.getContext('2d');
-  const copy = scenes.map(scene => [...scene.children].filter(el => !el.matches('.opening-photo,.gaze-reel-window,.reach-globe,.work-wall,.journey-list,.veloria-orbit')));
+  const copy = scenes.map(scene => [...scene.children].filter(el => !el.matches('.opening-photo,.gaze-reel-window,.gaze-gate-ticks,.grade-comparison,.reach-globe,.work-wall,.journey-list,.veloria-orbit')));
   const mix = (a,b,t) => a+(b-a)*t;
   const f = v => Number(v).toFixed(3);
   // Scale errors multiply across large surfaces: .001 can move a text edge by
@@ -125,14 +303,14 @@
     const dotRadius=Math.max(.75,size/340);
     for(let n=0;n<depthBuckets.length;n++){
       const points=depthBuckets[n];if(!points.length)continue;
-      ctx.fillStyle=`rgba(197,237,35,${(.2+(n+.5)/24*.7).toFixed(3)})`;ctx.beginPath();
+      ctx.fillStyle=n%5===0?`rgba(225,29,72,${(.16+(n+.5)/24*.58).toFixed(3)})`:`rgba(212,175,55,${(.2+(n+.5)/24*.7).toFixed(3)})`;ctx.beginPath();
       for(let j=0;j<points.length;j+=2){ctx.moveTo(points[j]+dotRadius,points[j+1]);ctx.arc(points[j],points[j+1],dotRadius,0,Math.PI*2);}
       ctx.fill();
     }
     for (const [lon, lat] of [[79.86, 6.93], [101.69, 3.14]]) {
       const [x, y, z] = project(lon, lat);
       if (z <= 0) continue;
-      ctx.fillStyle = '#f0ece1'; ctx.strokeStyle = '#c5ed23'; ctx.lineWidth = 1;
+      ctx.fillStyle = '#f4e9cf'; ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.stroke();
     }
@@ -143,13 +321,14 @@
     if (enabled) schedule(); else drawWorld();
   }).catch(() => {});
 
+  function resolveCanvasDpr(){return Math.min(devicePixelRatio||1,innerWidth<768||matchMedia('(pointer: coarse)').matches?1.5:2);}
   function measure() {
     const h = stage.clientHeight, w = stage.clientWidth;
     geo = { h, w, top: root.getBoundingClientRect().top + scrollY,
       reelTravel: Math.max(0, parts.strip.scrollHeight - parts.window.clientHeight) };
     if (enabled) root.style.height = `${h * (total + 1)}px`;
     globeSize = canvas.clientWidth;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const dpr=resolveCanvasDpr();
     const globePixels = Math.round(globeSize * dpr);
     if (canvas.width !== globePixels || canvas.height !== globePixels) {
       canvas.width = globePixels; canvas.height = globePixels;
@@ -171,6 +350,8 @@
     dirty = false;
     if (!enabled) drawWorld();
   }
+  // PHASE 4 — canvas density is resolved only during measure/setup/resize.
+  // The RAF paint path consumes cached canvas dimensions and never measures layout.
   function setActive(i) {
     if (active === i) return;
     // Never make the focused subtree inert before returning focus to the timeline.
@@ -215,7 +396,7 @@
     } else if(i===4) {
       parts.work.forEach((el,j)=>{
         const enter=1, travel=ease(.4,.7,t);
-        set(el,'opacity','1');set(el,'clipPath','none');
+        if(!activeWorkCell||activeWorkCell===el)set(el,'opacity','1');set(el,'clipPath','none');
         set(el,'transform',`translate3d(${f((1-enter)*(j-2)*geo.w*.1)}px,${f((1-enter)*geo.h*.65-travel*(j%2?12:-12))}px,${f((1-enter)*-450)}px) rotateY(${f((1-enter)*(j%2?22:-22))}deg)`);
       });
     } else if(i===5) reveal(parts.jobs,t+.35,.045);
@@ -259,7 +440,9 @@
     const pose=i===5||i===7||next===7?`${i}:${f(t)}:${f(u)}`:'empty';
     if(pose===mapPose)return;
     mapPose=pose;
-    mapCtx.clearRect(0,0,geo.w,geo.h);mapCtx.strokeStyle='#c5ed23';mapCtx.lineWidth=1;
+    mapCtx.clearRect(0,0,geo.w,geo.h);
+    if(pointerInside&&finePointer.matches&&enabled){const glow=mapCtx.createRadialGradient(pointerX,pointerY,0,pointerX,pointerY,Math.max(150,geo.w*.22));glow.addColorStop(0,'rgba(212,175,55,.16)');glow.addColorStop(.42,'rgba(225,29,72,.055)');glow.addColorStop(1,'rgba(5,5,7,0)');mapCtx.fillStyle=glow;mapCtx.fillRect(0,0,geo.w,geo.h);mapCtx.beginPath();mapCtx.arc(pointerX,pointerY,2.2,0,Math.PI*2);mapCtx.fillStyle='#f5e8c7';mapCtx.fill();mapCtx.beginPath();mapCtx.arc(pointerX,pointerY,15,0,Math.PI*2);mapCtx.strokeStyle='#d4af3788';mapCtx.lineWidth=.7;mapCtx.stroke();}
+    mapCtx.strokeStyle='#d4af37';mapCtx.lineWidth=1;
     if(i===5 && geo.jobs.length){
       const points=geo.jobs, progress=ease(0,.65,t)*(1-u)*(points.length-1);
       mapCtx.beginPath();mapCtx.moveTo(points[0].x,points[0].y);
@@ -351,6 +534,7 @@
     pendingStyles = new Map();
     const i=available.findLast(index=>p>=starts[index])??available[0];
     const phase=clamp((p-starts[i])/durations[i]), next=available[available.indexOf(i)+1];
+
     const u=next!==undefined?clamp((phase-.7)/.3):0;
     setActive(u>.65?next:i);
     // Masked controls must not receive focus while the camera is between scenes.
@@ -410,6 +594,7 @@
       }
     }
     enabled = nextEnabled;
+    if(!enabled){finishSignalLock(true);pointerInside=false;resetWorkCell(activeWorkCell);activeWorkCell=null;setActiveWorkCell(null);reticle?.classList.remove('is-visible','is-active');reticle?.setAttribute('hidden','');root.style.setProperty('--hero-parallax-x','0px');root.style.setProperty('--hero-parallax-y','0px');}else if(finePointer.matches&&cursorAllowed()){reticle?.removeAttribute('hidden');}
     cancelAnimationFrame(raf); raf = 0;
     root.classList.toggle('is-live', enabled); root.classList.toggle('is-static', !enabled);
     cache = new WeakMap();
@@ -521,13 +706,15 @@
   addEventListener('resize', () => {
     const allowed = document.documentElement.dataset.motion !== 'off' && !reduced.matches && !forced.matches && innerHeight >= 650;
     if (allowed !== enabled) configure();
-    else if (!enabled || stage.clientWidth !== geo.w || stage.clientHeight !== geo.h || map.width !== Math.round(geo.w * Math.min(devicePixelRatio || 1, 2))) {
+    else if (!enabled || stage.clientWidth !== geo.w || stage.clientHeight !== geo.h || map.width !== Math.round(geo.w * resolveCanvasDpr())) {
       // Mobile toolbar resizing can leave the small-viewport stage unchanged.
       // In that case retain its canvas buffers and geometry instead of reallocating.
       dirty = true; if (enabled) schedule(); else measure();
     }
   }, { passive: true });
   document.addEventListener('visibilitychange', () => {
+    document.documentElement.dataset.pageHidden=document.hidden?'true':'false';
+    window.dispatchEvent(new CustomEvent('v15:visibility-change',{detail:{hidden:document.hidden}}));
     if (document.hidden) { cancelAnimationFrame(raf); raf = 0; cameraLast = 0; }
     else { cameraReady = false; cameraTargetDir = 0; schedule(); }
   });

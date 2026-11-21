@@ -13,6 +13,10 @@ async function fits(page,selector){
  assert.ok(r.left>=-1&&r.right<=r.viewport+1&&r.scroll<=r.width+1,`${selector} fits ${JSON.stringify(r)}`);
  return r;
 }
+async function assertPhotographyActive(page,stage){
+ const state=await page.locator('#photography').evaluate(el=>({current:el.classList.contains('is-current'),inert:el.inert,ariaHidden:el.getAttribute('aria-hidden')}));
+ assert.deepEqual(state,{current:true,inert:false,ariaHidden:'false'},'Photography scene is active before '+stage+': '+JSON.stringify(state));
+}
 async function jump(page,i){await page.getByRole('button',{name:names[i],exact:true}).click();await page.waitForFunction(i=>document.querySelector(`[data-scene="${i}"]`).getAttribute('aria-hidden')==='false',i);await page.waitForTimeout(700);}
 try {
  for(const viewport of [{width:1366,height:900},{width:768,height:1024},{width:390,height:844},{width:320,height:700}]){
@@ -33,6 +37,54 @@ try {
    await fits(page,`[data-scene="${i}"]`);
    const selector=i===0?'h1':i===4?'.work-wall':i===5?'.journey-list':i===9?'.signature-stage':`[data-scene="${i}"] h2`;
    const bounds=await fits(page,selector);const rail=await page.locator('.film-bottombar').boundingBox();assert.ok(bounds.bottom<=rail.y+1,`${selector} clears controls`);
+   if(i===4){
+    assert.equal(await page.locator('.work-cell').count(),5,'Work matrix keeps exactly five project links');
+    assert.equal(await page.locator('.work-discipline-ticker').getAttribute('aria-hidden'),'true','Discipline ticker is decorative');
+    const ticker=await page.locator('.work-discipline-ticker').innerText();assert.match(ticker,/VISUAL STORYTELLING.*MULTI-BRAND ARCHITECTURE.*FULL-STACK & ANDROID SYSTEMS.*OPERATIONS ENGINEERING/);
+    for(const s of ['.work-caption h2','.work-caption small']){const b=await fits(page,s),top=await page.locator('.film-topbar').boundingBox();assert.ok(!(b.top<top.y+top.height-1&&b.bottom>top.y+1),`${s} does not overlap top controls: ${JSON.stringify({b,top})}`);assert.ok(b.bottom<=rail.y+1,`${s} clears bottom controls`);}const tickerBox=await page.locator('.work-discipline-ticker').boundingBox(),tickerState=await page.locator('.work-discipline-ticker').evaluate(el=>({overflow:getComputedStyle(el).overflowX,width:el.clientWidth,scroll:el.scrollWidth})),tickerTop=await page.locator('.film-topbar').boundingBox();assert.ok(tickerBox.x>=-1&&tickerBox.x+tickerBox.width<=viewport.width+1&&tickerState.width<=viewport.width+1&&tickerState.overflow==='hidden','Discipline ticker stays clipped within viewport');assert.ok(!(tickerBox.y<tickerTop.y+tickerTop.height-1&&tickerBox.y+tickerBox.height>tickerTop.y+1)&&tickerBox.y+tickerBox.height<=rail.y+1,'Discipline ticker clears both film rails');await fits(page,'.work-cell:first-child');
+    const topRailBox=await page.locator('.film-topbar').boundingBox(),topRailBottom=topRailBox.y+topRailBox.height,bottomRailTop=rail.y;const cards=await page.locator('.work-cell').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:el.scrollWidth,width:el.clientWidth};}));
+    for(const b of cards)assert.ok(b.left>=-1&&b.right<=viewport.width+1&&b.scroll<=b.width+1&&b.top>=topRailBottom-1&&b.bottom<=bottomRailTop+1,`Work card fits without rail overlap: ${JSON.stringify({b,topRailBottom,bottomRailTop,viewport})}`);
+    if(viewport.width>700){
+     const card=page.locator('.work-cell').first();await card.hover();
+     const effect=await card.evaluate(el=>({x:el.style.getPropertyValue('--cell-glare-x'),y:el.style.getPropertyValue('--cell-glare-y'),tilt:el.style.getPropertyValue('--cell-tilt-axis')}));
+     assert.ok(effect.x&&effect.y&&effect.tilt,'Desktop card receives pointer glare and 3D micro-tilt');
+     assert.equal((await page.locator('.reticle-pill').textContent()).trim(),'[ EXPLORE ]','Work card activates Explore reticle');
+     const siblingOpacity=await page.locator('.work-cell').nth(1).evaluate(el=>Number(getComputedStyle(el).opacity));assert.ok(Math.abs(siblingOpacity-.72)<.02,'Inactive work cards dim on hover');
+     await page.mouse.move(2,2);
+    }
+   }
+   if(i===1){
+    await assertPhotographyActive(page,'photography layout and comparison checks');
+    const topRailBox=await page.locator('.film-topbar').boundingBox(),bottomRailBox=await page.locator('.film-bottombar').boundingBox();
+    for(const selector of ['.gaze-intro','.gaze-reel-window','.gaze-readout','#perspective-photography']){const b=await page.locator(selector).boundingBox();assert.ok(b&&b.y>=topRailBox.y+topRailBox.height-1&&b.y+b.height<=bottomRailBox.y+1,'Photography element clears rails: '+selector+' '+JSON.stringify({b,topRailBox,bottomRailBox,viewport}));assert.ok(await page.locator(selector).evaluate(el=>el.scrollWidth<=el.clientWidth+1),'No horizontal overflow: '+selector);}
+    assert.equal(await page.locator('[data-gaze-strip] figure').count(),6,'All six featured reel frames remain present');assert.ok(Number(await page.locator('[data-gaze-number]').textContent())>=6,'Frame counter remains numeric');const rawImage=page.locator('.grade-comparison__image--raw');assert.equal(await rawImage.getAttribute('aria-hidden'),'true','Static RAW layer is hidden from assistive technology');assert.equal(await rawImage.locator('img').count(),0,'Static RAW layer has no dynamically decoded image element');assert.equal(await page.locator('[data-grade-scrubber]').getAttribute('role'),'slider','Grade control exposes accessible slider semantics');assert.equal(await page.locator('[data-grade-scrubber]').evaluate(el=>getComputedStyle(el).pointerEvents),'auto','Grade scrubber remains pointer-interactive');for(const label of ['.grade-comparison__label--raw','.grade-comparison__label--graded']){const style=await page.locator(label).evaluate(el=>({color:getComputedStyle(el).color,background:getComputedStyle(el).backgroundColor}));assert.ok(style.color==='rgb(255, 255, 255)'&&style.background==='rgb(5, 7, 6)','Comparison label uses high-contrast foreground/background: '+label+' '+JSON.stringify(style));}
+    await assertPhotographyActive(page,'grade scrubber interaction');const scrubber=page.locator('[data-grade-scrubber]');await scrubber.evaluate(el=>{el.value='73';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));});assert.equal(await page.locator('#perspective-photography').evaluate(el=>getComputedStyle(el).getPropertyValue('--grade-split').trim()),'73%','Input synchronously updates split');await scrubber.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#perspective-photography').evaluate(el=>getComputedStyle(el).getPropertyValue('--grade-split').trim()),'74%','Keyboard synchronously updates split');
+    if(viewport.width>700){
+     await assertPhotographyActive(page,'film frame hover');
+     // Move into the reel's active scroll phase before selecting a frame.
+     // At the chapter boundary the first figure is intentionally translated
+     // below the clipped reel, so its raw box centre is outside the viewport.
+     await page.evaluate(progress=>{const experience=document.querySelector('.experience'),stage=experience.querySelector('.experience-stage'),top=experience.getBoundingClientRect().top+scrollY;scrollTo({top:top+stage.clientHeight*progress,behavior:'instant'});},starts[1]+durations[1]*.6);
+     await page.waitForTimeout(120);
+     await assertPhotographyActive(page,'visible film frame hover');
+     const frame=page.locator('.filmstrip figure').first(),frameBox=await frame.boundingBox(),reelBox=await page.locator('.gaze-reel-window').boundingBox();
+     assert.ok(frameBox&&reelBox,'Film frame and reel have measurable viewport boxes');
+     const visibleFrame={left:Math.max(0,frameBox.x,reelBox.x),top:Math.max(0,frameBox.y,reelBox.y),right:Math.min(viewport.width,frameBox.x+frameBox.width,reelBox.x+reelBox.width),bottom:Math.min(viewport.height,frameBox.y+frameBox.height,reelBox.y+reelBox.height)};
+     assert.ok(visibleFrame.right-visibleFrame.left>4&&visibleFrame.bottom-visibleFrame.top>4,'Film frame exposes a visible pointer target inside the clipped reel: '+JSON.stringify({frameBox,reelBox,visibleFrame,viewport}));
+     await page.mouse.move((visibleFrame.left+visibleFrame.right)/2,(visibleFrame.top+visibleFrame.bottom)/2);
+     await page.waitForTimeout(40);
+     await assertPhotographyActive(page,'post-hover reticle assertion');
+     assert.equal((await page.locator('.reticle-pill').textContent()).trim(),'[ INSPECT FRAME ]','Frame pointer movement activates inspect reticle');
+     await page.mouse.move(2,2);
+    }
+   }
+   if(i===5){
+    assert.equal(await page.locator('.journey-list li').count(),6,'Career ledger keeps exactly six entries');
+    const journeyTitle=await fits(page,'.journey-copy h2'),journeyLabel=await fits(page,'.journey-copy small'),journeyTop=await page.locator('.film-topbar').boundingBox();assert.ok(!(journeyLabel.top<journeyTop.y+journeyTop.height-1&&journeyLabel.bottom>journeyTop.y+1),'Career section label clears top rail');assert.ok(!(journeyTitle.top<journeyTop.y+journeyTop.height-1&&journeyTitle.bottom>journeyTop.y+1),`Career heading does not overlap top controls: ${JSON.stringify({journeyTitle,journeyTop})}`);for(const s of ['.journey-list','.journey-list li:first-child']){const b=await fits(page,s);assert.ok(b.top>=journeyTop.y+journeyTop.height-1,`${s} clears top controls`);assert.ok(b.bottom<=rail.y+1,`${s} clears bottom controls`);}
+    const topRailBox=await page.locator('.film-topbar').boundingBox(),topRailBottom=topRailBox.y+topRailBox.height,bottomRailTop=rail.y;const entries=await page.locator('.journey-list li').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:el.scrollWidth,width:el.clientWidth,scrollHeight:el.scrollHeight,height:el.clientHeight};}));
+    for(const b of entries)assert.ok(b.left>=-1&&b.right<=viewport.width+1&&b.scroll<=b.width+1&&b.scrollHeight<=b.height+1&&b.top>=topRailBottom-1&&b.bottom<=bottomRailTop+1,`Career entry fits without rail overlap: ${JSON.stringify({entry:b,topRailBottom,bottomRailTop,viewport})}`);
+    for(let a=0;a<entries.length;a++)for(let b=a+1;b<entries.length;b++){const x=entries[a],y=entries[b];const overlaps=x.left<y.right-1&&x.right>y.left+1&&x.top<y.bottom-1&&x.bottom>y.top+1;assert.equal(overlaps,false,`Career entries do not overlap: ${JSON.stringify({first:x,second:y,viewport})}`);}
+   }
    await page.screenshot({path:`qa-artifacts/immersive/${viewport.width}-scene-${i+1}.png`});
   }
   assert.equal(await page.locator('.journey-list li').count(),6);
@@ -58,7 +110,7 @@ try {
   for(let n=0;n<14;n++){await page.keyboard.press('Tab');assert.ok(await page.locator('#experience-menu').evaluate(el=>el.contains(document.activeElement)));}
   await page.keyboard.press('Escape');assert.equal(await menu.getAttribute('aria-expanded'),'false');assert.ok(await menu.evaluate(el=>el===document.activeElement));assert.equal(await page.locator('html').evaluate(el=>el.style.overflow),'');
   await menu.click();await page.locator('[data-menu-scene="5"]').click();await page.waitForFunction(()=>document.querySelector('[data-scene="5"]').getAttribute('aria-hidden')==='false');
-  await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();assert.equal(await page.locator('.film-scene[inert]').count(),0);
+  await page.locator('.motion-toggle').click();await page.locator('.experience.is-static').waitFor();assert.equal(await page.locator('.film-scene[inert]').count(),0);assert.equal(await page.locator('.work-discipline-ticker__track').evaluate(el=>getComputedStyle(el).animationName),'none','Static mode disables the studio ticker');
   assert.ok(await page.locator('.motion-toggle').isVisible(),'Motion can be re-enabled from the readable document');
   await page.locator('.motion-toggle').click();await page.locator('.experience.is-live').waitFor();
   assert.equal(await page.locator('.motion-toggle').getAttribute('aria-pressed'),'true');
@@ -73,6 +125,7 @@ try {
   const page=await context.newPage();if(mode==='missing-runtime')await page.route('**/immersive-home.js*',r=>r.abort());if(mode==='cms-offline')await page.route('**/api/content',r=>r.abort());
   await page.goto(preview(base+'/'),{waitUntil:'networkidle'});assert.equal(await page.locator('.film-scene').count(),10);assert.equal(await page.locator('.work-cell').count(),5);
   if(mode!=='cms-offline'){
+   if(mode==='reduced')assert.equal(await page.locator('.work-discipline-ticker__track').evaluate(el=>getComputedStyle(el).animationName),'none','Reduced motion disables the studio ticker');
    assert.equal(await page.locator('.experience.is-live').count(),0);assert.equal(await page.locator('.film-scene[inert]').count(),0);
    for(const s of ['h1','.journey-list','.credits-list','.signature-stage']){await page.locator(s).scrollIntoViewIfNeeded();await fits(page,s);assert.ok(await page.locator(s).isVisible());}
   }

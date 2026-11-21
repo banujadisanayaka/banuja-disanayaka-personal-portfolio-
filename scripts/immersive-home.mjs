@@ -1,4 +1,6 @@
 import {projectBook} from './project-book.mjs';
+// V15: this source owns the generated homepage hero and preloader markup.
+// Runtime animation remains single-owner in public/immersive-home.js.
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 export function immersiveHome({picture,gallery,profile,ecosystem,projects,career,contact}) {
@@ -9,16 +11,18 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
   const jobs=[...(career||[])].reverse();
   const gazeTags=[...new Set(photos.map(item=>item.category).filter(Boolean))].slice(0,4);
 
-  const photo = g => {
+  const photo = (g, decorative = false) => {
     const src=g?.derivatives?.[0]?.url||g?.preview||'';
     const set=Array.isArray(g?.derivatives)?g.derivatives.map(d=>`${esc(d.url)} ${d.width}w`).join(', '):'';
-    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 64vw, 33vw"`:''} alt="${esc(g?.alt||g?.title||'The Daily Gaze photograph')}" width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" loading="eager" fetchpriority="low" decoding="async">`;
+    return `<img src="${esc(src)}"${set?` srcset="${set}" sizes="(max-width:700px) 64vw, 33vw"`:''} alt="${decorative?'':esc(g?.alt||g?.title||'The Daily Gaze photograph')}"${decorative?' aria-hidden="true"':''} width="${Number(g?.width)||960}" height="${Number(g?.height)||1200}" loading="eager" fetchpriority="low" decoding="async">`;
   };
 
   const sceneNames=['Opening','Gaze','Places','Act II','Work','Journey','Act III','VELORIA','Approach','Credits'];
 
   return `
   <a class="experience-skip" href="#contact">Skip cinematic introduction</a>
+  <div class="signal-lock-preloader" aria-hidden="true"><div class="signal-lock-frame"><span class="signal-lock-kicker">VELORIA STUDIO / SIGNAL LOCK</span><img class="signal-lock-mark" src="/assets/v9/banuja-logo-gold.webp" width="56" height="56" alt=""><svg class="signal-lock-signature-svg" viewBox="0 0 1200 1283" aria-hidden="true"><defs><mask id="signal-lock-mask" maskUnits="userSpaceOnUse" x="-100" y="-100" width="1400" height="1500"><path class="signal-lock-pen" pathLength="1" d="M160 725 C90 650 520 315 615 335 C680 385 270 710 305 780 C360 840 685 320 740 325 C800 355 870 175 935 140 M600 340 L535 825 M30 1250 Q585 655 1175 30" fill="none" stroke="white" stroke-width="150" stroke-linecap="round" stroke-linejoin="round"/></mask></defs><image href="/assets/signature/banuja-signature.svg" width="1200" height="1283" mask="url(#signal-lock-mask)"/></svg><div class="signal-lock-readout"><span>INITIALISING VISUAL SYSTEM</span><strong data-lock-progress>00%</strong></div><span class="signal-lock-horizon"></span></div></div>
+  <div class="magnetic-reticle" aria-hidden="true"><span class="reticle-ring"></span><span class="reticle-pill">[ EXPLORE ]</span></div>
   <section class="experience v3-film" data-experience aria-label="Banuja Disanayaka portfolio film">
     <div class="experience-stage">
       <div class="signal-rig" aria-hidden="true">
@@ -37,6 +41,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
           <span><strong>${photos.length}</strong> PHOTOGRAPHS</span>
           <span><strong>${worlds.length}</strong> VELORIA WORLDS</span>
         </div>
+        <aside class="opening-telemetry-hud" aria-label="Studio telemetry"><div class="telemetry-time"><span>CMB // KUL</span><strong data-dual-clock>--:-- / --:--</strong></div><div class="telemetry-coordinate"><span>STUDIO COORDINATES</span><strong>06.93°N / 079.86°E</strong></div><div class="telemetry-status"><i aria-hidden="true"></i><span>SIGNAL ACTIVE</span></div></aside>
       </article>
 
       <article class="film-scene gaze-shot" data-scene="1" id="photography">
@@ -49,10 +54,17 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
         <div class="gaze-reel-window"><div class="filmstrip" data-gaze-strip>
           ${featured.map((g,i)=>`<figure data-photo-id="${esc(g.id||g.preview)}"><div>${photo(g)}</div><figcaption>${String(i+1).padStart(2,'0')} · ${esc(g.title||'Moment')}</figcaption></figure>`).join('')}
           </div></div>
+        <div class="gaze-gate-ticks" aria-hidden="true"></div>
+        <div class="grade-comparison" id="perspective-photography" style="--grade-split:50%" aria-label="From raw to real color grading comparison">
+          <div class="grade-comparison__heading"><span>FROM RAW.</span><strong>TO REAL.</strong></div>
+          <div class="grade-comparison__frame"><div class="grade-comparison__image grade-comparison__image--graded" aria-hidden="true" style="background-image:url(&quot;${esc(featured[0]?.derivatives?.[0]?.url||featured[0]?.preview||"")}&quot;)"></div><div class="grade-comparison__image grade-comparison__image--raw" aria-hidden="true" style="background-image:url(&quot;${esc(featured[0]?.derivatives?.[0]?.url||featured[0]?.preview||"")}&quot;)"></div><span class="grade-comparison__label grade-comparison__label--raw">RAW // LOG</span><span class="grade-comparison__label grade-comparison__label--graded">GRADED // REAL</span><span class="grade-comparison__divider" aria-hidden="true"></span></div>
+          <div class="grade-comparison__control"><span>GRADE SPLIT</span><div class="grade-comparison__scrubber" role="slider" tabindex="0" aria-label="Compare raw and color-graded photograph" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" data-grade-scrubber data-value="50"></div><output data-grade-value>50%</output></div>
+        </div>
         <a class="gaze-visit film-action" href="/daily-gaze/">Explore the journal <span aria-hidden="true">↗</span></a>
         <div class="gaze-readout">
           <span>MOMENTS</span>
           <strong data-gaze-number>0</strong>
+          <small class="gaze-optics">35MM • F/1.8 • ISO 400 • KODAK 2383 LUT</small>
           <em>/ ${photos.length}</em>
         </div>
         <div class="gaze-channel-note">THE DAILY GAZE · VISUAL JOURNAL</div>
@@ -72,7 +84,7 @@ export function immersiveHome({picture,gallery,profile,ecosystem,projects,career
         <div class="work-wall">
           ${work.map((p,i)=>`<a href="/work/${esc(p.slug)}/" class="work-cell c${i}">${projectBook(p,i)}<div class="work-cell-caption"><small>0${i+1} / ${esc(p.year)}</small><strong>${esc(p.title)}</strong><span>${esc(p.category)}</span></div></a>`).join('')}
         </div>
-        <div class="work-caption"><small>WORK · SC 05</small><h2>Ideas, made<br><em>useful.</em></h2></div>
+        <div class="work-caption"><small>WORK · SC 05</small><h2>Ideas, made<br><em>useful.</em></h2><div class="work-discipline-ticker" aria-hidden="true"><div class="work-discipline-ticker__track"><span>VISUAL STORYTELLING • MULTI-BRAND ARCHITECTURE • FULL-STACK &amp; ANDROID SYSTEMS • OPERATIONS ENGINEERING •</span><span>VISUAL STORYTELLING • MULTI-BRAND ARCHITECTURE • FULL-STACK &amp; ANDROID SYSTEMS • OPERATIONS ENGINEERING •</span></div></div></div>
       </article>
 
       <article class="film-scene journey-shot" data-scene="5" id="about">
