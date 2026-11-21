@@ -140,7 +140,7 @@
     // after the event dispatch so a later [ EXPLORE ] assignment cannot win.
     const inspectSurfaceSelector='.filmstrip figure, [data-gaze-strip] figure, .gaze-reel-window, #perspective-photography, [data-grade-scrubber]';
     const inspectScene=()=>document.querySelector('#photography');
-    const canInspect=()=>finePointer.matches&&!reduced.matches&&cursorAllowed();
+    const canInspect=()=>finePointer.matches&&!reduced.matches&&document.documentElement.dataset.motion!=='off'&&!document.querySelector('.experience.is-static')&&!document.querySelector('.motion-toggle[aria-pressed="false"]');
     const isInspectHit=event=>{
       if(!canInspect()||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return false;
       const scene=inspectScene();
